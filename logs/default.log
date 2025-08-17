@@ -1,0 +1,21 @@
+[2025-08-16 10:23:45] INFO     Starting Beatbugging system...
+[2025-08-16 10:23:46] DEBUG    Loaded configuration file: config.yaml
+[2025-08-16 10:23:47] INFO     Connecting to database...
+[2025-08-16 10:23:48] WARNING  Connection delayed, retrying (attempt 1)...
+[2025-08-16 10:23:49] INFO     Connection established.
+[2025-08-16 10:23:50] DEBUG    Initializing audio engine (pygame)...
+[2025-08-16 10:23:51] INFO     Audio engine started with sample rate 44100Hz
+[2025-08-16 10:23:52] ERROR    Failed to load soundfont: default.sf2
+[2025-08-16 10:23:53] WARNING  Falling back to basic sine wave generator.
+[2025-08-16 10:23:54] DEBUG    Log parser initialized.
+[2025-08-16 10:23:55] INFO     Processing log file: server.log
+[2025-08-16 10:23:56] DEBUG    Read 2048 characters from server.log
+[2025-08-16 10:23:57] INFO     Mapping ASCII values to musical scale (minor)
+[2025-08-16 10:23:58] INFO     Generating MIDI sequence...
+[2025-08-16 10:23:59] DEBUG    Note sequence length: 512
+[2025-08-16 10:24:00] INFO     Playback started at 140 BPM
+[2025-08-16 10:24:10] INFO     Playback finished.
+[2025-08-16 10:24:11] INFO     Exporting to file: beatbugging_song.mid
+[2025-08-16 10:24:12] INFO     Export complete.
+[2025-08-16 10:24:13] DEBUG    Cleaning up resources...
+[2025-08-16 10:24:14] INFO     Beatbugging system shutdown complete.
