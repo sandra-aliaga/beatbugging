@@ -21,8 +21,7 @@ class LogMusic:
     def generate_music(self):
         log_lines = self.read_log_file(self.log_path)
         log_notes = self.log_lines_to_dicts(log_lines)
-        for note in log_notes:
-            print(note)
+        print("Cantidad de notas extraidas: " + str(len(log_notes)))
 
     def read_log_file(self, log_path=None, default_path=None, encoding='utf-8'):
         primary = Path(log_path) if log_path is not None else self.log_path
