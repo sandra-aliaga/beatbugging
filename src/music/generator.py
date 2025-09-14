@@ -2,7 +2,7 @@ import time
 import os
 import pygame as pg
 import numpy as np
-from log_utils import LogMusic
+from .log_utils import LogMusic
 
 class LogMusicGenerator:
     

@@ -8,12 +8,12 @@ from rich.text import Text
 from rich.align import Align
 
 class Map:
-    def __init__(self, size=5, active_coords="ah - sj - kd - dh - fu"):
+    def __init__(self, size=5, active_coords="AJ - SK - DL - EM - FN"):
         self.console = Console()
         self.size = size
         self.active_coords = active_coords 
-        self.row_labels = ['a', 's', 'd', 'f', 'g'][:size]
-        self.col_labels = ['h', 'j', 'k', 'y', 'u'][:size]
+        self.row_labels = ['J', 'K', 'L', 'M', 'N'][:size]  # Filas del generador
+        self.col_labels = ['A', 'S', 'D', 'E', 'F'][:size]  # Columnas del generador
         
         self.grid_state = {
             f"{col}{row}": False
