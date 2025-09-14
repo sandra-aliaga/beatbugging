@@ -10,7 +10,7 @@ class LogMusicGenerator:
         self.log_path = log_path
         self.fileState = False
         self.musicState = False
-        self.default_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs", "default.log")
+        self.default_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs", "test-app.log")
         self.scale = ""
         self.freq = ""
         self.rate = ""
@@ -22,8 +22,8 @@ class LogMusicGenerator:
             "triangle": self.__triangle_wave
         }
         
-        self.grid_columns = ['A', 'B', 'C', 'D', 'E']
-        self.grid_rows = [1, 2, 3, 4, 5]
+        self.grid_columns = ['A', 'S', 'D', 'E', 'F']
+        self.grid_rows = ['J', 'K', 'L', 'M', 'N']
         
         if self.log_path != "none":
             if os.path.isfile(self.log_path):
