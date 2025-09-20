@@ -38,104 +38,160 @@ class Map:
         self.health_value = max(0, min(100, value))
 
     def _create_header_panel(self) -> Panel:
+        header_text = "BEATBUGGING DEBUGGING SYSTEM v2.0"
         return Panel(
-            Text("Fixing...", justify="center", style="bold green"),
+            Text(header_text, justify="center", style="bold green"),
             border_style="green",
             height=3
         )
 
     def _create_status_panel(self, status_text: str) -> Panel:
         current_time = time.strftime("%H:%M:%S")
-        line_text = status_text if status_text != "" else f"Line 17: {current_time} [DEBUG]... {status_text}"
+        
+        if status_text and status_text != "System Ready...":
+            formatted_status = status_text
+        else:
+            formatted_status = "Sistema listo para depurar"
+        
+        full_text = Text(
+            f"[{current_time}] {formatted_status}",
+            justify="center",
+            style="green"
+        )
+        
         return Panel(
-            Text(line_text, justify="center", style="green"),
+            full_text,
             border_style="green",
+            title="[bold green]ESTADO ACTUAL[/bold green]",
             height=3
         )
 
     def _create_coordinates_panel(self) -> Panel:
+        # Formatear las coordenadas con arte ASCII
+        if self.active_coords:
+            coords_text = f"═══ {self.active_coords} ═══"
+        else:
+            coords_text = "═══ Sistema limpio - Esperando acciones ═══"
+        
         return Panel(
-            Text(self.active_coords, justify="center", style="green"),
+            Text(coords_text, justify="center", style="bold green"),
             border_style="green",
+            title="[bold green]╭─── PROXIMAS ACCIONES ───╮[/bold green]",
             height=3
         )
 
     def _create_map_display(self) -> Panel:
-        CELL_PART_ACTIVE = "██████"
-        CELL_PART_INACTIVE = "░░░░░░"
+        # Arte ASCII de tamaño decente y legible
+        CELL_ACTIVE_TOP = "╔════════╗"
+        CELL_ACTIVE_MID = "║████████║"
+        CELL_ACTIVE_BOT = "╚════════╝"
+        
+        CELL_INACTIVE_TOP = "╔────────╗"
+        CELL_INACTIVE_MID = "║░░░░░░░░║"
+        CELL_INACTIVE_BOT = "╚────────╝"
         
         map_table = Table(box=None, show_header=False, padding=0, pad_edge=False)
         
+        # Columna para etiquetas de fila
         map_table.add_column(justify="center", style="green bold", width=3)
-
-        for _ in self.col_labels:
-            map_table.add_column(justify="center")
         
+        # Columnas para el grid de tamaño decente
+        for _ in self.col_labels:
+            map_table.add_column(justify="center", width=10)
+        
+        # Crear el grid de tamaño apropiado
         for row_label in self.row_labels:
-            top_parts = [" "]
-            middle_parts = [f" {row_label} "] 
-            bottom_parts = [" "]
+            # Tres filas para cada celda del grid
+            top_row = [f" {row_label} "]
+            middle_row = [f" {row_label} "]
+            bottom_row = ["   "]
             
             for col_label in self.col_labels:
                 coordinate = f"{col_label}{row_label}"
                 is_active = self.grid_state.get(coordinate, False)
                 
-                cell_chars = CELL_PART_ACTIVE if is_active else CELL_PART_INACTIVE
-                style = "green" if is_active else "dim green"
-                cell_text = Text(cell_chars, style=style)
-                
-                top_parts.append(cell_text)
-                middle_parts.append(cell_text)
-                bottom_parts.append(cell_text)
+                if is_active:
+                    # Celda activa con bordes ASCII
+                    top_row.append(Text(CELL_ACTIVE_TOP, style="bold green"))
+                    middle_row.append(Text(CELL_ACTIVE_MID, style="bold green"))
+                    bottom_row.append(Text(CELL_ACTIVE_BOT, style="bold green"))
+                else:
+                    # Celda inactiva con bordes ASCII
+                    top_row.append(Text(CELL_INACTIVE_TOP, style="dim green"))
+                    middle_row.append(Text(CELL_INACTIVE_MID, style="dim green"))
+                    bottom_row.append(Text(CELL_INACTIVE_BOT, style="dim green"))
             
-            map_table.add_row(*top_parts)
-            map_table.add_row(*middle_parts)
-            map_table.add_row(*bottom_parts)
+            # Añadir las tres filas para cada celda
+            map_table.add_row(*top_row)
+            map_table.add_row(*middle_row)
+            map_table.add_row(*bottom_row)
+            
+            # Espacio pequeño entre filas
+            if row_label != self.row_labels[-1]:  # No añadir espacio después de la última fila
+                empty_row = [""] * (len(self.col_labels) + 1)
+                map_table.add_row(*empty_row)
         
-        empty_row = [" "] + [Text("") for _ in self.col_labels]
-        map_table.add_row(*empty_row)
-        
-        col_labels_row = [" "]
+        # Etiquetas de columnas
+        col_header_row = ["   "]
         for label in self.col_labels:
-
-            centered_label = f"   {label}   "
-            col_labels_row.append(Text(centered_label, style="green bold"))
-        map_table.add_row(*col_labels_row)
+            label_text = Text(f"    {label}    ", style="bold green")
+            col_header_row.append(label_text)
+        map_table.add_row(*col_header_row)
         
-        centered_map = Align.center(map_table, vertical="middle")
+        # Texto guía con bordes ASCII pero más pequeño
+        guide_text = Text(
+            "\n╔" + "═"*50 + "╗\n"
+            "║              CONTROLES DEL SISTEMA              ║\n"
+            "║  COLUMNAS: A-S-D-E-F  │  FILAS: J-K-L-M-N     ║\n"
+            "║     ¡Presiona cuando veas celdas activas!      ║\n"
+            "╚" + "═"*50 + "╝",
+            style="green",
+            justify="center"
+        )
         
-        return Panel(centered_map, border_style="green")
+        # Combinar todo
+        from rich.console import Group
+        full_content = Group(
+            Align.center(map_table),
+            Text(""),  # Espacio
+            guide_text
+        )
+        
+        return Panel(
+            full_content, 
+            border_style="green",
+            title="[bold green]╔═══ BEATBUGGING MATRIX ═══╗[/bold green]"
+        )
 
     def _create_progress_bar(self, value: int, max_value: int = 100) -> str:
-
-        bar_width = 50
+        bar_width = 40
         filled = int((value / max_value) * bar_width)
         empty = bar_width - filled
-        return "█" * filled + "░" * empty
+        return "█" * filled + "▒" * empty
 
     def _create_bars_panel(self) -> Panel:
-
+        # Barra de progreso con arte ASCII
         progress_bar = self._create_progress_bar(self.progress_value)
-        progress_text = Text(f"Progress: {progress_bar} {self.progress_value}%", style="green")
+        progress_text = Text(f"║ Progress: [{progress_bar}] {self.progress_value}% ║", style="green")
         
-        # Barra de vida
+        # Barra de vida con arte ASCII
         health_bar = self._create_progress_bar(self.health_value)
-        # Color de la barra de vida según el valor
-        if self.health_value > 60:
-            health_style = "green"
-        elif self.health_value > 30:
-            health_style = "yellow"
-        else:
-            health_style = "red"
-        health_text = Text(f"Health:   {health_bar} {self.health_value}%", style=health_style)
+        health_text = Text(f"║ Health:   [{health_bar}] {self.health_value}% ║", style="green")
         
-        # Combinar ambas barras en un layout
+        # Tabla para organizar las barras
         bars_table = Table(box=None, show_header=False, padding=0)
         bars_table.add_column()
+        bars_table.add_row(Text("╔" + "═"*50 + "╗", style="green"))
         bars_table.add_row(progress_text)
         bars_table.add_row(health_text)
+        bars_table.add_row(Text("╚" + "═"*50 + "╝", style="green"))
         
-        return Panel(bars_table, border_style="green", height=4)
+        return Panel(
+            bars_table, 
+            border_style="green",
+            title="[bold green]╭─── ESTADO DEL SISTEMA ───╮[/bold green]",
+            height=6
+        )
 
     def build_layout(self, status_text="System Ready...") -> Layout:
         """Construye el layout completo de la interfaz."""
@@ -146,7 +202,7 @@ class Map:
             Layout(self._create_status_panel(status_text), name="status", size=3),
             Layout(self._create_coordinates_panel(), name="coords", size=3),
             Layout(self._create_map_display(), name="map"),
-            Layout(self._create_bars_panel(), name="bars", size=4)
+            Layout(self._create_bars_panel(), name="bars", size=6)
         )
         
         return layout
