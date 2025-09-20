@@ -2,57 +2,63 @@ from textual.app import App, ComposeResult
 from textual.widgets import Static, Button, Tree, Label, Select
 from textual.containers import Vertical
 from textual.screen import Screen
+from themes import ThemeManager
 import random
 import os
 
+# Cargar tema actual
+theme = ThemeManager()
 
-# Pantalla de Título
-class TitleScreen(Screen):
-    CSS = """
-    Screen {
+def make_title_css():
+    return f"""
+    Screen {{
         align: center middle;
-        background: black;
-        color: #00ff00;
-    }
+        background: {theme.get("background")};
+        color: {theme.get("primary")};
+    }}
 
-    #ascii {
+    #ascii {{
         text-style: bold;
-        color: #00ff00;
+        color: {theme.get("primary")};
         margin-bottom: 2;
         text-align: center;
-    }
+    }}
 
-    #subtitle {
-        color: #39ff14;
+    #subtitle {{
+        color: {theme.get("secondary")};
         margin-bottom: 2;
         text-align: center;
         width: 100%;
         content-align: center middle;
         text-style: bold;
         padding: 1;
-    }
+    }}
 
-    Button {
+    Button {{
         width: 20;
         margin: 1;
-        border: solid #00ff00;
-        background: black;
-        color: #00ff00;
-    }
+        border: solid {theme.get("primary")};
+        background: {theme.get("background")};
+        color: {theme.get("primary")};
+    }}
 
-    Button:hover {
-        background: #003300;
-    }
+    Button:hover {{
+        background: {theme.get("hover")};
+    }}
 
-    #exit_button {
-        border: solid red;
-        color: red;
-    }
+    #exit_button {{
+        border: solid {theme.get("danger")};
+        color: {theme.get("danger")};
+    }}
 
-    #exit_button:hover {
-        background: #330000;
-    }
+    #exit_button:hover {{
+        background: {theme.get("danger_hover")};
+    }}
     """
+
+
+class TitleScreen(Screen):
+    CSS = make_title_css()
 
     def compose(self) -> ComposeResult:
         ascii_logo = r"""
@@ -79,68 +85,65 @@ class TitleScreen(Screen):
             self.app.exit()
 
 
-# Setup Screen
 class SetupScreen(Screen):
-    CSS = """
-    Screen {
+    CSS = f"""
+    Screen {{
         align: center middle;
-        background: #0a0a0a;
-        color: #00ff00;
-    }
+        background: {theme.get("background")};
+        color: {theme.get("primary")};
+    }}
 
-    #title {
+    #title {{
         text-style: bold;
-        color: #00ff00;
+        color: {theme.get("primary")};
         margin-bottom: 1;
-    }
+    }}
 
-    Tree {
+    Tree {{
         height: 10;
         width: 60;
-        border: solid #00ff00;
-        background: black;
-        color: #00ff00;
-    }
+        border: solid {theme.get("primary")};
+        background: {theme.get("background")};
+        color: {theme.get("primary")};
+    }}
 
-    Select {
-        border: solid #00ff00;
-        background: black;
-        color: #00ff00;
+    Select {{
+        border: solid {theme.get("primary")};
+        background: {theme.get("background")};
+        color: {theme.get("primary")};
         margin-top: 1;
-    }
+    }}
 
-    Button {
+    Button {{
         margin-top: 2;
         width: 25;
-        border: solid #00ff00;
-        background: black;
-        color: #00ff00;
-    }
+        border: solid {theme.get("primary")};
+        background: {theme.get("background")};
+        color: {theme.get("primary")};
+    }}
 
-    Button:hover {
-        background: #003300;
-    }
+    Button:hover {{
+        background: {theme.get("hover")};
+    }}
 
-    .root_mode {
-        border: solid red;
-        color: red;
-    }
+    .root_mode {{
+        border: solid {theme.get("danger")};
+        color: {theme.get("danger")};
+    }}
 
-    .root_mode:hover {
-        background: #330000;
-    }
+    .root_mode:hover {{
+        background: {theme.get("danger_hover")};
+    }}
     """
 
     def compose(self) -> ComposeResult:
         yield Static("⚡ Selección de datos ⚡", id="title")
 
-        # Árbol de archivos para logs
         tree = Tree("C:\\", id="file_tree")
         for item in os.listdir("C:\\"):
             tree.root.add_leaf(item)
         yield tree
 
-        # Selector de dificultad
         yield Select(
             options=[
                 ("User (normal)", "user"),
@@ -173,7 +176,6 @@ class SetupScreen(Screen):
             self.app.notify(f"Iniciando en modo {diff} con archivo {file_chosen}")
 
 
-# Aplicación Principal
 class BeatBuggingApp(App):
     def on_mount(self) -> None:
         self.push_screen(TitleScreen())
