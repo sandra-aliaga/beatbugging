@@ -134,10 +134,27 @@ class SetupScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Static("⚡ Selección de datos ⚡", id="title")
 
-        # Árbol de archivos para logs
-        tree = Tree("C:\\", id="file_tree")
-        for item in os.listdir("C:\\"):
-            tree.root.add_leaf(item)
+        # Árbol de archivos para logs - usar directorio apropiado según el sistema
+        import platform
+        if platform.system() == "Windows":
+            root_dir = "C:\\"
+        else:
+            # En Linux/Unix, usar el directorio de logs del proyecto
+            logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'logs')
+            root_dir = logs_dir if os.path.exists(logs_dir) else "/tmp"
+        
+        tree = Tree(f"📁 {root_dir}", id="file_tree")
+        try:
+            for item in os.listdir(root_dir):
+                # Solo mostrar archivos .log si es el directorio de logs
+                if root_dir.endswith('logs'):
+                    if item.endswith('.log'):
+                        tree.root.add_leaf(f"📄 {item}")
+                else:
+                    tree.root.add_leaf(f"📄 {item}")
+        except (PermissionError, FileNotFoundError):
+            tree.root.add_leaf("📄 default.log (será creado)")
+        
         yield tree
 
         # Selector de dificultad
@@ -168,9 +185,14 @@ class SetupScreen(Screen):
                 self.app.bell()
                 return
             file_chosen = selected.label
-            self.app.pop_screen()
-            self.app.push_screen(TitleScreen())
-            self.app.notify(f"Iniciando en modo {diff} con archivo {file_chosen}")
+            
+            print("\n🎮 Iniciando BeatBugging (Modo Original)...")
+            print(f"📁 Archivo: {file_chosen}")
+            print(f"⚙️  Dificultad: {diff}")
+            print("🎵 Usando mapa de texto como era antes")
+            
+            # Configurar el juego y cerrar el menú
+            self.app.exit(file_chosen)  # Pasar el archivo seleccionado
 
 
 # Aplicación Principal
@@ -178,6 +200,28 @@ class BeatBuggingApp(App):
     def on_mount(self) -> None:
         self.push_screen(TitleScreen())
 
+def run_menu():
+    """Ejecuta el menú y retorna la información del juego seleccionado"""
+    app = BeatBuggingApp()
+    result = app.run()
+    return result
 
 if __name__ == "__main__":
-    BeatBuggingApp().run()
+    result = run_menu()
+    
+    # Si se seleccionó un archivo, ejecutar el juego original
+    if result:
+        import sys
+        import os
+        import subprocess
+        
+        # Obtener la ruta del main.py original
+        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        main_path = os.path.join(root_dir, "main.py")
+        python_path = sys.executable
+        
+        # Ejecutar el juego original en un nuevo proceso
+        try:
+            subprocess.run([python_path, main_path], cwd=root_dir)
+        except Exception as e:
+            print(f"❌ Error al ejecutar el juego: {e}")
