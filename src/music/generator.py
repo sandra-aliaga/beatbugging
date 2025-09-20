@@ -2,7 +2,7 @@ import time
 import os
 import pygame as pg
 import numpy as np
-from log_utils import LogMusic
+from .log_utils import LogMusic
 
 class LogMusicGenerator:
     
@@ -234,9 +234,12 @@ def main():
     
     try:
         print(f"\nReproduciendo audio...")
-        pg.mixer.init(frequency=result['sample_rate'], size=-16, channels=1, buffer=1024)
+        pg.mixer.init(frequency=result['sample_rate'], size=-16, channels=2, buffer=1024)
         
         sound_array = result['audio_data']
+        # Convertir a estéreo si es mono
+        if sound_array.ndim == 1:
+            sound_array = np.column_stack((sound_array, sound_array))
         sound = pg.sndarray.make_sound(sound_array)
         
         print("   ▶ Presiona Enter para reproducir, Ctrl+C para salir")
