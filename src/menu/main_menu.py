@@ -11,10 +11,12 @@ theme = ThemeManager()
 
 def make_title_css():
     return f"""
-    Screen {{
+    #menu {{
         align: center middle;
+        border: round {theme.get("border")};
         background: {theme.get("background")};
         color: {theme.get("primary")};
+        padding: 0;
     }}
 
     #ascii {{
@@ -22,6 +24,8 @@ def make_title_css():
         color: {theme.get("primary")};
         margin-bottom: 2;
         text-align: center;
+        border-bottom: solid {theme.get("primary")};
+        padding-bottom: 1;
     }}
 
     #subtitle {{
@@ -35,24 +39,22 @@ def make_title_css():
     }}
 
     Button {{
-        width: 20;
-        margin: 1;
         border: solid {theme.get("primary")};
         background: {theme.get("background")};
         color: {theme.get("primary")};
-    }}
-
-    Button:hover {{
-        background: {theme.get("hover")};
+        align-horizontal: center;
+        width: 20;
+        margin: 1;
     }}
 
     #exit_button {{
         border: solid {theme.get("danger")};
+        background: {theme.get("background")};
         color: {theme.get("danger")};
     }}
 
-    #exit_button:hover {{
-        background: {theme.get("danger_hover")};
+    #buttons_container {{
+        align: center middle;
     }}
     """
 
@@ -61,22 +63,56 @@ class TitleScreen(Screen):
     CSS = make_title_css()
 
     def compose(self) -> ComposeResult:
-        ascii_logo = r"""
-██████  ███████  █████  ████████     ██████  ██    ██  ██████   ██████   ██ ███    ██  ██████  
-██   ██ ██      ██   ██    ██        ██   ██ ██    ██ ██       ██        ██ ████   ██ ██       
-██████  █████   ███████    ██        ██████  ██    ██ ██   ███ ██   ███  ██ ██ ██  ██ ██   ███ 
-██   ██ ██      ██   ██    ██        ██   ██ ██    ██ ██    ██ ██    ██  ██ ██  ██ ██ ██    ██ 
-███████ ███████ ██   ██    ██        ███████  ██████   ██████   ██████   ██ ██   ████  ██████  
+        with Static(id="menu"):  
+            self.logos = [
+                r"""
+ ███████████  ██████████   █████████   ███████████    ███████████  █████  █████   █████████    █████████  █████ ██████   █████   █████████ 
+░░███░░░░░███░░███░░░░░█  ███░░░░░███ ░█░░░███░░░█   ░░███░░░░░███░░███  ░░███   ███░░░░░███  ███░░░░░███░░███ ░░██████ ░░███   ███░░░░░███
+ ░███    ░███ ░███  █ ░  ░███    ░███ ░   ░███  ░     ░███    ░███ ░███   ░███  ███     ░░░  ███     ░░░  ░███  ░███░███ ░███  ███     ░░░ 
+ ░██████████  ░██████    ░███████████     ░███        ░██████████  ░███   ░███ ░███         ░███          ░███  ░███░░███░███ ░███         
+ ░███░░░░░███ ░███░░█    ░███░░░░░███     ░███        ░███░░░░░███ ░███   ░███ ░███    █████░███    █████ ░███  ░███ ░░██████ ░███    █████
+ ░███    ░███ ░███ ░   █ ░███    ░███     ░███        ░███    ░███ ░███   ░███ ░░███  ░░███ ░░███  ░░███  ░███  ░███  ░░█████ ░░███  ░░███ 
+ ███████████  ██████████ █████   █████    █████       ███████████  ░░████████   ░░█████████  ░░█████████  █████ █████  ░░█████ ░░█████████ 
+░░░░░░░░░░░  ░░░░░░░░░░ ░░░░░   ░░░░░    ░░░░░       ░░░░░░░░░░░    ░░░░░░░░     ░░░░░░░░░    ░░░░░░░░░  ░░░░░ ░░░░░    ░░░░░   ░░░░░░░░░
+""",
+                r"""
+ ███████████  ██████████   █████████   ███████████    ███████████  █████  █████   █████████    █████████  █████ ██████   █████   █████████ 
+▒▒███▒▒▒▒▒███▒▒███▒▒▒▒▒█  ███▒▒▒▒▒███ ▒█▒▒▒███▒▒▒█   ▒▒███▒▒▒▒▒███▒▒███  ▒▒███   ███▒▒▒▒▒███  ███▒▒▒▒▒███▒▒███ ▒▒██████ ▒▒███   ███▒▒▒▒▒███
+ ▒███    ▒███ ▒███  █ ▒  ▒███    ▒███ ▒   ▒███  ▒     ▒███    ▒███ ▒███   ▒███  ███     ▒▒▒  ███     ▒▒▒  ▒███  ▒███▒███ ▒███  ███     ▒▒▒ 
+ ▒██████████  ▒██████    ▒███████████     ▒███        ▒██████████  ▒███   ▒███ ▒███         ▒███          ▒███  ▒███▒▒███▒███ ▒███         
+ ▒███▒▒▒▒▒███ ▒███▒▒█    ▒███▒▒▒▒▒███     ▒███        ▒███▒▒▒▒▒███ ▒███   ▒███ ▒███    █████▒███    █████ ▒███  ▒███ ▒▒██████ ▒███    █████
+ ▒███    ▒███ ▒███ ▒   █ ▒███    ▒███     ▒███        ▒███    ▒███ ▒███   ▒███ ▒▒███  ▒▒███ ▒▒███  ▒▒███  ▒███  ▒███  ▒▒█████ ▒▒███  ▒▒███ 
+ ███████████  ██████████ █████   █████    █████       ███████████  ▒▒████████   ▒▒█████████  ▒▒█████████  █████ █████  ▒▒█████ ▒▒█████████ 
+▒▒▒▒▒▒▒▒▒▒▒  ▒▒▒▒▒▒▒▒▒▒ ▒▒▒▒▒   ▒▒▒▒▒    ▒▒▒▒▒       ▒▒▒▒▒▒▒▒▒▒▒    ▒▒▒▒▒▒▒▒     ▒▒▒▒▒▒▒▒▒    ▒▒▒▒▒▒▒▒▒  ▒▒▒▒▒ ▒▒▒▒▒    ▒▒▒▒▒   ▒▒▒▒▒▒▒▒▒
 """
-        yield Static(ascii_logo, id="ascii")
+            ]
+            self.ascii_widget = Static(self.logos[0], id="ascii")
+            yield self.ascii_widget
 
-        errors = random.randint(5000, 99999)
-        yield Label(f"{errors} errores encontrados", id="subtitle")
+            errors = random.randint(5000, 99999)
+            yield Label(f"{errors} errors found", id="subtitle")
 
-        yield Vertical(
-            Button("🚀 Jugar", id="play_button"),
-            Button("❌ Salir", id="exit_button"),
-        )
+            yield Vertical(
+                Button("Play", id="play_button"),
+                Button("Exit", id="exit_button"),
+                id="buttons_container"
+            )
+
+    def on_mount(self) -> None:
+        self.logo_index = 0
+        self.pattern = [0.8, 0.8, 0.2, 0.2]
+        self.pattern_index = 0
+        self.schedule_next()
+
+    def schedule_next(self) -> None:
+        delay = self.pattern[self.pattern_index]
+        self.set_timer(delay, self.swap_ascii)
+
+    def swap_ascii(self) -> None:
+        self.logo_index = (self.logo_index + 1) % len(self.logos)
+        self.ascii_widget.update(self.logos[self.logo_index])
+        self.pattern_index = (self.pattern_index + 1) % len(self.pattern)
+        self.schedule_next()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "play_button":
@@ -87,10 +123,12 @@ class TitleScreen(Screen):
 
 class SetupScreen(Screen):
     CSS = f"""
-    Screen {{
+    #menu {{
         align: center middle;
+        border: round green;
         background: {theme.get("background")};
         color: {theme.get("primary")};
+        padding: 2;
     }}
 
     #title {{
@@ -100,11 +138,26 @@ class SetupScreen(Screen):
     }}
 
     Tree {{
-        height: 10;
-        width: 60;
+        width: 100%;
         border: solid {theme.get("primary")};
         background: {theme.get("background")};
         color: {theme.get("primary")};
+    }}
+
+    Tree:focus {{
+        border: solid {theme.get("primary")};
+        background: {theme.get("background")};
+        color: {theme.get("primary")};
+        outline: none;
+    }}
+
+    Tree > .tree--guides {{
+        color: {theme.get("secondary")};
+    }}
+
+    Tree > .tree--cursor {{
+        background: {theme.get("primary")};
+        color: {theme.get("background")};
     }}
 
     Select {{
@@ -112,6 +165,17 @@ class SetupScreen(Screen):
         background: {theme.get("background")};
         color: {theme.get("primary")};
         margin-top: 1;
+    }}
+
+    Select > SelectCurrent {{
+        background: {theme.get("background")};
+        color: {theme.get("primary")};
+    }}
+
+    Select > SelectOverlay {{
+        background: {theme.get("background")};
+        color: {theme.get("primary")};
+        border: solid {theme.get("primary")};
     }}
 
     Button {{
@@ -122,38 +186,59 @@ class SetupScreen(Screen):
         color: {theme.get("primary")};
     }}
 
-    Button:hover {{
-        background: {theme.get("hover")};
+    #start_button {{
+        margin-top: 2;
+        width: 25;
+        border: solid {theme.get("primary")};
+        background: {theme.get("background")};
+        color: {theme.get("primary")};
+    }}
+
+    #button_container {{
+        align: center middle;
+        width: 100%;
     }}
 
     .root_mode {{
-        border: solid {theme.get("danger")};
-        color: {theme.get("danger")};
-    }}
-
-    .root_mode:hover {{
-        background: {theme.get("danger_hover")};
+        border: solid {theme.get("primary")};
+        background: {theme.get("primary")};
+        color: {theme.get("background")};
     }}
     """
 
     def compose(self) -> ComposeResult:
-        yield Static("⚡ Selección de datos ⚡", id="title")
+        with Static(id="menu"):  
+            yield Static("⚡ Data Selection ⚡", id="title")
 
-        tree = Tree("C:\\", id="file_tree")
-        for item in os.listdir("C:\\"):
-            tree.root.add_leaf(item)
-        yield tree
+            # Use platform-appropriate root directory
+            if os.name == 'nt':  # Windows
+                root_dir = "C:\\"
+            else:  # Linux/Unix
+                root_dir = "/"
+            
+            tree = Tree(root_dir, id="file_tree")
+            try:
+                for item in os.listdir(root_dir):
+                    tree.root.add_leaf(item)
+            except PermissionError:
+                # If we can't access root, use home directory instead
+                home_dir = os.path.expanduser("~")
+                tree = Tree(home_dir, id="file_tree")
+                for item in os.listdir(home_dir):
+                    tree.root.add_leaf(item)
+            yield tree
 
-        yield Select(
-            options=[
-                ("User (normal)", "user"),
-                ("Root (difícil)", "root"),
-            ],
-            id="difficulty_select",
-            prompt="Seleccione dificultad"
-        )
+            yield Select(
+                options=[
+                    ("User (normal)", "user"),
+                    ("Root (hard)", "root"),
+                ],
+                id="difficulty_select",
+                prompt="Select difficulty"
+            )
 
-        yield Button("✅ Iniciar Juego", id="start_button")
+            with Static(id="button_container"):
+                yield Button("Start Game", id="start_button")
 
     def on_select_changed(self, event: Select.Changed) -> None:
         start_button = self.query_one("#start_button", Button)
@@ -173,7 +258,7 @@ class SetupScreen(Screen):
             file_chosen = selected.label
             self.app.pop_screen()
             self.app.push_screen(TitleScreen())
-            self.app.notify(f"Iniciando en modo {diff} con archivo {file_chosen}")
+            self.app.notify(f"Starting in {diff} mode with file {file_chosen}")
 
 
 class BeatBuggingApp(App):

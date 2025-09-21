@@ -6,7 +6,8 @@
       "secondary": "#39ff14",
       "hover": "#003300",
       "danger": "red",
-      "danger_hover": "#330000"
+      "danger_hover": "#330000",
+      "border": "green"
     },
     "blue": {
       "background": "#001122",
@@ -25,5 +26,5 @@
         "danger_hover": "default"
     }
   },
-  "default_theme": "fixed"
+  "default_theme": "default"
 }
