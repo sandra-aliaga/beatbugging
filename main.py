@@ -178,7 +178,7 @@ class GameEngine:
         
         # Generar música con velocidad NORMAL (como era antes)
         self.music_data = self.music_generator.generate_music(
-            scale="minor", 
+            scale="pentatonic", 
             rate=44100, 
             speed=1.0  # Velocidad normal como era antes
         )

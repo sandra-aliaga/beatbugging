@@ -2,7 +2,7 @@ import time
 import os
 import pygame as pg
 import numpy as np
-from .log_utils import LogMusic
+from log_utils import LogMusic
 
 class LogMusicGenerator:
     
@@ -193,6 +193,7 @@ class LogMusicGenerator:
             action_duration = accelerated_duration if action_type == "hold" else 0
             
             gameplay_action = {
+                "line": original_line,
                 "tiempo": round(current_time, 2),
                 "coordenada": coordinate,
                 "tipo": action_type,

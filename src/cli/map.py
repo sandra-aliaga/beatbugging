@@ -6,296 +6,285 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 from rich.align import Align
+from rich.box import HEAVY, DOUBLE_EDGE
+
+BORDER_COLOR = "green"
+ACCENT_COLOR = "bright_green"
+PRIMARY_COLOR = "green"
+ACCENT_STYLE = f"bold {ACCENT_COLOR}"
+
+# Estados: 0=inactivo, 1=activating_2, 2=activating_3, 3=active
+
+CELL_ACTIVE = [
+    "╔═════╗",
+    "║ COO ║",  # Para la coordenada
+    "║█████║",
+    "╚═════╝"
+]
+
+CELL_ACTIVATING_3 = [
+    "╔═════╗",
+    "║ COO ║", 
+    "║▓▓▓▓▓║",
+    "╚═════╝"
+]
+
+CELL_ACTIVATING_2 = [
+    "┌─────┐",
+    "│ COO │",  
+    "│░░░░░│",
+    "└─────┘"
+]
+
+CELL_INACTIVE = [
+    "┌─────┐",
+    "│     │",  
+    "│     │",
+    "└─────┘"
+]
 
 class Map:
-    def __init__(self, size=5, active_coords="AJ - SK - DL - EM - FN"):
+    def __init__(self, size=5):
         self.console = Console()
         self.size = size
-        self.active_coords = active_coords 
-        self.row_labels = ['J', 'K', 'L', 'M', 'N'][:size]  # Filas del generador
-        self.col_labels = ['A', 'S', 'D', 'E', 'F'][:size]  # Columnas del generador
-        
-        self.grid_state = {
-            f"{col}{row}": False
-            for row in self.row_labels
-            for col in self.col_labels
-        }
-        
+        self.active_coords = "AJ - SK - DL - EM - FN"
+        self.actual_line = "Nothing to debug..."
         self.progress_value = 0
         self.health_value = 100
+        self.row_labels = ['J', 'K', 'L', 'M', 'N'][:size]
+        self.col_labels = ['A', 'S', 'D', 'E', 'F'][:size]
+        self.grid_state = {f"{col}{row}": 0 for row in self.row_labels for col in self.col_labels}
 
     def update_cell(self, coordinate: str, is_active: bool):
         if coordinate in self.grid_state:
-            self.grid_state[coordinate] = is_active
-
+            self.grid_state[coordinate] = 3 if is_active else 0
+    
+    def set_cell_state(self, coordinate: str, state: int):
+        if coordinate in self.grid_state and 0 <= state <= 3:
+            self.grid_state[coordinate] = state
+    
+    def transition_cell(self, coordinate: str, target_state: int, steps: int = 1):
+        if coordinate not in self.grid_state:
+            return
+        current = self.grid_state[coordinate]
+        if current < target_state:
+            self.grid_state[coordinate] = min(current + steps, target_state)
+        elif current > target_state:
+            self.grid_state[coordinate] = max(current - steps, target_state)
+    
     def set_active_coords(self, coords_string: str):
         self.active_coords = coords_string
+    
+    def set_actual_line(self, line_string: str): 
+        self.actual_line = line_string if len(line_string) < 35 else line_string[0:35] + "..."
 
-    def set_progress(self, value: int):
+    def set_progress(self, value: int): 
         self.progress_value = max(0, min(100, value))
-
-    def set_health(self, value: int):
+    
+    def set_health(self, value: int): 
         self.health_value = max(0, min(100, value))
 
-    def _create_header_panel(self) -> Panel:
-        header_text = "BEATBUGGING DEBUGGING SYSTEM v2.0"
+    def _create_header_layout(self) -> Layout:
+        header_layout = Layout(name="header")
+        header_layout.split_column(
+            Layout(Panel(Text("BEATBUGGING DEBUGGING SYSTEM",
+                              justify="center",
+                              style="bold green"),
+                              box=HEAVY,
+                              border_style=BORDER_COLOR),
+                              name="title"),
+            Layout(name="info_panels", ratio=1)
+        )
+        
+        info_panel_grid = Table.grid(expand=True)
+        info_panel_grid.add_column(ratio=1)
+        info_panel_grid.add_column(ratio=1)
+        
+        coords_panel = Panel(Text(self.active_coords,
+                                  justify="center",
+                                  style=PRIMARY_COLOR),
+                                  title=f"[{ACCENT_STYLE}]NEXT ACTIONS[/]",
+                                  border_style=BORDER_COLOR)
+        line_panel = Panel(Text(self.actual_line,
+                                justify="left",
+                                style=PRIMARY_COLOR),
+                                title=f"[{ACCENT_STYLE}]DEBUGGING LINE...[/]",
+                                border_style=BORDER_COLOR)
+        
+        info_panel_grid.add_row(coords_panel, line_panel)
+        header_layout["info_panels"].update(info_panel_grid)
+        
+        return header_layout
+
+    def _create_vertical_bar(self, value: int, height: int = 20) -> Text:
+        
+        filled_count = int((value / 100) * height)
+        empty_count = height - filled_count
+        
+        fill_char = Text("██████", style="bright_green")
+        empty_char = Text("░░░░░░", style="dim green")
+        
+        bar_chars = ([empty_char] * empty_count) + ([fill_char] * filled_count)
+        return Text("\n").join(bar_chars)
+
+    def _create_stats_panel(self) -> Panel:
+        stats_grid = Table.grid(expand=True, padding=(0, 2))
+        stats_grid.add_column(ratio=1, justify="center")
+        stats_grid.add_column(ratio=1, justify="center")
+
+        health_bar = self._create_vertical_bar(self.health_value)
+        health_title = Text(f"HEALTH\n{self.health_value}%", 
+                          justify="center", 
+                          style="bold bright_green")
+        health_display = Text.assemble(health_title, "\n\n", health_bar)
+
+        progress_bar = self._create_vertical_bar(self.progress_value)
+        progress_title = Text(f"PROGRESS\n{self.progress_value}%", 
+                            justify="center", 
+                            style="bold bright_green")
+        progress_display = Text.assemble(progress_title, "\n\n", progress_bar)
+        
+        stats_grid.add_row(
+            Align.center(health_display),
+            Align.center(progress_display)
+        )
+        
         return Panel(
-            Text(header_text, justify="center", style="bold green"),
-            border_style="green",
-            height=3
+            Align.center(stats_grid, vertical="middle"),
+            border_style=BORDER_COLOR,
+            title=f"[{ACCENT_STYLE}]SYSTEM CORE[/]",
+            box=DOUBLE_EDGE,
+            expand=True
         )
 
-    def _create_status_panel(self, status_text: str) -> Panel:
-        current_time = time.strftime("%H:%M:%S")
+    def _get_cell_display(self, coord: str, state: int):
+        cell_templates = [
+            CELL_INACTIVE,     
+            CELL_ACTIVATING_2, 
+            CELL_ACTIVATING_3, 
+            CELL_ACTIVE        
+        ]
         
-        if status_text and status_text != "System Ready...":
-            formatted_status = status_text
-        else:
-            formatted_status = "Sistema listo para depurar"
+        styles = [
+            "dim green",
+            "green",
+            "green",
+            f"bold blink {ACCENT_COLOR}"
+        ]
         
-        full_text = Text(
-            f"[{current_time}] {formatted_status}",
-            justify="center",
-            style="green"
-        )
+        cell = cell_templates[state].copy()
+        style = styles[state]
         
-        return Panel(
-            full_text,
-            border_style="green",
-            title="[bold green]ESTADO ACTUAL[/bold green]",
-            height=3
-        )
-
-    def _create_coordinates_panel(self) -> Panel:
-        # Formatear las coordenadas con arte ASCII
-        if self.active_coords:
-            coords_text = f"═══ {self.active_coords} ═══"
-        else:
-            coords_text = "═══ Sistema limpio - Esperando acciones ═══"
+        cell[1] = cell[1].replace("COO", coord[0] + "-" + coord[1])
         
-        return Panel(
-            Text(coords_text, justify="center", style="bold green"),
-            border_style="green",
-            title="[bold green]╭─── PROXIMAS ACCIONES ───╮[/bold green]",
-            height=3
-        )
+        return [Text(line, style=style) for line in cell]
 
     def _create_map_display(self) -> Panel:
-        # Arte ASCII de tamaño decente y legible
-        CELL_ACTIVE_TOP = "╔════════╗"
-        CELL_ACTIVE_MID = "║████████║"
-        CELL_ACTIVE_BOT = "╚════════╝"
+        map_table = Table(
+            box=None,
+            show_header=False,
+            padding=0,
+            pad_edge=False,
+            expand=True
+        )
         
-        CELL_INACTIVE_TOP = "╔────────╗"
-        CELL_INACTIVE_MID = "║░░░░░░░░║"
-        CELL_INACTIVE_BOT = "╚────────╝"
-        
-        map_table = Table(box=None, show_header=False, padding=0, pad_edge=False)
-        
-        # Columna para etiquetas de fila
         map_table.add_column(justify="center", style="green bold", width=3)
         
-        # Columnas para el grid de tamaño decente
         for _ in self.col_labels:
-            map_table.add_column(justify="center", width=10)
-        
-        # Crear el grid de tamaño apropiado
-        for row_label in self.row_labels:
-            # Tres filas para cada celda del grid
-            top_row = [f" {row_label} "]
-            middle_row = [f" {row_label} "]
-            bottom_row = ["   "]
-            
-            for col_label in self.col_labels:
-                coordinate = f"{col_label}{row_label}"
-                is_active = self.grid_state.get(coordinate, False)
+            map_table.add_column(justify="center", width=8)
+
+        for row_idx, row_label in enumerate(self.row_labels):
+            for line_idx in range(4):
+                row_content = []
                 
-                if is_active:
-                    # Celda activa con bordes ASCII
-                    top_row.append(Text(CELL_ACTIVE_TOP, style="bold green"))
-                    middle_row.append(Text(CELL_ACTIVE_MID, style="bold green"))
-                    bottom_row.append(Text(CELL_ACTIVE_BOT, style="bold green"))
+                if line_idx == 2:
+                    row_content.append(f" {row_label} ")
                 else:
-                    # Celda inactiva con bordes ASCII
-                    top_row.append(Text(CELL_INACTIVE_TOP, style="dim green"))
-                    middle_row.append(Text(CELL_INACTIVE_MID, style="dim green"))
-                    bottom_row.append(Text(CELL_INACTIVE_BOT, style="dim green"))
+                    row_content.append("")
+                
+                for col_label in self.col_labels:
+                    coord = f"{col_label}{row_label}"
+                    state = self.grid_state.get(coord, 0)
+                    cell_lines = self._get_cell_display(coord, state)
+                    row_content.append(cell_lines[line_idx])
+                
+                map_table.add_row(*row_content)
             
-            # Añadir las tres filas para cada celda
-            map_table.add_row(*top_row)
-            map_table.add_row(*middle_row)
-            map_table.add_row(*bottom_row)
-            
-            # Espacio pequeño entre filas
-            if row_label != self.row_labels[-1]:  # No añadir espacio después de la última fila
-                empty_row = [""] * (len(self.col_labels) + 1)
-                map_table.add_row(*empty_row)
-        
-        # Etiquetas de columnas
-        col_header_row = ["   "]
-        for label in self.col_labels:
-            label_text = Text(f"    {label}    ", style="bold green")
-            col_header_row.append(label_text)
+            if row_idx < len(self.row_labels) - 1:
+                map_table.add_row()
+
+        col_header_row = [""] + [Text(f"   {label}   ", style="bold green") for label in self.col_labels]
         map_table.add_row(*col_header_row)
-        
-        # Texto guía con bordes ASCII pero más pequeño
-        guide_text = Text(
-            "\n╔" + "═"*50 + "╗\n"
-            "║              CONTROLES DEL SISTEMA              ║\n"
-            "║  COLUMNAS: A-S-D-E-F  │  FILAS: J-K-L-M-N     ║\n"
-            "║     ¡Presiona cuando veas celdas activas!      ║\n"
-            "╚" + "═"*50 + "╝",
-            style="green",
-            justify="center"
-        )
-        
-        # Combinar todo
-        from rich.console import Group
-        full_content = Group(
-            Align.center(map_table),
-            Text(""),  # Espacio
-            guide_text
-        )
-        
+
         return Panel(
-            full_content, 
-            border_style="green",
-            title="[bold green]╔═══ BEATBUGGING MATRIX ═══╗[/bold green]"
+            Align.center(map_table, vertical="middle"),
+            border_style=BORDER_COLOR,
+            title=f"[{ACCENT_STYLE}]BEATBUGGING MATRIX[/]",
+            box=DOUBLE_EDGE,
+            expand=True
         )
 
-    def _create_progress_bar(self, value: int, max_value: int = 100) -> str:
-        bar_width = 40
-        filled = int((value / max_value) * bar_width)
-        empty = bar_width - filled
-        return "█" * filled + "▒" * empty
-
-    def _create_bars_panel(self) -> Panel:
-        # Barra de progreso con arte ASCII
-        progress_bar = self._create_progress_bar(self.progress_value)
-        progress_text = Text(f"║ Progress: [{progress_bar}] {self.progress_value}% ║", style="green")
-        
-        # Barra de vida con arte ASCII
-        health_bar = self._create_progress_bar(self.health_value)
-        health_text = Text(f"║ Health:   [{health_bar}] {self.health_value}% ║", style="green")
-        
-        # Tabla para organizar las barras
-        bars_table = Table(box=None, show_header=False, padding=0)
-        bars_table.add_column()
-        bars_table.add_row(Text("╔" + "═"*50 + "╗", style="green"))
-        bars_table.add_row(progress_text)
-        bars_table.add_row(health_text)
-        bars_table.add_row(Text("╚" + "═"*50 + "╝", style="green"))
-        
-        return Panel(
-            bars_table, 
-            border_style="green",
-            title="[bold green]╭─── ESTADO DEL SISTEMA ───╮[/bold green]",
-            height=6
-        )
-
-    def build_layout(self, status_text="System Ready...") -> Layout:
-        """Construye el layout completo de la interfaz."""
+    def build_layout(self) -> Layout:
         layout = Layout()
-        
         layout.split_column(
-            Layout(self._create_header_panel(), name="header", size=3),
-            Layout(self._create_status_panel(status_text), name="status", size=3),
-            Layout(self._create_coordinates_panel(), name="coords", size=3),
-            Layout(self._create_map_display(), name="map"),
-            Layout(self._create_bars_panel(), name="bars", size=6)
+            Layout(self._create_header_layout(), name="header", size=7), 
+            Layout(name="main", ratio=1),
         )
         
+        main_content_grid = Table.grid(expand=True, padding=1)
+        main_content_grid.add_column(ratio=2)
+        main_content_grid.add_column(ratio=1)
+        
+        main_content_grid.add_row(
+            self._create_map_display(),
+            self._create_stats_panel()
+        )
+        
+        layout["main"].update(main_content_grid)
         return layout
 
     def run_demo(self):
-        """Ejecuta una demostración animada."""
-        checkerboard_pattern = [
-            "ha", "ka", "ua",
-            "js", "ys",
-            "hd", "kd", "ud",
-            "jf", "yf",
-            "hg", "kg", "ug"
-        ]
+        actions = ["AJ", "SK", "DL", "EM", "FN", "AJ", "SK", "DL"]
         
-        with Live(self.build_layout(), screen=True, redirect_stderr=False) as live:
-            # Estado inicial
-            live.update(self.build_layout("Initializing sequence..."))
-            time.sleep(1)
-            
-            # Activar el patrón de tablero
-            for coord in checkerboard_pattern:
-                self.update_cell(coord, is_active=True)
-            live.update(self.build_layout("Pattern loaded..."))
-            time.sleep(2)
-            
-            # Demostración animada con cambios en las barras
-            statuses = [
-                ("Scanning sectors...", 40, 70),
-                ("Processing data...", 60, 65),
-                ("Analyzing patterns...", 80, 60),
-                ("Optimization complete.", 100, 75)
-            ]
-            
-            for status, progress, health in statuses:
-                self.set_progress(progress)
+        with Live(self.build_layout(), screen=True, redirect_stderr=False, vertical_overflow="visible") as live:
+            for i, coord in enumerate(actions):
+                health = max(0, 100 - (i * 15))
+                progress = (i + 1) * (100 / len(actions))
                 self.set_health(health)
-                live.update(self.build_layout(status))
-                time.sleep(1.5)
-            
-            self.set_active_coords("ha - js - kd - yf - ug")
-            live.update(self.build_layout("Coordinates updated."))
-            time.sleep(2)
-            
-            for _ in range(3):
-                # Desactivar algunas celdas
-                for coord in ["js", "yf", "kd"]:
-                    self.update_cell(coord, is_active=False)
-                self.set_health(self.health_value - 5)
-                live.update(self.build_layout("System check..."))
-                time.sleep(0.3)
+                self.set_progress(progress)
                 
-                # Reactivarlas
-                for coord in ["js", "yf", "kd"]:
-                    self.update_cell(coord, is_active=True)
-                self.set_health(self.health_value + 5)
-                live.update(self.build_layout("System stable..."))
+                for state in range(1, 4):
+                    self.set_cell_state(coord, state)
+                    self.set_actual_line(f"TRACE {i*128:04x}: Preparing node '{coord}'... State {state}")
+                    live.update(self.build_layout())
+                    time.sleep(0.2)
+                
+                self.set_actual_line(f"TRACE {i*128:04x}: ACTIVE! Press '{coord}' NOW!")
+                if i < len(actions) - 1:
+                    self.set_active_coords(f"UPCOMING: {actions[i+1]}")
+                else:
+                    self.set_active_coords(">> SEQUENCE COMPLETE <<")
+                
+                live.update(self.build_layout())
+                time.sleep(0.5)
+                
+                self.set_cell_state(coord, 0)
+                live.update(self.build_layout())
                 time.sleep(0.3)
             
-            live.update(self.build_layout("Sequence complete. System idle."))
             time.sleep(2)
 
 
 if __name__ == "__main__":
-    # === EJEMPLO DE USO PARA INTEGRACIÓN CON LÓGICA DE JUEGO ===
-    
-    # Crear el mapa con coordenadas personalizadas
-    game_map = Map(size=5, active_coords="ah - sj - kd - dh - fu")
-    
-    # --- Ejemplos de cómo cambiar celdas individualmente ---
-    # game_map.activate_cell("ha")     # Activa la celda ha (la pone verde)
-    # game_map.deactivate_cell("ha")   # Desactiva la celda ha (la pone gris)
-    
-    # --- Ejemplos de cómo cambiar múltiples celdas ---
-    # game_map.activate_multiple_cells(["ha", "js", "kd", "yf", "ug"])
-    # game_map.deactivate_multiple_cells(["ha", "js"])
-    
-    # --- Ejemplo de cómo limpiar todo el mapa ---
-    # game_map.clear_all_cells()
-    
-    # --- Ejemplo de cómo verificar el estado de una celda ---
-    # if game_map.get_cell_state("ha"):
-    #     print("La celda ha está activa")
-    
-    # --- Ejemplo de cómo actualizar las barras ---
-    # game_map.set_progress(50)  # Poner progreso al 50%
-    # game_map.set_health(80)    # Poner vida al 80%
-    
-    # --- Ejemplo de cómo cambiar las coordenadas mostradas ---
-    # game_map.set_active_coords("ha - js - kf - yg - ud")
-
-    
+    game_map = Map(size=5)
     try:
-        # Ejecutar la demostración por defecto
         game_map.run_demo()
     except KeyboardInterrupt:
-        print("\n[bold red]Demo interrupted by user.[/bold red]")
+        print("\n[bold red]>> SESSION TERMINATED BY USER <<[/bold red]")
+
+"""
+Metodos para manejar estados:
+- set_cell_state(coord, state): Establece directamente el estado (0-3)
+- transition_cell(coord, target, steps): Transición gradual entre estados
+- update_cell(coord, is_active): Compatibilidad - activa (3) o desactiva (0)
+"""
