@@ -15,6 +15,14 @@
       "hover": "#003344",
       "danger": "#ff3333",
       "danger_hover": "#660000"
+    },
+    "fixed": {
+        "background": "default",
+        "primary": "default",
+        "secondary": "default",
+        "hover": "default",
+        "danger": "default",
+        "danger_hover": "default"
     }
   },
   "default_theme": "blue"
