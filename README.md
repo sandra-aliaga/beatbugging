@@ -2,6 +2,9 @@
 
 **BeatBugging** is an innovative rhythm-based debugging game that transforms the analytical process of log debugging into an engaging musical experience. Navigate through system logs while our dynamic music engine generates beats and melodies that correspond to different types of errors, warnings, and system events. Turn your debugging sessions into an interactive musical journey where finding bugs feels like composing a symphony.
 
+> **⚠️ EPILEPSY WARNING ⚠️**  
+> This game contains flashing lights and rapidly changing visual patterns in the animated ASCII art. If you have a history of epilepsy or photosensitive seizures, please consult with a healthcare professional before playing. Users sensitive to flashing lights should exercise caution.
+
 ### OH NO, the system crashed, you open the logs, sits on your hacker's chair and now... IT'S TIME TO BEATBUGGING!!!
 
 ## Features
