@@ -13,23 +13,30 @@ ACCENT_COLOR = "bright_green"
 PRIMARY_COLOR = "green"
 ACCENT_STYLE = f"bold {ACCENT_COLOR}"
 
-# Estados: 0=inactivo, 1=activating_2, 2=activating_3, 3=active
+# Estados expandidos: 0=inactivo, 1=early, 2=almost_early, 3=perfect, 4=almost_late, 5=late
 
-CELL_ACTIVE = [
+CELL_PERFECT = [
     "╔═════╗",
     "║ COO ║",  # Para la coordenada
     "║█████║",
     "╚═════╝"
 ]
 
-CELL_ACTIVATING_3 = [
+CELL_ALMOST_LATE = [
     "╔═════╗",
     "║ COO ║", 
     "║▓▓▓▓▓║",
     "╚═════╝"
 ]
 
-CELL_ACTIVATING_2 = [
+CELL_ALMOST_EARLY = [
+    "┌─────┐",
+    "│ COO │",  
+    "│▒▒▒▒▒│",
+    "└─────┘"
+]
+
+CELL_EARLY = [
     "┌─────┐",
     "│ COO │",  
     "│░░░░░│",
@@ -60,7 +67,7 @@ class Map:
             self.grid_state[coordinate] = 3 if is_active else 0
     
     def set_cell_state(self, coordinate: str, state: int):
-        if coordinate in self.grid_state and 0 <= state <= 3:
+        if coordinate in self.grid_state and 0 <= state <= 5:  # ✅ Ahora soporta estados 0-5
             self.grid_state[coordinate] = state
     
     def transition_cell(self, coordinate: str, target_state: int, steps: int = 1):
@@ -159,18 +166,26 @@ class Map:
 
     def _get_cell_display(self, coord: str, state: int):
         cell_templates = [
-            CELL_INACTIVE,     
-            CELL_ACTIVATING_2, 
-            CELL_ACTIVATING_3, 
-            CELL_ACTIVE        
+            CELL_INACTIVE,      # Estado 0: Inactivo 
+            CELL_EARLY,         # Estado 1: Early - apenas visible
+            CELL_ALMOST_EARLY,  # Estado 2: Almost Early - más visible
+            CELL_PERFECT,       # Estado 3: Perfect - completamente visible
+            CELL_ALMOST_LATE,   # Estado 4: Almost Late - desvaneciendo
+            CELL_EARLY          # Estado 5: Late - muy tenue (reutiliza early)
         ]
         
+        # Estilos con colores mejorados basados en timing
         styles = [
-            "dim green",
-            "green",
-            "green",
-            f"bold blink {ACCENT_COLOR}"
+            "dim green",                    # Estado 0: Inactivo
+            "dim blue",                     # Estado 1: Early
+            "blue",                         # Estado 2: Almost Early  
+            "bold blink bright_green",      # Estado 3: Perfect - ¡momento exacto!
+            "yellow",                       # Estado 4: Almost Late
+            "dim orange"                    # Estado 5: Late
         ]
+        
+        # Asegurar que el estado esté en rango válido
+        state = max(0, min(state, len(cell_templates) - 1))
         
         cell = cell_templates[state].copy()
         style = styles[state]
