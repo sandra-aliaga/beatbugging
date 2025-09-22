@@ -5,6 +5,9 @@ from textual.screen import Screen
 from themes import ThemeManager
 import random
 import os
+import pygame
+import time
+from threading import Thread
 
 # Cargar tema actual
 theme = ThemeManager()
@@ -57,6 +60,70 @@ def make_title_css():
         align: center middle;
     }}
     """
+
+
+def play_sound_and_wait(sound_path):
+    """Play a sound file and wait for it to finish"""
+    try:
+        # Initialize pygame mixer if not already initialized
+        if not pygame.mixer.get_init():
+            pygame.mixer.init()
+        
+        # Load and play the sound
+        sound = pygame.mixer.Sound(sound_path)
+        sound.set_volume(0.4)  # Set reduced volume for game start sound
+        sound.play()
+        
+        # Wait for the sound to finish
+        while pygame.mixer.get_busy():
+            time.sleep(0.1)
+            
+    except Exception as e:
+        # If sound fails, just continue without sound
+        print(f"Could not play sound: {e}")
+        pass
+
+
+class SoundManager:
+    """Manages menu sounds with overlap prevention"""
+    
+    def __init__(self):
+        self.last_click_time = 0
+        self.click_delay = 0.2  # Minimum delay between clicks in seconds
+        self.volume = 0.3  # Volume level (0.0 to 1.0) - reduced from default
+        self.menu_click_path = os.path.join(os.path.dirname(__file__), "res", "menu-click.mp3")
+        
+        # Initialize pygame mixer
+        try:
+            if not pygame.mixer.get_init():
+                pygame.mixer.init()
+        except:
+            pass
+    
+    def play_menu_click(self):
+        """Play menu click sound with overlap prevention"""
+        current_time = time.time()
+        
+        # Check if enough time has passed since last click
+        if current_time - self.last_click_time >= self.click_delay:
+            self.last_click_time = current_time
+            
+            def play_click():
+                try:
+                    sound = pygame.mixer.Sound(self.menu_click_path)
+                    sound.set_volume(self.volume)  # Set reduced volume
+                    sound.play()
+                except Exception as e:
+                    print(f"Could not play menu click sound: {e}")
+            
+            # Play in separate thread to avoid blocking
+            click_thread = Thread(target=play_click)
+            click_thread.daemon = True
+            click_thread.start()
+
+
+# Global sound manager instance
+sound_manager = SoundManager()
 
 
 class TitleScreen(Screen):
@@ -115,6 +182,9 @@ class TitleScreen(Screen):
         self.schedule_next()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
+        # Play menu click sound for all buttons except start
+        sound_manager.play_menu_click()
+        
         if event.button.id == "play_button":
             self.app.push_screen(SetupScreen())
         elif event.button.id == "exit_button":
@@ -240,7 +310,14 @@ class SetupScreen(Screen):
             with Static(id="button_container"):
                 yield Button("Start Game", id="start_button")
 
+    def on_tree_node_selected(self, event: Tree.NodeSelected) -> None:
+        """Play click sound when a tree node is selected"""
+        sound_manager.play_menu_click()
+
     def on_select_changed(self, event: Select.Changed) -> None:
+        # Play menu click sound when difficulty selection changes
+        sound_manager.play_menu_click()
+        
         start_button = self.query_one("#start_button", Button)
         if event.value == "root":
             start_button.set_class(True, "root_mode")
@@ -256,9 +333,26 @@ class SetupScreen(Screen):
                 self.app.bell()
                 return
             file_chosen = selected.label
-            self.app.pop_screen()
-            self.app.push_screen(TitleScreen())
-            self.app.notify(f"Starting in {diff} mode with file {file_chosen}")
+            
+            # Play the game start sound and wait for it to finish
+            sound_path = os.path.join(os.path.dirname(__file__), "res", "game-start.mp3")
+            
+            # Run sound in a separate thread to avoid blocking the UI
+            def play_and_continue():
+                play_sound_and_wait(sound_path)
+                # After sound finishes, proceed with the game start
+                self.app.call_from_thread(self._continue_game_start, diff, file_chosen)
+            
+            # Start the sound in background thread
+            sound_thread = Thread(target=play_and_continue)
+            sound_thread.daemon = True
+            sound_thread.start()
+    
+    def _continue_game_start(self, diff, file_chosen):
+        """Continue with game start after sound has finished"""
+        self.app.pop_screen()
+        self.app.push_screen(TitleScreen())
+        self.app.notify(f"Starting in {diff} mode with file {file_chosen}")
 
 
 class BeatBuggingApp(App):
