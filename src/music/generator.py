@@ -2,7 +2,7 @@ import time
 import os
 import pygame as pg
 import numpy as np
-from log_utils import LogMusic
+from .log_utils import LogMusic
 
 class LogMusicGenerator:
     
@@ -205,6 +205,10 @@ class LogMusicGenerator:
         
         if audio_samples:
             full_audio = np.concatenate(audio_samples)
+            # Asegurar que siempre sea mono (int16, 1D)
+            if full_audio.ndim > 1:
+                full_audio = full_audio.flatten()
+            full_audio = full_audio.astype(np.int16)
         else:
             full_audio = np.array([], dtype=np.int16)
         
