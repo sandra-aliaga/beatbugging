@@ -1,5 +1,7 @@
 # BeatBugging
 
+**BeatBugging** is an innovative rhythm-based debugging game that transforms the analytical process of log debugging into an engaging musical experience. Navigate through system logs while our dynamic music engine generates beats and melodies that correspond to different types of errors, warnings, and system events. Turn your debugging sessions into an interactive musical journey where finding bugs feels like composing a symphony.
+
 ### OH NO, the system crashed, you open the logs, sits on your hacker's chair and now... IT'S TIME TO BEATBUGGING!!!
 
 ## Features
