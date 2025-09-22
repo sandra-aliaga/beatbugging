@@ -2,7 +2,7 @@ from textual.app import App, ComposeResult
 from textual.widgets import Static, Button, Tree, Label, Select
 from textual.containers import Vertical
 from textual.screen import Screen
-from themes import ThemeManager
+from .themes import ThemeManager
 import random
 import os
 import pygame
@@ -19,26 +19,30 @@ def make_title_css():
         border: round {theme.get("border")};
         background: {theme.get("background")};
         color: {theme.get("primary")};
-        padding: 0;
+        padding: 1;
+        height: 90%;
+        content-align: center middle;
     }}
 
-    #ascii {{
+    #title {{
         text-style: bold;
         color: {theme.get("primary")};
-        margin-bottom: 2;
+        margin-bottom: 1;
         text-align: center;
         border-bottom: solid {theme.get("primary")};
-        padding-bottom: 1;
+        padding-bottom: 0;
+        height: auto;
     }}
 
     #subtitle {{
         color: {theme.get("secondary")};
-        margin-bottom: 2;
+        margin-bottom: 1;
         text-align: center;
         width: 100%;
         content-align: center middle;
         text-style: bold;
-        padding: 1;
+        padding: 0;
+        height: auto;
     }}
 
     Button {{
@@ -188,7 +192,7 @@ class TitleScreen(Screen):
         if event.button.id == "play_button":
             self.app.push_screen(SetupScreen())
         elif event.button.id == "exit_button":
-            self.app.exit()
+            self.app.exit(None)
 
 
 class SetupScreen(Screen):
@@ -209,9 +213,11 @@ class SetupScreen(Screen):
 
     Tree {{
         width: 100%;
+        height: 7;
         border: solid {theme.get("primary")};
         background: {theme.get("background")};
         color: {theme.get("primary")};
+        margin-bottom: 1;
     }}
 
     Tree:focus {{
@@ -246,6 +252,34 @@ class SetupScreen(Screen):
         background: {theme.get("background")};
         color: {theme.get("primary")};
         border: solid {theme.get("primary")};
+    }}
+
+    OptionList {{
+        background: {theme.get("background")};
+        color: {theme.get("primary")};
+        border: solid {theme.get("primary")};
+    }}
+
+    OptionList > .option-list--option {{
+        background: {theme.get("background")};
+        color: {theme.get("primary")};
+    }}
+
+    OptionList > .option-list--option-highlighted {{
+        background: {theme.get("primary")} !important;
+        color: {theme.get("background")} !important;
+        text-style: bold;
+    }}
+
+    OptionList > .option-list--option-selected {{
+        background: {theme.get("primary")} !important;
+        color: {theme.get("background")} !important;
+        text-style: bold;
+    }}
+
+    OptionList:focus > .option-list--option-highlighted {{
+        background: {theme.get("primary")} !important;
+        color: {theme.get("background")} !important;
     }}
 
     Button {{
@@ -288,14 +322,12 @@ class SetupScreen(Screen):
             
             tree = Tree(root_dir, id="file_tree")
             try:
-                for item in os.listdir(root_dir):
-                    tree.root.add_leaf(item)
+                self._populate_tree_node(tree.root, root_dir)
             except PermissionError:
                 # If we can't access root, use home directory instead
                 home_dir = os.path.expanduser("~")
                 tree = Tree(home_dir, id="file_tree")
-                for item in os.listdir(home_dir):
-                    tree.root.add_leaf(item)
+                self._populate_tree_node(tree.root, home_dir)
             yield tree
 
             yield Select(
@@ -309,6 +341,48 @@ class SetupScreen(Screen):
 
             with Static(id="button_container"):
                 yield Button("Start Game", id="start_button")
+
+    def _populate_tree_node(self, node, path):
+        """Populate a tree node with files and directories"""
+        try:
+            items = os.listdir(path)
+            # Sort directories first, then files
+            dirs = []
+            files = []
+
+            for item in items:
+                if item.startswith('.'):  # Skip hidden files/dirs
+                    continue
+
+                full_path = os.path.join(path, item)
+                try:
+                    if os.path.isdir(full_path):
+                        dirs.append(item)
+                    elif item.endswith(('.log', '.txt')):  # Only show log files
+                        files.append(item)
+                except (PermissionError, OSError):
+                    continue
+
+            # Add directories first (expandable)
+            for dir_name in sorted(dirs):
+                dir_node = node.add(f"{dir_name}", data={"path": os.path.join(path, dir_name), "type": "dir"})
+                # Add a placeholder so it appears expandable
+                dir_node.add_leaf("...", data={"type": "placeholder"})
+
+            # Add files
+            for file_name in sorted(files):
+                node.add_leaf(f"[LOG] {file_name}", data={"path": os.path.join(path, file_name), "type": "file"})
+
+        except (PermissionError, OSError):
+            node.add_leaf("Access denied", data={"type": "error"})
+
+    def on_tree_node_expanded(self, event: Tree.NodeExpanded) -> None:
+        """Handle when a directory node is expanded"""
+        node = event.node
+        if node.data and node.data.get("type") == "dir":
+            # Clear placeholder and populate with actual contents
+            node.remove_children()
+            self._populate_tree_node(node, node.data["path"])
 
     def on_tree_node_selected(self, event: Tree.NodeSelected) -> None:
         """Play click sound when a tree node is selected"""
@@ -332,10 +406,24 @@ class SetupScreen(Screen):
             if selected is None:
                 self.app.bell()
                 return
-            file_chosen = selected.label
-            self.app.pop_screen()
-            self.app.push_screen(TitleScreen())
-            self.app.notify(f"Iniciando en modo {diff} con archivo {file_chosen}")
+
+            # Check if it's a valid log file
+            if not selected.data or selected.data.get("type") != "file":
+                self.app.notify("Please select a log file (.log or .txt)", severity="warning")
+                return
+
+            file_chosen = selected.data["path"]
+
+            # Play game start sound and wait for it to finish
+            game_start_sound_path = os.path.join(os.path.dirname(__file__), "res", "game-start.mp3")
+            play_sound_and_wait(game_start_sound_path)
+
+            # Return game configuration and exit the app
+            game_config = {
+                "file": file_chosen,
+                "difficulty": diff
+            }
+            self.app.exit(game_config)
 
 
 class BeatBuggingApp(App):
@@ -352,7 +440,7 @@ if __name__ == "__main__":
     result = run_menu()
     
     if result:
-        print(f"📁 Archivo seleccionado: {result}")
-        print("🎮 El juego debería iniciar ahora...")
+        print(f"Archivo seleccionado: {result}")
+        print("El juego debería iniciar ahora...")
     else:
-        print("👋 Saliendo del juego...")
+        print("nSaliendo del juego...")
