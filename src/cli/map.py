@@ -208,6 +208,10 @@ class Map:
         for _ in self.col_labels:
             map_table.add_column(justify="center", width=8)
 
+        # Agregar headers de columnas primero
+        col_header_row = [""] + [Text(f"   {label}   ", style="bold green") for label in self.col_labels]
+        map_table.add_row(*col_header_row)
+
         for row_idx, row_label in enumerate(self.row_labels):
             for line_idx in range(4):
                 row_content = []
@@ -224,12 +228,6 @@ class Map:
                     row_content.append(cell_lines[line_idx])
                 
                 map_table.add_row(*row_content)
-            
-            if row_idx < len(self.row_labels) - 1:
-                map_table.add_row()
-
-        col_header_row = [""] + [Text(f"   {label}   ", style="bold green") for label in self.col_labels]
-        map_table.add_row(*col_header_row)
 
         return Panel(
             Align.center(map_table, vertical="middle"),

@@ -8,6 +8,8 @@ from typing import Dict, List, Optional
 import sys
 import os
 import select  # Para input no bloqueante
+import termios
+import tty
 import keyboard
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
@@ -41,35 +43,62 @@ class InputHandler:
     def __init__(self):
         self.recent_presses = []  # Para trackear presses recientes
         self.running = True
-        
+        self.old_settings = None
+        self._setup_nonblocking_input()
+
+    def _setup_nonblocking_input(self):
+        """Configura input no bloqueante para terminal"""
+        try:
+            self.old_settings = termios.tcgetattr(sys.stdin)
+            tty.setraw(sys.stdin.fileno())
+        except:
+            pass  # Si falla, usar método alternativo
+
+    def _restore_input(self):
+        """Restaura configuración de input"""
+        if self.old_settings:
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.old_settings)
+
+    def get_pressed_keys(self):
+        """Obtiene teclas presionadas usando select no bloqueante"""
+        pressed_keys = []
+        try:
+            if select.select([sys.stdin], [], [], 0.0)[0]:
+                key = sys.stdin.read(1).upper()
+                if key and key in 'ASDEFJKLMN':
+                    self.recent_presses.append((key, time.time()))
+                    pressed_keys.append(key)
+        except:
+            pass
+        return pressed_keys
+
     def update(self):
-        """NO usar pygame - el input se manejará de otra manera"""
-        # No hacer nada con pygame
-        return None
-    
+        """Actualiza y obtiene input"""
+        return self.get_pressed_keys()
+
     def get_recent_key_press(self, window_seconds=0.1):
         """Obtiene la tecla presionada más recientemente en la ventana de tiempo"""
         current_time = time.time()
         recent = [key for key, t in self.recent_presses if current_time - t <= window_seconds]
         return recent[-1] if recent else None
-    
+
     def add_key_press(self, key):
         """Agregar una tecla presionada manualmente"""
         self.recent_presses.append((key, time.time()))
-    
+
     def get_coordinate_from_keys(self):
         """Combina teclas presionadas para formar coordenadas como AJ, SK, etc."""
         current_time = time.time()
-        recent_keys = [key for key, t in self.recent_presses if current_time - t <= 0.2]
-        
+        recent_keys = [key for key, t in self.recent_presses if current_time - t <= 0.3]
+
         if len(recent_keys) >= 2:
             # Buscar columna (A,S,D,E,F) y fila (J,K,L,M,N)
             cols = [k for k in recent_keys if k in ['A', 'S', 'D', 'E', 'F']]
             rows = [k for k in recent_keys if k in ['J', 'K', 'L', 'M', 'N']]
-            
+
             if cols and rows:
                 return f"{cols[-1]}{rows[-1]}"
-        
+
         return None
 
 class GameEngine:
@@ -269,15 +298,24 @@ class GameEngine:
             
             self.start_music()
             
-            with Live(self.game_map.build_layout(), refresh_per_second=2) as live:  
-                game_duration = 90.0  
+            with Live(self.game_map.build_layout(), refresh_per_second=4) as live:
+                # Calcular duración basada en las acciones generadas
+                game_duration = max([action.tiempo for action in self.actions]) + 10.0 if self.actions else 90.0
                 start_time = time.time()
                 
                 while self.state == GameState.PLAYING and self.running:
                     current_time = time.time() - start_time
-                    
+
+                    # Procesar input del usuario
+                    pressed_keys = self.input_handler.update()
+                    if pressed_keys:
+                        coordinate = self.input_handler.get_coordinate_from_keys()
+                        if coordinate:
+                            print(f"[DEBUG] Tecla presionada: {coordinate} en tiempo {current_time:.2f}")
+                            self.process_user_input(coordinate, current_time)
+
                     self.process_actions(current_time, current_time)  # game_time and absolute_time
-                    
+
                     # VERIFY DEATH FIRST - priority over victory
                     current_health = self.health_system.get_health_percentage()
                     if self.health_system.is_dead() or current_health <= 0:
@@ -285,18 +323,18 @@ class GameEngine:
                         print(f"[DEBUG] Setting state to GAME_OVER, health: {current_health}")  # Debug
                         self.state = GameState.GAME_OVER
                         break
-                    
+
                     # Terminar juego después de la duración establecida SOLAMENTE
                     # No verificar mixer porque puede no estar activo al inicio
                     if current_time >= game_duration:
                         self.state = GameState.VICTORY
                         break
-                    
+
                     # Actualizar pantalla
                     self.update_display(live)
-                    
-                    # Control de FPS muy lento para dar mucho tiempo
-                    time.sleep(0.5)  # ✅ MUY LENTO: 2 FPS
+
+                    # Control de FPS mejorado para mejor responsividad
+                    time.sleep(0.1)  # ✅ 10 FPS para mejor gameplay
                         
         except KeyboardInterrupt:
             self.console.print("\n[red]Juego interrumpido[/red]")
@@ -304,6 +342,7 @@ class GameEngine:
             self.console.print(f"[red]Error en game loop: {e}[/red]")
         finally:
             self.stop_music()
+            self.input_handler._restore_input()  # Restaurar configuración de terminal
             # NO hay display pygame que cerrar
             
         # Mostrar pantalla final SIN pygame
@@ -341,113 +380,59 @@ class GameEngine:
             self.console.print("[bold green]¡Gracias por jugar BeatBugging![/bold green]")
 
     
-    def update_map_display(self):
-        """Actualiza el display del mapa con el estado actual"""
-        # Limpiar celdas
+    def process_actions(self, current_time, elapsed_time=None):
+        """Procesar acciones - usar lógica simple del mapa"""
+        if not self.actions:
+            return
+
+        # Limpiar mapa primero
         for coord in self.game_map.grid_state:
             self.game_map.set_cell_state(coord, 0)
-        
-        # Mostrar acciones próximas
+
+        # Mostrar próximas acciones usando timing system simple
         upcoming_coords = []
-        for action in self.actions[self.current_action_index:self.current_action_index + 5]:
+        for action in self.actions[self.current_action_index:self.current_action_index + 10]:
             if not action.completada:
-                timing_offset = self.current_time - action.tiempo
-                if -5.0 <= timing_offset <= 2.0:  
-                    if abs(timing_offset) <= 0.1:
+                timing_offset = current_time - action.tiempo
+                # Ventana de aparición más amplia: -4s a +3s
+                if -4.0 <= timing_offset <= 3.0:
+                    if abs(timing_offset) <= 0.5:
                         self.game_map.set_cell_state(action.coordenada, 3)  # PERFECT
-                    elif abs(timing_offset) <= 0.2:
+                    elif abs(timing_offset) <= 1.5:
                         self.game_map.set_cell_state(action.coordenada, 2)  # GOOD
                     else:
                         self.game_map.set_cell_state(action.coordenada, 1)  # OK
                     upcoming_coords.append(action.coordenada)
-        
-        # Actualizar coordenadas activas
-        self.game_map.set_active_coords(" - ".join(upcoming_coords[:3]))
-        
-        # Actualizar barras
-        self.game_map.set_health(self.health)
-        progress = min(100, int((self.current_action_index / len(self.actions)) * 100)) if self.actions else 0
-        self.game_map.set_progress(progress)
-
-    def process_actions(self, current_time, elapsed_time=None):
-        """Procesar acciones usando el sistema de opacidad real - Solo mostrar bugs, no auto-hit"""
-        if not self.actions:
-            return
-        
-        # Limpiar todas las celdas primero
-        for coord in self.game_map.grid_state:
-            self.game_map.set_cell_state(coord, 0)
-        
-        active_coords = []
-        
-        for action in self.actions:
-            if action.completada:
-                continue
-            
-            # 🎯 Usar el sistema de opacidad real
-            timing_result = self.opacity_timing.calculate_timing_state(current_time, action.tiempo)
-            
-            # Solo mostrar si debe aparecer
-            if not timing_result.should_display:
-                # Si está en estado miss, marcar como perdido
-                if timing_result.state.value == "miss":
+                elif timing_offset > 3.0:  # Miss solo después de 3 segundos
                     action.completada = True
                     self.combo_system.break_combo()
-                    # Use proper miss damage from timing system
-                    miss_result = self.score_system.evaluate_hit(999)  # Very late = miss
-                    self.health_system.take_damage(-miss_result.health_change)
-                    # Timeout sin log para pantalla limpia
-                continue
-            
-            # Mapear opacidad y estado a estados visuales del mapa
-            visual_state = self._opacity_to_visual_state(timing_result.opacity, timing_result.state.value)
-            
-            # Mostrar la celda con el estado apropiado
-            self.game_map.set_cell_state(action.coordenada, visual_state)
-            active_coords.append(action.coordenada)
-        
-        # Update coordinate text with more info
-        if active_coords:
-            coords_preview = " - ".join(active_coords[:5])
-            self.game_map.set_active_coords(f"NEXT: {coords_preview}")
-            self.game_map.set_actual_line(f"Press when you see GREEN: {', '.join(active_coords[:3])}")
-        else:
-            self.game_map.set_active_coords("System stable - preparing...")
-            self.game_map.set_actual_line("Listen to music and get ready for next bugs!")
-        
-        # Actualizar progreso y estadísticas
+                    self.health_system.take_damage(10)
+
+        # Actualizar coordenadas activas
+        self.game_map.set_active_coords(" - ".join(upcoming_coords[:3]))
+
+        # Actualizar barras
         completed = sum(1 for action in self.actions if action.completada)
         self.current_action_index = completed
-        
-        # Actualizar barras con sistemas sincronizados
         progress = int((completed / len(self.actions)) * 100) if self.actions else 0
         self.game_map.set_progress(progress)
-        
-        # Synchronize with health_system
+
         current_health = self.health_system.get_health_percentage()
-        
-        # Automatic regeneration - more generous
-        if current_health < 95:  # Regenerate almost always
-            self.health_system.heal(0.3)  # Increased from 0.05 to 0.3 - much faster regen
-        
         self.game_map.set_health(max(0, int(current_health)))
+
+        # Sync stats
         self.health = int(self.health_system.current_health)
-        
-        # Sync score
         self.score = self.score_system.score
         self.combo = self.combo_system.current_combo
-        
-        # ALWAYS check death first - priority over victory
+
+        # Check victory/death
         if self.health_system.is_dead() or current_health <= 0:
             self.state = GameState.GAME_OVER
-            return  # Exit immediately to prevent victory setting
-        
-        # Only verify victory by completing all actions if not dead AND enough time has passed
-        # Also check that player actually succeeded in a reasonable number of actions
-        successful_actions = sum(1 for action in self.actions if action.completada and getattr(action, 'hit_successfully', False))
-        if elapsed_time is None:
-            elapsed_time = current_time
-        if completed >= len(self.actions) and elapsed_time > 30 and successful_actions >= len(self.actions) * 0.3:
+            return
+
+        # Victory cuando termine la música
+        total_music_time = max([action.tiempo for action in self.actions]) if self.actions else 90.0
+        if elapsed_time and elapsed_time >= total_music_time:
             self.state = GameState.VICTORY
     
     def _opacity_to_visual_state(self, opacity: float, timing_state: str) -> int:
@@ -473,54 +458,45 @@ class GameEngine:
         """Procesa el input del usuario cuando presiona teclas"""
         if not self.actions:
             return
-        
-        # Buscar si hay alguna acción activa en esa coordenada
+
+        # Buscar acción activa en esa coordenada
         for action in self.actions:
             if action.completada or action.coordenada != coordinate:
                 continue
-            
-            # Usar el sistema de timing real para evaluar el hit
-            timing_result = self.opacity_timing.calculate_timing_state(current_time, action.tiempo)
-            
-            # Solo permitir hits si el bug está visible
-            if not timing_result.should_display:
-                continue
-            
-            # Evaluar el hit basado en el timing
-            if timing_result.state.value in ["perfect", "almost_early", "almost_late"]:
-                # HIT EXITOSO
-                self.score_system.add_score(timing_result.points)
-                self.health_system.heal(5)  # Recompensar buen timing
-                self.combo_system.add_hit()
+
+            timing_offset = current_time - action.tiempo
+
+            # Ventana de hit: -2s a +2s
+            if -2.0 <= timing_offset <= 2.0:
                 action.completada = True
-                
-                # Feedback visual
-                self.game_map.set_cell_state(action.coordenada, 3)  # Perfect state
-                print(f"✨ {timing_result.state.value.upper()}! {coordinate} (+{timing_result.points} pts)")
-                break
-                
-            elif timing_result.state.value in ["early", "late"]:
-                # HIT MARGINAL
-                reduced_points = timing_result.points // 2
-                self.score_system.add_score(reduced_points)
-                self.health_system.heal(1)
+                action.hit_successfully = True
+                self.game_map.update_cell(action.coordenada, True)
+
+                # Puntaje basado en precisión
+                if abs(timing_offset) <= 0.5:
+                    points = 300
+                    print(f"✨ PERFECT! {coordinate} (+{points} pts)")
+                elif abs(timing_offset) <= 1.0:
+                    points = 150
+                    print(f"👍 GOOD! {coordinate} (+{points} pts)")
+                else:
+                    points = 50
+                    print(f"👌 OK! {coordinate} (+{points} pts)")
+
+                self.score_system.add_score(points)
+                self.health_system.heal(5)
                 self.combo_system.add_hit()
-                action.completada = True
-                print(f"👍 {timing_result.state.value.upper()}! {coordinate} (+{reduced_points} pts)")
                 break
-            
             else:
-                # Miss - fuera de timing
+                # Miss
                 self.combo_system.break_combo()
-                # Use proper miss damage from timing system
-                miss_result = self.score_system.evaluate_hit(999)  # Very late = miss
-                self.health_system.take_damage(-miss_result.health_change)
-                # Miss sin log para pantalla limpia
+                self.health_system.take_damage(15)
+                print(f"❌ MISS! {coordinate}")
                 break
 
     def update_display(self, live):
         """Actualiza el display del juego de manera simple y efectiva"""
-        # El mapa ya se actualiza en process_actions, solo necesitamos refrescar la vista
+        # Solo actualizar el layout sin reconstruirlo completamente
         live.update(self.game_map.build_layout())
 
     def update_game_logic_old(self):
