@@ -41,11 +41,15 @@ class ScoreSystem:
         }
         
         self.health_changes = {
-            HitResult.PERFECT: 3,
-            HitResult.GOOD: 2,
-            HitResult.OKAY: 1,
-            HitResult.MISS: -15
+            HitResult.PERFECT: 5,  # More healing for good hits
+            HitResult.GOOD: 3,
+            HitResult.OKAY: 2,
+            HitResult.MISS: -2  # Much less damage - was -8
         }
+    
+    def add_score(self, points: int):
+        """Agrega puntos directamente al score"""
+        self.score += points
     
     def evaluate_hit(self, timing_offset: float) -> HitTiming:
         abs_offset = abs(timing_offset)
@@ -185,18 +189,34 @@ class ComboSystem:
             return "GOOD"
 
 class HealthSystem:
-    def __init__(self, max_health: int = 100, critical_threshold: int = 20):
+    def __init__(self, max_health: int = 300, critical_threshold: int = 20):  # Increased from 200 to 300
         self.max_health = max_health
         self.current_health = max_health
         self.critical_threshold = critical_threshold
-        self.damage_reduction = 1.0
+        self.damage_reduction = 0.5  # Reduced from 0.7 to 0.5 - even less damage
         
     def take_damage(self, amount: int):
-        actual_damage = int(amount * self.damage_reduction)
+        """Recibe daño - amount debe ser positivo"""
+        actual_damage = int(abs(amount) * self.damage_reduction)
         self.current_health = max(0, self.current_health - actual_damage)
+        # Damage sin log para pantalla limpia
     
     def heal(self, amount: int):
-        self.current_health = min(self.max_health, self.current_health + amount)
+        """Cura vida - amount debe ser positivo"""
+        heal_amount = abs(amount)
+        old_health = self.current_health
+        self.current_health = min(self.max_health, self.current_health + heal_amount)
+        gained = self.current_health - old_health
+        if gained > 0:
+            # Heal sin log para pantalla limpia
+            pass
+    
+    def change_health(self, amount: int):
+        """Cambia vida - positivo cura, negativo daña"""
+        if amount > 0:
+            self.heal(amount)
+        elif amount < 0:
+            self.take_damage(-amount)
     
     def is_critical(self) -> bool:
         return self.current_health <= self.critical_threshold

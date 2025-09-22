@@ -219,16 +219,16 @@ class VictoryScreen:
         achievements_table.add_column("Status", style="green", width=10)
         
         if stats.get('accuracy', 0) >= 90:
-            achievements_table.add_row("🏆 Code Master", "UNLOCKED")
+            achievements_table.add_row("Code Master", "UNLOCKED")
         if stats.get('max_combo', 0) >= 50:
-            achievements_table.add_row("🔥 Combo King", "UNLOCKED")
+            achievements_table.add_row("Combo King", "UNLOCKED")
         if stats.get('perfect', 0) >= stats.get('total_actions', 1) * 0.7:
-            achievements_table.add_row("⚡ Precision Expert", "UNLOCKED")
+            achievements_table.add_row("Precision Expert", "UNLOCKED")
         if stats.get('score', 0) >= 10000:
-            achievements_table.add_row("💎 High Scorer", "UNLOCKED")
+            achievements_table.add_row("High Scorer", "UNLOCKED")
         
-        achievements_table.add_row("🎯 Bug Hunter", "UNLOCKED")
-        achievements_table.add_row("🎵 Rhythm Hacker", "UNLOCKED")
+        achievements_table.add_row("Bug Hunter", "UNLOCKED")
+        achievements_table.add_row("Rhythm Hacker", "UNLOCKED")
         
         return Panel(
             achievements_table,
@@ -287,7 +287,7 @@ class VictoryScreen:
             f"Final Score: {stats.get('score', 0):,} | "
             f"Accuracy: {stats.get('accuracy', 0):.1f}% | "
             f"Max Combo: {stats.get('max_combo', 0)}\n"
-            "Press ENTER to continue hacking | ESC to logout",
+            "Press ENTER to restart | ESC to exit",
             style=rank_color,
             justify="center"
         )

@@ -209,19 +209,8 @@ def run_menu():
 if __name__ == "__main__":
     result = run_menu()
     
-    # Si se seleccionó un archivo, ejecutar el juego original
     if result:
-        import sys
-        import os
-        import subprocess
-        
-        # Obtener la ruta del main.py original
-        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        main_path = os.path.join(root_dir, "main.py")
-        python_path = sys.executable
-        
-        # Ejecutar el juego original en un nuevo proceso
-        try:
-            subprocess.run([python_path, main_path], cwd=root_dir)
-        except Exception as e:
-            print(f"❌ Error al ejecutar el juego: {e}")
+        print(f"📁 Archivo seleccionado: {result}")
+        print("🎮 El juego debería iniciar ahora...")
+    else:
+        print("👋 Saliendo del juego...")
