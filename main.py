@@ -7,17 +7,18 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional
 import sys
 import os
+import select  # Para input no bloqueante
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 from music.generator import LogMusicGenerator
 from cli.map import Map
-from game.timing_system import ScoreSystem, AdvancedTimingSystem, ComboSystem, HealthSystem, DifficultyManager, HitResult
+from game.timing_system import ScoreSystem, ComboSystem, HealthSystem, HitResult
+from game.opacity_timing import OpacityTimingSystem  # 🎯 Importar el sistema de opacidad real
 from game.screens import GameOverScreen, VictoryScreen, LoadingScreen
 from rich.console import Console
-from rich.live import Live
 from rich.text import Text
-from rich.panel import Panel
+from rich.live import Live
 
 class GameState(Enum):
     MENU = "menu"
@@ -37,36 +38,37 @@ class GameAction:
 
 class InputHandler:
     def __init__(self):
-        self.pressed_keys = set()
-        self.key_mapping = {
-            'a': 'A', 's': 'S', 'd': 'D', 'e': 'E', 'f': 'F',
-            'j': 'J', 'k': 'K', 'l': 'L', 'm': 'M', 'n': 'N'
-        }
-        self.current_combination = set()
-        self.last_input = ""
+        self.recent_presses = []  # Para trackear presses recientes
+        self.running = True
         
     def update(self):
-        # En el juego real, esto será reemplazado por input en tiempo real
-        pass
-    
-    def on_key_press(self, letter):
-        pass
-    
-    def on_key_release(self, letter):
-        pass
-    
-    def get_current_coordinate(self):
-        # Para demo, simularemos inputs aleatorios
+        """NO usar pygame - el input se manejará de otra manera"""
+        # No hacer nada con pygame
         return None
     
-    def process_input(self, input_str):
-        """Procesa input del usuario para determinar coordenada"""
-        input_str = input_str.lower().strip()
-        if len(input_str) == 2:
-            col = input_str[0].upper()
-            row = input_str[1].upper()
-            if col in ['A', 'S', 'D', 'E', 'F'] and row in ['J', 'K', 'L', 'M', 'N']:
-                return f"{col}{row}"
+    def get_recent_key_press(self, window_seconds=0.1):
+        """Obtiene la tecla presionada más recientemente en la ventana de tiempo"""
+        current_time = time.time()
+        recent = [key for key, t in self.recent_presses if current_time - t <= window_seconds]
+        return recent[-1] if recent else None
+    
+    def add_key_press(self, key):
+        """Agregar una tecla presionada manualmente"""
+        self.recent_presses.append((key, time.time()))
+    
+    def get_coordinate_from_keys(self):
+        """Combina teclas presionadas para formar coordenadas como AJ, SK, etc."""
+        current_time = time.time()
+        recent_keys = [key for key, t in self.recent_presses if current_time - t <= 0.2]
+        
+        if len(recent_keys) >= 2:
+            # Buscar columna (A,S,D,E,F) y fila (J,K,L,M,N)
+            cols = [k for k in recent_keys if k in ['A', 'S', 'D', 'E', 'F']]
+            rows = [k for k in recent_keys if k in ['J', 'K', 'L', 'M', 'N']]
+            
+            if cols and rows:
+                return f"{cols[-1]}{rows[-1]}"
+        
         return None
 
 class GameEngine:
@@ -77,14 +79,12 @@ class GameEngine:
         self.game_map = Map(size=5)
         self.input_handler = InputHandler()
         
-        # Sistemas de juego con velocidad NORMAL (como era antes)
+        # Sistemas de juego con OpacityTimingSystem real
         self.score_system = ScoreSystem()
         self.combo_system = ComboSystem()
-        self.timing_system = AdvancedTimingSystem(bpm=120.0)  # BPM normal
-        self.health_system = HealthSystem()
-        self.difficulty_manager = DifficultyManager()
+        self.health_system = HealthSystem(max_health=300)  
+        self.opacity_timing = OpacityTimingSystem()  
         
-        # Pantallas como estaban antes
         self.game_over_screen = GameOverScreen(self.console)
         self.victory_screen = VictoryScreen(self.console)
         self.loading_screen = LoadingScreen(self.console)
@@ -95,8 +95,7 @@ class GameEngine:
         self.start_time = 0
         self.current_time = 0
         
-        # Variables como estaban antes
-        self.health = 100
+        self.health = 200  
         self.score = 0
         self.combo = 0
         self.max_combo = 0
@@ -105,111 +104,119 @@ class GameEngine:
         self.music_thread = None
         self.game_thread = None
         
-        pg.init()
-        # Configuración mono como era antes
-        pg.mixer.pre_init(frequency=44100, size=-16, channels=1, buffer=1024)
-        pg.mixer.init()
+        # SOLO inicializar audio, NO pygame completo para evitar ventanas
+        try:
+            pg.mixer.pre_init(frequency=22050, size=-16, channels=1, buffer=256)
+            pg.mixer.init()
+            self.force_stereo = False
+        except Exception as e:
+            self.force_stereo = False
         
-        # Verificar si el sistema forzó estéreo
-        mixer_config = pg.mixer.get_init()
-        self.force_stereo = mixer_config and mixer_config[2] == 2
-        if self.force_stereo:
-            print("⚠️ Sistema forzó configuración estéreo, se adaptará el audio mono automáticamente")
+
+        self.temp_screen = None
     
     def stop_music(self):
-        """Detener toda la música y sonidos"""
+        """Detener toda la música y sonidos correctamente"""
         try:
             pg.mixer.stop()
             pg.mixer.music.stop()
-        except:
-            pass
+            pg.mixer.quit()
+            print("🔇 Música detenida correctamente")
+        except Exception as e:
+            print(f"Error al detener música: {e}")
     
     def reset_game(self):
         """Reiniciar todos los valores del juego para una nueva partida"""
         self.score = 0
         self.combo = 0
         self.max_combo = 0
-        self.health = 100
+        self.health = 200  # ✅ Más vida inicial
         self.current_time = 0.0
         self.current_action_index = 0
+        self.state = GameState.PLAYING
         
-        # Reiniciar sistemas
+        # Reiniciar sistemas con OpacityTimingSystem
         self.score_system = ScoreSystem()
-        self.timing_system = AdvancedTimingSystem()
         self.combo_system = ComboSystem()
-        self.health_system = HealthSystem()
-        self.difficulty_manager = DifficultyManager()
+        self.health_system = HealthSystem(max_health=300)  # Increased to 300
+        self.opacity_timing = OpacityTimingSystem()
         
         # Limpiar grid
         for coord in self.game_map.grid_state:
-            self.game_map.update_cell(coord, False)
+            self.game_map.set_cell_state(coord, 0)
         
         # Reiniciar barras
         self.game_map.set_progress(0)
         self.game_map.set_health(100)
         
-        # Regenerar acciones usando el método correcto
-        if hasattr(self, 'music_generator'):
-            # Generar nueva música y acciones
-            sound_array, sample_rate = self.music_generator.generate_music()
-            self.actions = self.music_generator.generate_game_actions(sound_array, sample_rate)
-            for action in self.actions:
-                action.completada = False
-                action.tiempo_inicio_hold = None
+        # Recrear acciones
+        if hasattr(self, 'music_data') and self.music_data:
+            gameplay_actions = self.music_data.get('gameplay_actions', [])
+            self.actions = []
+            for action_data in gameplay_actions:
+                action = GameAction(
+                    tiempo=action_data['tiempo'],
+                    coordenada=action_data['coordenada'],
+                    tipo=action_data['tipo'],
+                    duracion=action_data['duracion'],
+                    completada=False,
+                    tiempo_inicio_hold=None
+                )
+                self.actions.append(action)
         else:
-            # Si no hay generador, crear acciones de prueba
             self.actions = []
         
-    def start_menu(self):
-        # Iniciar directamente el juego sin menú interno
-        self.console.print("[bold green]Iniciando BeatBugging...[/bold green]")
-        self.start_game()
-    
     def start_game(self):
+        """Initialize and start the game directly"""
         self.state = GameState.PLAYING
         self.console.clear()
         
-        # Mostrar pantalla de carga
-        self.loading_screen.show_loading("Parsing error logs and generating music...", 2.0)
+        # Show simple loading message
+        self.console.print("[bold green]🎮 BEATBUGGING INICIANDO...[/bold green]")
+        self.console.print("[dim]Los errores de logs se convierten en música y patrones visuales...[/dim]")
         
-        # Aplicar configuración de dificultad
-        self.difficulty_manager.apply_to_score_system(self.score_system)
-        self.difficulty_manager.apply_to_health_system(self.health_system)
-        
-        # Generar música con velocidad NORMAL (como era antes)
-        self.music_data = self.music_generator.generate_music(
-            scale="pentatonic", 
-            rate=44100, 
-            speed=1.0  # Velocidad normal como era antes
-        )
-        
-        self.actions = [
-            GameAction(
-                tiempo=action["tiempo"],
-                coordenada=action["coordenada"],
-                tipo=action["tipo"],
-                duracion=action["duracion"]
+        # Generate music and gameplay actions
+        try:
+            self.music_data = self.music_generator.generate_music(
+                scale="minor", 
+                rate=22050,  # Match mixer frequency
+                speed=1.0
             )
-            for action in self.music_data["gameplay_actions"]
-        ]
+            
+            self.actions = [
+                GameAction(
+                    tiempo=action["tiempo"],
+                    coordenada=action["coordenada"],
+                    tipo=action["tipo"],
+                    duracion=action["duracion"]
+                )
+                for action in self.music_data["gameplay_actions"]
+            ]
+            
+            # Silently generated actions - no print
+            
+        except Exception as e:
+            # Silent error handling - create minimal data to continue
+            self.actions = [
+                GameAction(tiempo=2.0, coordenada='AJ', tipo='tap', duracion=0),
+                GameAction(tiempo=4.0, coordenada='SK', tipo='tap', duracion=0),
+                GameAction(tiempo=6.0, coordenada='DL', tipo='tap', duracion=0),
+            ]
+            self.music_data = {'audio_data': None}
         
-        self.loading_screen.show_loading("Initializing debugging environment...", 1.0)
-        
-        # Reset de sistemas como era antes
+        # Reset game systems con OpacityTimingSystem
         self.score_system = ScoreSystem()
         self.combo_system = ComboSystem()
-        self.timing_system = AdvancedTimingSystem(bpm=120.0)  # BPM normal
-        self.difficulty_manager.apply_to_score_system(self.score_system)
-        self.difficulty_manager.apply_to_health_system(self.health_system)
-        
+        self.health_system = HealthSystem()
+        self.opacity_timing = OpacityTimingSystem()
         self.current_action_index = 0
         
-        # Sync variables
+        # Sync stats
         self.health = self.health_system.current_health
         self.score = self.score_system.score
         self.combo = self.combo_system.current_combo
         
-        self.start_music()
+        # Start game loop (music will start after loading screen)
         self.game_loop()
     
     def start_music(self):
@@ -217,97 +224,287 @@ class GameEngine:
             try:
                 sound_array = self.music_data['audio_data']
                 
-                # Debug info
-                print(f"Audio shape: {sound_array.shape}, dtype: {sound_array.dtype}")
-                print(f"Pygame mixer config: {pg.mixer.get_init()}")
+                # Verificar que tenemos datos
+                if len(sound_array) == 0:
+                    self.start_time = time.time()
+                    return
                 
-                # Asegurar que el audio es mono y del tipo correcto
+                # Garantizar que es mono 1D
                 if sound_array.ndim > 1:
-                    sound_array = sound_array[:, 0]
-                    print("Convertido de 2D a 1D (mono)")
+                    sound_array = sound_array.flatten()
                 
-                # Asegurar que es int16 para pygame
+                # Convertir a int16 si no lo es
                 if sound_array.dtype != np.int16:
-                    if sound_array.dtype == np.float64 or sound_array.dtype == np.float32:
-                        sound_array = sound_array * 32767
                     sound_array = sound_array.astype(np.int16)
-                    print(f"Convertido a int16, nuevo shape: {sound_array.shape}")
                 
-                # Si el sistema forzó estéreo, convertir mono a estéreo
-                if self.force_stereo:
+                # Crear sonido mono SIN reshape - directo como 1D array
+                # Crear sonido con pygame - convertir a estéreo si es necesario
+                mixer_config = pg.mixer.get_init()
+                if mixer_config and mixer_config[2] == 2 and sound_array.ndim == 1:
+                    # Convertir mono a estéreo para pygame
                     sound_array = np.column_stack((sound_array, sound_array))
-                    print(f"Audio convertido a estéreo - Shape: {sound_array.shape}")
                 
-                # Verificar que el mixer esté inicializado
-                if not pg.mixer.get_init():
-                    print("⚠️ Reinicializando mixer de pygame...")
-                    pg.mixer.quit()
-                    pg.mixer.init(frequency=44100, size=-16, channels=2)
-                
-                # Crear sonido con pygame
                 sound = pg.sndarray.make_sound(sound_array)
+                
+                self.start_time = time.time()
                 sound.play()
-                print("Audio reproduciendose...")
                 
-                while pg.mixer.get_busy():
+                while pg.mixer.get_busy() and self.running:
                     time.sleep(0.1)
-                    
-                print("Reproduccion completada")
-                self.state = GameState.PLAYING
-                print("Iniciando juego!")
-                
+                        
             except Exception as e:
-                print(f"❌ Error reproduciendo música: {e}")
-                import traceback
-                traceback.print_exc()
-                # Continuar sin música
-                self.state = GameState.PLAYING
+                print(f"Error en audio: {e}")
+                self.start_time = time.time()
         
         self.music_thread = threading.Thread(target=play_music, daemon=True)
         self.music_thread.start()
-        self.timing_system.start()
     
     def game_loop(self):
-        with Live(self.game_map.build_layout(), screen=True, redirect_stderr=False) as live:
-            while self.state == GameState.PLAYING and self.running:
-                self.current_time = self.timing_system.get_current_time()
+        """Main game loop SIN ventana pygame, solo audio"""
+        try:
+        
+            self.loading_screen.show_loading("INITIALIZING BEATBUGGING SYSTEM", 3.0)
+            
+            self.start_music()
+            
+            with Live(self.game_map.build_layout(), refresh_per_second=2) as live:  
+                game_duration = 90.0  
+                start_time = time.time()
                 
-                for event in pg.event.get():
-                    if event.type == pg.KEYDOWN:
-                        if event.key == pg.K_ESCAPE:
-                            self.state = GameState.MENU
-                            return
-                        elif event.key == pg.K_SPACE:
-                            if self.timing_system.is_paused:
-                                self.timing_system.resume()
-                            else:
-                                self.timing_system.pause()
-                    elif event.type == pg.QUIT:
-                        self.running = False
-                        return
-                
-                self.input_handler.update()
-                self.update_game_logic()
-                self.update_display(live)
-                
-                # Sync variables
-                self.health = self.health_system.current_health
-                self.score = self.score_system.score
-                self.combo = self.combo_system.current_combo
-                self.max_combo = self.combo_system.max_combo
-                
-                if self.health_system.is_dead():
-                    self.state = GameState.GAME_OVER
-                    break  # Salir del game loop para mostrar game over
-                
-                if self.current_action_index >= len(self.actions):
-                    self.state = GameState.VICTORY
-                    break  # Salir del game loop para mostrar victory
-                
-                # Frame rate NORMAL como era antes
-                time.sleep(0.016)  # ~60fps normal
+                while self.state == GameState.PLAYING and self.running:
+                    current_time = time.time() - start_time
+                    
+                    self.process_actions(current_time, current_time)  # game_time and absolute_time
+                    
+                    # VERIFY DEATH FIRST - priority over victory
+                    current_health = self.health_system.get_health_percentage()
+                    if self.health_system.is_dead() or current_health <= 0:
+                        self.console.print(f"[red]GAME OVER: Health depleted ({current_health:.1f}%)[/red]")
+                        print(f"[DEBUG] Setting state to GAME_OVER, health: {current_health}")  # Debug
+                        self.state = GameState.GAME_OVER
+                        break
+                    
+                    # Terminar juego después de la duración establecida SOLAMENTE
+                    # No verificar mixer porque puede no estar activo al inicio
+                    if current_time >= game_duration:
+                        self.state = GameState.VICTORY
+                        break
+                    
+                    # Actualizar pantalla
+                    self.update_display(live)
+                    
+                    # Control de FPS muy lento para dar mucho tiempo
+                    time.sleep(0.5)  # ✅ MUY LENTO: 2 FPS
+                        
+        except KeyboardInterrupt:
+            self.console.print("\n[red]Juego interrumpido[/red]")
+        except Exception as e:
+            self.console.print(f"[red]Error en game loop: {e}[/red]")
+        finally:
+            self.stop_music()
+            # NO hay display pygame que cerrar
+            
+        # Mostrar pantalla final SIN pygame
+        if self.state == GameState.GAME_OVER:
+            self.show_game_over()
+        elif self.state == GameState.VICTORY:
+            self.show_victory()
     
-    def update_game_logic(self):
+    def run(self):
+        try:
+            # Comenzar directamente el juego sin menú
+            self.start_game()
+            
+        except KeyboardInterrupt:
+            self.console.print("\n[bold red]Juego interrumpido por el usuario[/bold red]")
+        finally:
+            self.stop_music()  # Asegurar que se detenga la música
+            pg.quit()
+            self.console.print("[bold green]¡Gracias por jugar BeatBugging![/bold green]")
+    
+    def update_map_display(self):
+        """Actualiza el display del mapa con el estado actual"""
+        # Limpiar celdas
+        for coord in self.game_map.grid_state:
+            self.game_map.set_cell_state(coord, 0)
+        
+        # Mostrar acciones próximas
+        upcoming_coords = []
+        for action in self.actions[self.current_action_index:self.current_action_index + 5]:
+            if not action.completada:
+                timing_offset = self.current_time - action.tiempo
+                if -5.0 <= timing_offset <= 2.0:  
+                    if abs(timing_offset) <= 0.1:
+                        self.game_map.set_cell_state(action.coordenada, 3)  # PERFECT
+                    elif abs(timing_offset) <= 0.2:
+                        self.game_map.set_cell_state(action.coordenada, 2)  # GOOD
+                    else:
+                        self.game_map.set_cell_state(action.coordenada, 1)  # OK
+                    upcoming_coords.append(action.coordenada)
+        
+        # Actualizar coordenadas activas
+        self.game_map.set_active_coords(" - ".join(upcoming_coords[:3]))
+        
+        # Actualizar barras
+        self.game_map.set_health(self.health)
+        progress = min(100, int((self.current_action_index / len(self.actions)) * 100)) if self.actions else 0
+        self.game_map.set_progress(progress)
+
+    def process_actions(self, current_time, elapsed_time=None):
+        """Procesar acciones usando el sistema de opacidad real - Solo mostrar bugs, no auto-hit"""
+        if not self.actions:
+            return
+        
+        # Limpiar todas las celdas primero
+        for coord in self.game_map.grid_state:
+            self.game_map.set_cell_state(coord, 0)
+        
+        active_coords = []
+        
+        for action in self.actions:
+            if action.completada:
+                continue
+            
+            # 🎯 Usar el sistema de opacidad real
+            timing_result = self.opacity_timing.calculate_timing_state(current_time, action.tiempo)
+            
+            # Solo mostrar si debe aparecer
+            if not timing_result.should_display:
+                # Si está en estado miss, marcar como perdido
+                if timing_result.state.value == "miss":
+                    action.completada = True
+                    self.combo_system.break_combo()
+                    # Use proper miss damage from timing system
+                    miss_result = self.score_system.evaluate_hit(999)  # Very late = miss
+                    self.health_system.take_damage(-miss_result.health_change)
+                    # Timeout sin log para pantalla limpia
+                continue
+            
+            # Mapear opacidad y estado a estados visuales del mapa
+            visual_state = self._opacity_to_visual_state(timing_result.opacity, timing_result.state.value)
+            
+            # Mostrar la celda con el estado apropiado
+            self.game_map.set_cell_state(action.coordenada, visual_state)
+            active_coords.append(action.coordenada)
+        
+        # Update coordinate text with more info
+        if active_coords:
+            coords_preview = " - ".join(active_coords[:5])
+            self.game_map.set_active_coords(f"NEXT: {coords_preview}")
+            self.game_map.set_actual_line(f"Press when you see GREEN: {', '.join(active_coords[:3])}")
+        else:
+            self.game_map.set_active_coords("System stable - preparing...")
+            self.game_map.set_actual_line("Listen to music and get ready for next bugs!")
+        
+        # Actualizar progreso y estadísticas
+        completed = sum(1 for action in self.actions if action.completada)
+        self.current_action_index = completed
+        
+        # Actualizar barras con sistemas sincronizados
+        progress = int((completed / len(self.actions)) * 100) if self.actions else 0
+        self.game_map.set_progress(progress)
+        
+        # Synchronize with health_system
+        current_health = self.health_system.get_health_percentage()
+        
+        # Automatic regeneration - more generous
+        if current_health < 95:  # Regenerate almost always
+            self.health_system.heal(0.3)  # Increased from 0.05 to 0.3 - much faster regen
+        
+        self.game_map.set_health(max(0, int(current_health)))
+        self.health = int(self.health_system.current_health)
+        
+        # Sync score
+        self.score = self.score_system.score
+        self.combo = self.combo_system.current_combo
+        
+        # ALWAYS check death first - priority over victory
+        if self.health_system.is_dead() or current_health <= 0:
+            self.state = GameState.GAME_OVER
+            return  # Exit immediately to prevent victory setting
+        
+        # Only verify victory by completing all actions if not dead AND enough time has passed
+        # Also check that player actually succeeded in a reasonable number of actions
+        successful_actions = sum(1 for action in self.actions if action.completada and getattr(action, 'hit_successfully', False))
+        if elapsed_time is None:
+            elapsed_time = current_time
+        if completed >= len(self.actions) and elapsed_time > 30 and successful_actions >= len(self.actions) * 0.3:
+            self.state = GameState.VICTORY
+    
+    def _opacity_to_visual_state(self, opacity: float, timing_state: str) -> int:
+        """Convierte opacidad y estado de timing a estados visuales del mapa"""
+        # Mapear estados de timing a números para mejor visualización
+        timing_states_map = {
+            "early": 1,
+            "almost_early": 2, 
+            "perfect": 3,
+            "almost_late": 4,
+            "late": 5,
+            "miss": 0
+        }
+        
+        # Si está en estado miss o opacidad muy baja, no mostrar
+        if timing_state == "miss" or opacity <= 0.1:
+            return 0  # INACTIVE
+        
+        # Usar el mapeo directo del estado de timing
+        return timing_states_map.get(timing_state, 0)
+    
+    def process_user_input(self, coordinate: str, current_time: float):
+        """Procesa el input del usuario cuando presiona teclas"""
+        if not self.actions:
+            return
+        
+        # Buscar si hay alguna acción activa en esa coordenada
+        for action in self.actions:
+            if action.completada or action.coordenada != coordinate:
+                continue
+            
+            # Usar el sistema de timing real para evaluar el hit
+            timing_result = self.opacity_timing.calculate_timing_state(current_time, action.tiempo)
+            
+            # Solo permitir hits si el bug está visible
+            if not timing_result.should_display:
+                continue
+            
+            # Evaluar el hit basado en el timing
+            if timing_result.state.value in ["perfect", "almost_early", "almost_late"]:
+                # HIT EXITOSO
+                self.score_system.add_score(timing_result.points)
+                self.health_system.heal(5)  # Recompensar buen timing
+                self.combo_system.add_hit()
+                action.completada = True
+                
+                # Feedback visual
+                self.game_map.set_cell_state(action.coordenada, 3)  # Perfect state
+                print(f"✨ {timing_result.state.value.upper()}! {coordinate} (+{timing_result.points} pts)")
+                break
+                
+            elif timing_result.state.value in ["early", "late"]:
+                # HIT MARGINAL
+                reduced_points = timing_result.points // 2
+                self.score_system.add_score(reduced_points)
+                self.health_system.heal(1)
+                self.combo_system.add_hit()
+                action.completada = True
+                print(f"👍 {timing_result.state.value.upper()}! {coordinate} (+{reduced_points} pts)")
+                break
+            
+            else:
+                # Miss - fuera de timing
+                self.combo_system.break_combo()
+                # Use proper miss damage from timing system
+                miss_result = self.score_system.evaluate_hit(999)  # Very late = miss
+                self.health_system.take_damage(-miss_result.health_change)
+                # Miss sin log para pantalla limpia
+                break
+
+    def update_display(self, live):
+        """Actualiza el display del juego de manera simple y efectiva"""
+        # El mapa ya se actualiza en process_actions, solo necesitamos refrescar la vista
+        live.update(self.game_map.build_layout())
+
+    def update_game_logic_old(self):
         current_coord = self.input_handler.get_current_coordinate()
         
         # Verificar acciones como era antes
@@ -356,7 +553,7 @@ class GameEngine:
         else:
             self.combo_system.break_combo()
             self.health_system.take_damage(-hit_result.health_change)
-            print(f"❌ MISS! {action.coordenada}")
+            # Miss sin log para pantalla limpia
     
     def process_miss(self, action: GameAction, index: int):
         action.completada = True
@@ -365,47 +562,9 @@ class GameEngine:
         self.combo_system.break_combo()
         self.health_system.take_damage(-miss_result.health_change)
         
-        print(f"❌ MISS! Perdiste {action.coordenada}")
-    
-    def update_display(self, live):
-        # Limpiar celdas
-        for action in self.game_map.grid_state:
-            self.game_map.update_cell(action, False)
-        
-        # Mostrar próximas acciones como era antes
-        for i in range(self.current_action_index, min(self.current_action_index + 3, len(self.actions))):
-            action = self.actions[i]
-            if not action.completada:
-                # Iluminar las casillas como era antes
-                if (self.current_time >= action.tiempo - 0.5 and 
-                    self.current_time <= action.tiempo + 0.5):
-                    self.game_map.update_cell(action.coordenada, True)
-        
-        # Actualizar barras
-        progress = min(100, int((self.current_action_index / len(self.actions)) * 100))
-        self.game_map.set_progress(progress)
-        self.game_map.set_health(self.health_system.get_health_percentage())
-        
-        # Mostrar próximas coordenadas
-        next_actions = []
-        for i in range(self.current_action_index, min(self.current_action_index + 3, len(self.actions))):
-            action = self.actions[i]
-            if not action.completada:
-                next_actions.append(f"{action.coordenada}({action.tipo})")
-        
-        coord_text = " - ".join(next_actions) if next_actions else "¡Sistema limpio!"
-        self.game_map.set_active_coords(coord_text)
-        
-        # Status como era antes
-        combo_rank = self.combo_system.get_combo_rank()
-        status_text = (f"Score: {self.score:,} | "
-                      f"Combo: {self.combo} ({combo_rank}) | "
-                      f"Accuracy: {self.score_system.get_accuracy():.1f}% | "
-                      f"Time: {self.current_time:.1f}s")
-        
-        live.update(self.game_map.build_layout(status_text))
     
     def show_game_over(self):
+        print("[DEBUG] SHOWING GAME OVER SCREEN")  # Debug message
         self.stop_music()  # Detener música
         
         stats = {
@@ -416,8 +575,7 @@ class GameEngine:
         
         self.game_over_screen.display(stats)
         
-        # Mostrar opciones con arte ASCII bonito
-        self.console.print("\n")
+        print("\n")
         game_over_art = (
             "╔══════════════════════════════════════════════════════════════╗\n"
             "║                                                              ║\n"
@@ -436,22 +594,22 @@ class GameEngine:
             "╚══════════════════════════════════════════════════════════════╝"
         )
         
-        self.console.print(Text(game_over_art, style="bold red"))
+        print(game_over_art)
         
-        # Menu de opciones con estilo ASCII
         menu_options = (
             "\n╔══════════════════════════════════════════════════════════════╗\n"
             "║                    QUE QUIERES HACER?                       ║\n"
             "║                                                              ║\n"
-            "║  [1] ENTER ──────────── Volver al menu principal            ║\n"
-            "║  [2] R ──────────────── Jugar otra vez                      ║\n"
-            "║  [3] Q ──────────────── Salir del juego                     ║\n"
+            "║  [ENTER] ──────────── Volver al menu principal              ║\n"
+            "║  [R] ──────────────── Jugar otra vez                        ║\n"
+            "║  [Q] ──────────────── Salir del juego                       ║\n"
             "║                                                              ║\n"
             "╚══════════════════════════════════════════════════════════════╝"
         )
         
-        self.console.print(Text(menu_options, style="bold green"))
+        print(menu_options)
         
+        # Usar input() normal - SIN pygame
         while True:
             try:
                 user_input = input("\n> ").strip().lower()
@@ -467,7 +625,7 @@ class GameEngine:
                     self.running = False
                     return
                 else:
-                    self.console.print("[yellow]❓ Opción inválida. Usa ENTER, R o Q[/yellow]")
+                    print("❓ Opción inválida. Usa ENTER, R o Q")
             except (KeyboardInterrupt, EOFError):
                 self.running = False
                 return
@@ -479,13 +637,12 @@ class GameEngine:
             **self.score_system.get_stats(),
             'health': self.health_system.get_health_percentage(),
             'total_actions': len(self.actions),
-            'time_taken': self.current_time
+            'time_taken': getattr(self, 'current_time', 0)
         }
         
         self.victory_screen.display(stats)
         
-        # Mostrar opciones con arte ASCII bonito
-        self.console.print("\n")
+        print("\n")
         victory_art = (
             "╔══════════════════════════════════════════════════════════════╗\n"
             "║                                                              ║\n"
@@ -504,9 +661,8 @@ class GameEngine:
             "╚══════════════════════════════════════════════════════════════╝"
         )
         
-        self.console.print(Text(victory_art, style="bold green"))
+        print(victory_art)
         
-        # Estadisticas con estilo ASCII
         stats_display = (
             f"\n╔══════════════════════════════════════════════════════════════╗\n"
             f"║                     ESTADISTICAS FINALES                    ║\n"
@@ -518,22 +674,22 @@ class GameEngine:
             f"╚══════════════════════════════════════════════════════════════╝"
         )
         
-        self.console.print(Text(stats_display, style="bold yellow"))
+        print(stats_display)
         
-        # Menu de opciones con estilo ASCII
         menu_options = (
             "\n╔══════════════════════════════════════════════════════════════╗\n"
             "║                    QUE QUIERES HACER?                       ║\n"
             "║                                                              ║\n"
-            "║  [1] ENTER ──────────── Volver al menu principal            ║\n"
-            "║  [2] R ──────────────── Jugar otra vez                      ║\n"
-            "║  [3] Q ──────────────── Salir del juego                     ║\n"
+            "║  [ENTER] ──────────── Volver al menu principal              ║\n"
+            "║  [R] ──────────────── Jugar otra vez                        ║\n"
+            "║  [Q] ──────────────── Salir del juego                       ║\n"
             "║                                                              ║\n"
             "╚══════════════════════════════════════════════════════════════╝"
         )
         
-        self.console.print(Text(menu_options, style="bold green"))
+        print(menu_options)
         
+        # Usar input() normal - SIN pygame
         while True:
             try:
                 user_input = input("\n> ").strip().lower()
@@ -549,23 +705,16 @@ class GameEngine:
                     self.running = False
                     return
                 else:
-                    self.console.print("[yellow]❓ Opción inválida. Usa ENTER, R o Q[/yellow]")
+                    print("❓ Opción inválida. Usa ENTER, R o Q")
             except (KeyboardInterrupt, EOFError):
                 self.running = False
                 return
     
     def run(self):
         try:
-            while self.running:
-                if self.state == GameState.MENU:
-                    self.start_menu()
-                elif self.state == GameState.GAME_OVER:
-                    self.show_game_over()
-                elif self.state == GameState.VICTORY:
-                    self.show_victory()
-                else:
-                    time.sleep(0.1)
-        
+            # Comenzar directamente el juego sin menú
+            self.start_game()
+            
         except KeyboardInterrupt:
             self.console.print("\n[bold red]Juego interrumpido por el usuario[/bold red]")
         finally:
@@ -574,8 +723,17 @@ class GameEngine:
             self.console.print("[bold green]¡Gracias por jugar BeatBugging![/bold green]")
 
 def main():
-    engine = GameEngine()
-    engine.run()
+    """Entry point - use the visual menu from main_menu.py"""
+    from src.menu.main_menu import run_menu
+
+    selected_file = run_menu()
+    
+    if selected_file:
+        print(f"\n🎮 Iniciando juego con archivo: {selected_file}")
+        engine = GameEngine()
+        engine.start_game()
+    else:
+        print("👋 ¡Hasta luego!")
 
 if __name__ == "__main__":
     main()
