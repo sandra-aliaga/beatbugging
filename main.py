@@ -8,6 +8,7 @@ from typing import Dict, List, Optional
 import sys
 import os
 import select  # Para input no bloqueante
+import keyboard
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
@@ -15,7 +16,7 @@ from music.generator import LogMusicGenerator
 from cli.map import Map
 from game.timing_system import ScoreSystem, ComboSystem, HealthSystem, HitResult
 from game.opacity_timing import OpacityTimingSystem  # 🎯 Importar el sistema de opacidad real
-from game.screens import GameOverScreen, VictoryScreen, LoadingScreen
+from game.screens import GameOverAnimation, GameOverScreen, VictoryScreen, LoadingScreen
 from rich.console import Console
 from rich.text import Text
 from rich.live import Live
@@ -85,6 +86,7 @@ class GameEngine:
         self.health_system = HealthSystem(max_health=300)  
         self.opacity_timing = OpacityTimingSystem()  
         
+        self.game_over_animation = GameOverAnimation(self.console)
         self.game_over_screen = GameOverScreen(self.console)
         self.victory_screen = VictoryScreen(self.console)
         self.loading_screen = LoadingScreen(self.console)
@@ -312,15 +314,32 @@ class GameEngine:
     
     def run(self):
         try:
-            # Comenzar directamente el juego sin menú
-            self.start_game()
-            
+            while self.running:
+                if self.state == GameState.MENU:
+                    from src.menu.main_menu import run_menu
+                    selected_file = run_menu()
+                    if selected_file:
+                        self.reset_game()
+                        self.start_game()
+                    else:
+                        self.running = False
+
+                elif self.state == GameState.PLAYING:
+                    self.start_game()
+
+                elif self.state == GameState.GAME_OVER:
+                    self.show_game_over()
+
+                elif self.state == GameState.VICTORY:
+                    self.show_victory()
+                    
         except KeyboardInterrupt:
             self.console.print("\n[bold red]Juego interrumpido por el usuario[/bold red]")
         finally:
-            self.stop_music()  # Asegurar que se detenga la música
+            self.stop_music()
             pg.quit()
             self.console.print("[bold green]¡Gracias por jugar BeatBugging![/bold green]")
+
     
     def update_map_display(self):
         """Actualiza el display del mapa con el estado actual"""
@@ -564,8 +583,7 @@ class GameEngine:
         
     
     def show_game_over(self):
-        print("[DEBUG] SHOWING GAME OVER SCREEN")  # Debug message
-        self.stop_music()  # Detener música
+        self.stop_music()
         
         stats = {
             **self.score_system.get_stats(),
@@ -573,59 +591,28 @@ class GameEngine:
             'total_actions': len(self.actions)
         }
         
+        self.game_over_animation.show_game_over_animation()
         self.game_over_screen.display(stats)
-        
-        print("\n")
-        game_over_art = (
-            "╔══════════════════════════════════════════════════════════════╗\n"
-            "║                                                              ║\n"
-            "║   ██████   █████  ███    ███ ███████      ██████  ██    ██  ║\n"
-            "║  ██       ██   ██ ████  ████ ██          ██    ██ ██    ██  ║\n"
-            "║  ██   ███ ███████ ██ ████ ██ █████       ██    ██ ██    ██  ║\n"
-            "║  ██    ██ ██   ██ ██  ██  ██ ██          ██    ██  ██  ██   ║\n"
-            "║   ██████  ██   ██ ██      ██ ███████      ██████    ████    ║\n"
-            "║                                                              ║\n"
-            "║  ██    ██ ███████ ██████      ███████ ███    ██ ██████       ║\n"
-            "║  ██    ██ ██      ██   ██     ██      ████   ██ ██   ██      ║\n"
-            "║  ██    ██ █████   ██████      █████   ██ ██  ██ ██   ██      ║\n"
-            "║   ██  ██  ██      ██   ██     ██      ██  ██ ██ ██   ██      ║\n"
-            "║    ████   ███████ ██   ██     ███████ ██   ████ ██████       ║\n"
-            "║                                                              ║\n"
-            "╚══════════════════════════════════════════════════════════════╝"
-        )
-        
-        print(game_over_art)
-        
-        menu_options = (
-            "\n╔══════════════════════════════════════════════════════════════╗\n"
-            "║                    QUE QUIERES HACER?                       ║\n"
-            "║                                                              ║\n"
-            "║  [ENTER] ──────────── Volver al menu principal              ║\n"
-            "║  [R] ──────────────── Jugar otra vez                        ║\n"
-            "║  [Q] ──────────────── Salir del juego                       ║\n"
-            "║                                                              ║\n"
-            "╚══════════════════════════════════════════════════════════════╝"
-        )
-        
-        print(menu_options)
-        
-        # Usar input() normal - SIN pygame
+
         while True:
             try:
-                user_input = input("\n> ").strip().lower()
-                if user_input == "" or user_input == "1":
+
+                key = keyboard.read_key()
+
+                if key == "q":
                     self.state = GameState.MENU
                     return
-                elif user_input == "r" or user_input == "2":
-                    # Reiniciar el juego
+                elif key == "enter":
+                    # reiniciar nivel
                     self.reset_game()
                     self.start_game()
                     return
-                elif user_input == "q" or user_input == "3":
+                elif key == "esc":
+                    # salir del juego
                     self.running = False
                     return
                 else:
-                    print("❓ Opción inválida. Usa ENTER, R o Q")
+                    self.console.print("[yellow] Opción inválida. Usa ESC, Q o ENTER[/yellow]")
             except (KeyboardInterrupt, EOFError):
                 self.running = False
                 return
@@ -709,31 +696,11 @@ class GameEngine:
             except (KeyboardInterrupt, EOFError):
                 self.running = False
                 return
-    
-    def run(self):
-        try:
-            # Comenzar directamente el juego sin menú
-            self.start_game()
             
-        except KeyboardInterrupt:
-            self.console.print("\n[bold red]Juego interrumpido por el usuario[/bold red]")
-        finally:
-            self.stop_music()  # Asegurar que se detenga la música
-            pg.quit()
-            self.console.print("[bold green]¡Gracias por jugar BeatBugging![/bold green]")
-
 def main():
-    """Entry point - use the visual menu from main_menu.py"""
-    from src.menu.main_menu import run_menu
-
-    selected_file = run_menu()
-    
-    if selected_file:
-        print(f"\n🎮 Iniciando juego con archivo: {selected_file}")
-        engine = GameEngine()
-        engine.start_game()
-    else:
-        print("👋 ¡Hasta luego!")
+    engine = GameEngine()
+    engine.state = GameState.MENU
+    engine.run()
 
 if __name__ == "__main__":
     main()

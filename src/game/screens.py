@@ -11,41 +11,114 @@ class AsciiArt:
     @staticmethod
     def get_game_over_screen():
         arts = [
-            r"""
- ██████ ██████   █████  ███████ ██   ██ ███████ ██████  
-██      ██   ██ ██   ██ ██      ██   ██ ██      ██   ██ 
-██      ██████  ███████ ███████ ███████ █████   ██   ██ 
-██      ██   ██ ██   ██      ██ ██   ██ ██      ██   ██ 
- ██████ ██   ██ ██   ██ ███████ ██   ██ ███████ ██████  
-
-███████ ██    ██ ███████ ████████ ███████ ███    ███ 
-██       ██  ██  ██         ██    ██      ████  ████ 
-███████   ████   ███████    ██    █████   ██ ████ ██ 
-     ██    ██         ██    ██    ██      ██  ██  ██ 
-███████    ██    ███████    ██    ███████ ██      ██ 
-
-███████  █████  ██ ██      ██    ██ ██████  ███████ 
-██      ██   ██ ██ ██      ██    ██ ██   ██ ██      
-█████   ███████ ██ ██      ██    ██ ██████  █████   
-██      ██   ██ ██ ██      ██    ██ ██   ██ ██      
-██      ██   ██ ██ ███████  ██████  ██   ██ ███████ 
-            """,
-            r"""
-    ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄ 
-   ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌
-   ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀█░▌
-   ▐░▌          ▐░▌          ▐░▌       ▐░▌▐░▌       ▐░▌▐░▌       ▐░▌
-   ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄█░▌▐░█▄▄▄▄▄▄▄█░▌▐░█▄▄▄▄▄▄▄█░▌
-   ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌
-   ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀█░█▀▀ ▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀█░█▀▀ 
-   ▐░▌          ▐░▌          ▐░▌     ▐░▌  ▐░▌       ▐░▌▐░▌     ▐░▌  
-   ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄ ▐░▌      ▐░▌ ▐░▌       ▐░▌▐░▌      ▐░▌ 
-   ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░▌       ▐░▌▐░▌       ▐░▌▐░▌       ▐░▌
-    ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀         ▀  ▀         ▀  ▀         ▀ 
-            """
+            r"""            ╔═══════════════════════════════════════════════════════════════════════════════════════╗
+            ║                                                                                       ║
+            ║   ██████   █████  ███    ███ ███████      ██████  ██    ██  ██    ██ ███████ ██████   ║
+            ║  ██       ██   ██ ████  ████ ██          ██    ██ ██    ██  ██    ██ ██      ██   ██  ║
+            ║  ██   ███ ███████ ██ ████ ██ █████       ██    ██ ██    ██  ██    ██ █████   ██████   ║
+            ║  ██    ██ ██   ██ ██  ██  ██ ██          ██    ██  ██  ██    ██  ██  ██      ██   ██  ║
+            ║   ██████  ██   ██ ██      ██ ███████      ██████    ████      ████   ███████ ██   ██  ║
+            ║                                                                                       ║
+            ╚═══════════════════════════════════════════════════════════════════════════════════════╝"""            
         ]
-        return random.choice(arts)
+        return arts
     
+    @staticmethod
+    def get_game_over_animation():
+        frames = [
+            r"""                                          ████████████████                                          
+                                    ████████████████████████████                                    
+                                 ██████████████████████████████████                                 
+                               ██████████████████████████████████████                               
+                              ████████████████████████████████████████                              
+                             ██████████████████████████████████████████                             
+                            ████████████████████████████████████████████                            
+                           ██████████████████████████████████████████████                           
+                          ████████████████████████████████████████████████                          
+                          ████████████████████████████████████████████████                          
+                         ██████████████████████████████████████████████████                         
+                         ██████████████████████████████████████████████████                         
+                         ██████████████████████████████████████████████████                         
+                         ██████████████████████████████████████████████████                         
+                         ██████████████████████████████████████████████████                         
+                         ██████████████████████████████████████████████████                         
+                         ██████████████████████████████████████████████████                         
+                           ███████████████████████████████████████████████                          
+                            ███     ████████████████████████████     ███                            
+                             █        ████████████████████████        █                             
+                             █          ████████████████████          █                             
+                            ███               ████████               ███                            
+                          ███████          ██████  ██████          ███████                          
+                         ██████████████████████      ██████████████████████                         
+                         ██████████████████████      ██████████████████████                         
+                           ███████████████████        ███████████████████                           
+                             ████     ████████   ██   ████████     ████                             
+                                        ████████████████████                                        
+                                        ████████████████████                                        
+                                        ████████████████████                                        
+                                   █    ████████████████████    █                                   
+                                   ██   ████████████████████   ██                                   
+                                   ██   ████████████████████   ██                                   
+                                   ███    ████ ██  ██ ████     ██                                   
+                                   ███         ██  ██         ███                                   
+                                   ████ █                  █ ████                                   
+                                   ███████                ███████                                   
+                                    ████████          █ ████████                                    
+                                       ████████      ████████                                       
+                                        ████████████████████                                        
+                                          ████████████████                                          
+                                           ██████████████                                           
+                                             ██████████                                             """,
+            r"""████████████████████████████████████████████            ████████████████████████████████████████████
+████████████████████████████████████████                    ████████████████████████████████████████
+████████████████████████████████████                            ████████████████████████████████████
+████████████████████████████████                                    ████████████████████████████████
+███████████████████████████████                                      ███████████████████████████████
+█████████████████████████████                                          █████████████████████████████
+█████████████████████████████                                          █████████████████████████████
+████████████████████████████                                            ████████████████████████████
+███████████████████████████                                              ███████████████████████████
+██████████████████████████                                                ██████████████████████████
+█████████████████████████                                                  █████████████████████████
+█████████████████████████                                                  █████████████████████████
+█████████████████████████                                                  █████████████████████████
+█████████████████████████                                                  █████████████████████████
+█████████████████████████                                                  █████████████████████████
+█████████████████████████                                                  █████████████████████████
+█████████████████████████                                                  █████████████████████████
+█████████████████████████                                                  █████████████████████████
+██████████████████████████                                                ██████████████████████████
+████████████████████████████   ███                                ███   ████████████████████████████
+█████████████████████████████  ███████                         ██████   ████████████████████████████
+████████████████████████████   █████████                    █████████   ████████████████████████████
+███████████████████████████    ███████████████        ███████████████    ███████████████████████████
+█████████████████████████        ██████████              ██████████        █████████████████████████
+█████████████████████████                       ████                       █████████████████████████
+█████████████████████████                      ██████                      █████████████████████████
+██████████████████████████                    ████████                    ██████████████████████████
+█████████████████████████████                 ██    ██                 █████████████████████████████
+████████████████████████████████████████                    ████████████████████████████████████████
+████████████████████████████████████████                    ████████████████████████████████████████
+████████████████████████████████████████                    ████████████████████████████████████████
+██████████████████████████████████  ███                      ███  ██████████████████████████████████
+███████████████████████████████████  ██                      ██  ███████████████████████████████████
+███████████████████████████████████  ██                      ██  ███████████████████████████████████
+███████████████████████████████████   ████       ██       ████   ███████████████████████████████████
+███████████████████████████████████   ██████     ██     ██████   ███████████████████████████████████
+███████████████████████████████████    █  ████████████████  █    ███████████████████████████████████
+██████████████████████████████████        ████████████████        ██████████████████████████████████
+████████████████████████████████████        █ ████████          ████████████████████████████████████
+██████████████████████████████████████                        ██████████████████████████████████████
+████████████████████████████████████████                    ████████████████████████████████████████
+██████████████████████████████████████████                ██████████████████████████████████████████
+███████████████████████████████████████████              ███████████████████████████████████████████
+█████████████████████████████████████████████          █████████████████████████████████████████████
+████████████████████████████████████████████████    ████████████████████████████████████████████████"""
+        ]
+        return frames
+
+
+
     @staticmethod
     def get_victory_screen():
         arts = [
@@ -105,6 +178,55 @@ class AsciiArt:
             "KERNEL PANIC: System halt imminent"
         ]
         return random.choice(messages)
+    
+class GameOverAnimation:
+    def __init__(self, console: Console):
+        self.console = console
+
+    def show_game_over_animation(self, duration: float = 3.0, speed: float = 0.1):
+        frames = AsciiArt.get_game_over_animation()
+        size = self.console.size
+        width, height = size.width, size.height
+
+        start_time = time.time()
+        frame_index = 0
+
+        while time.time() - start_time < duration:
+            frame = frames[frame_index % len(frames)]
+            frame_lines = frame.splitlines()
+
+            # === 0) Detectar carácter de fondo ===
+            # Si el frame contiene muchos █, asumimos que el fondo es █
+            background_char = "█" if sum(line.count("█") for line in frame_lines) > sum(line.count(" ") for line in frame_lines) else " "
+
+            # === 1) Centrar horizontalmente ===
+            lines = [
+                line.center(width, background_char)[:width]
+                for line in frame_lines
+            ]
+
+            # === 2) Centrar verticalmente ===
+            frame_height = len(lines)
+            if frame_height < height:
+                pad_top = (height - frame_height) // 2
+                pad_bottom = height - frame_height - pad_top
+                lines = ([background_char * width] * pad_top) + lines + ([background_char * width] * pad_bottom)
+            else:
+                lines = lines[:height]
+
+            # === 3) Convertir a texto ===
+            padded_frame = "\n".join(lines)
+            text = Text(padded_frame, style="bold red")
+
+            # === 4) Imprimir ===
+            self.console.clear()
+            self.console.print(text, end="")
+
+            time.sleep(speed)
+            frame_index += 1
+
+        self.console.clear()
+
 
 class GameOverScreen:
     def __init__(self, console: Console):
@@ -152,13 +274,13 @@ class GameOverScreen:
             border_style="yellow",
             padding=(1, 1)
         )
-    
+
     def display(self, stats: dict):
         self.console.clear()
         
         layout = Layout()
         layout.split_column(
-            Layout(name="header", size=12),
+            Layout(name="header", size=11),
             Layout(name="content"),
             Layout(name="footer", size=3)
         )
@@ -167,23 +289,23 @@ class GameOverScreen:
             Layout(name="left"),
             Layout(name="right")
         )
-        
-        ascii_art = AsciiArt.get_game_over_screen()
+
+        ascii_art = AsciiArt.get_game_over_screen()[0]
         header_panel = Panel(
             Align.center(Text(ascii_art, style="bold red")),
             border_style="red",
-            title="[bold red]CRITICAL SYSTEM FAILURE[/bold red]"
+            title="[bold red]CRITICAL SYSTEM FAILURE[/bold red]",
         )
         
         layout["header"].update(header_panel)
         layout["left"].update(self.create_error_log_panel(stats))
         layout["right"].update(self.create_stats_panel(stats))
-        
-        footer_text = Text("Press ENTER to restart system | ESC to shutdown", style="green")
+
+        footer_text = Text("ESC to shutdown | Press q to return to the menu | ENTER to restart level", style="green")
         footer_panel = Panel(Align.center(footer_text), border_style="green")
         layout["footer"].update(footer_panel)
-        
-        self.console.print(layout)
+
+        self.console.print(layout, end="")
 
 class VictoryScreen:
     def __init__(self, console: Console):
@@ -219,16 +341,16 @@ class VictoryScreen:
         achievements_table.add_column("Status", style="green", width=10)
         
         if stats.get('accuracy', 0) >= 90:
-            achievements_table.add_row("Code Master", "UNLOCKED")
+            achievements_table.add_row("🏆 Code Master", "UNLOCKED")
         if stats.get('max_combo', 0) >= 50:
-            achievements_table.add_row("Combo King", "UNLOCKED")
+            achievements_table.add_row("🔥 Combo King", "UNLOCKED")
         if stats.get('perfect', 0) >= stats.get('total_actions', 1) * 0.7:
-            achievements_table.add_row("Precision Expert", "UNLOCKED")
+            achievements_table.add_row("⚡ Precision Expert", "UNLOCKED")
         if stats.get('score', 0) >= 10000:
-            achievements_table.add_row("High Scorer", "UNLOCKED")
+            achievements_table.add_row("💎 High Scorer", "UNLOCKED")
         
-        achievements_table.add_row("Bug Hunter", "UNLOCKED")
-        achievements_table.add_row("Rhythm Hacker", "UNLOCKED")
+        achievements_table.add_row("🎯 Bug Hunter", "UNLOCKED")
+        achievements_table.add_row("🎵 Rhythm Hacker", "UNLOCKED")
         
         return Panel(
             achievements_table,
@@ -259,7 +381,7 @@ class VictoryScreen:
         
         layout = Layout()
         layout.split_column(
-            Layout(name="header", size=12),
+            Layout(name="header", size=11),
             Layout(name="content"),
             Layout(name="footer", size=5)
         )
@@ -269,7 +391,7 @@ class VictoryScreen:
             Layout(name="right")
         )
         
-        ascii_art = AsciiArt.get_victory_screen()
+        ascii_art = AsciiArt.get_victory_screen()[0]
         header_panel = Panel(
             Align.center(Text(ascii_art, style="bold green")),
             border_style="green",
@@ -287,7 +409,7 @@ class VictoryScreen:
             f"Final Score: {stats.get('score', 0):,} | "
             f"Accuracy: {stats.get('accuracy', 0):.1f}% | "
             f"Max Combo: {stats.get('max_combo', 0)}\n"
-            "Press ENTER to restart | ESC to exit",
+            "Press ENTER to continue hacking | ESC to logout",
             style=rank_color,
             justify="center"
         )
