@@ -7,17 +7,13 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional
 import sys
 import os
-import select  # Para input no bloqueante
-import termios
-import tty
-import keyboard
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 from music.generator import LogMusicGenerator
 from cli.map import Map
 from game.timing_system import ScoreSystem, ComboSystem, HealthSystem, HitResult
-from game.opacity_timing import OpacityTimingSystem  # 🎯 Importar el sistema de opacidad real
+from game.opacity_timing import OpacityTimingSystem
 from game.screens import GameOverAnimation, GameOverScreen, VictoryScreen, LoadingScreen
 from rich.console import Console
 from rich.text import Text
@@ -36,45 +32,19 @@ class GameAction:
     coordenada: str
     tipo: str
     duracion: float
+    line: str = ""
     completada: bool = False
     tiempo_inicio_hold: Optional[float] = None
 
 class InputHandler:
     def __init__(self):
-        self.recent_presses = []  # Para trackear presses recientes
+        self.recent_presses = []
         self.running = True
-        self.old_settings = None
-        self._setup_nonblocking_input()
-
-    def _setup_nonblocking_input(self):
-        """Configura input no bloqueante para terminal"""
-        try:
-            self.old_settings = termios.tcgetattr(sys.stdin)
-            tty.setraw(sys.stdin.fileno())
-        except:
-            pass  # Si falla, usar método alternativo
-
-    def _restore_input(self):
-        """Restaura configuración de input"""
-        if self.old_settings:
-            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.old_settings)
-
-    def get_pressed_keys(self):
-        """Obtiene teclas presionadas usando select no bloqueante"""
-        pressed_keys = []
-        try:
-            if select.select([sys.stdin], [], [], 0.0)[0]:
-                key = sys.stdin.read(1).upper()
-                if key and key in 'ASDEFJKLMN':
-                    self.recent_presses.append((key, time.time()))
-                    pressed_keys.append(key)
-        except:
-            pass
-        return pressed_keys
+        # NO modificamos el terminal - eso rompe Rich
 
     def update(self):
-        """Actualiza y obtiene input"""
-        return self.get_pressed_keys()
+        """Simple input that doesn't break Rich - for now just return empty"""
+        return []
 
     def get_recent_key_press(self, window_seconds=0.1):
         """Obtiene la tecla presionada más recientemente en la ventana de tiempo"""
@@ -101,13 +71,17 @@ class InputHandler:
 
         return None
 
+    def _restore_input(self):
+        """No-op since we don't modify terminal"""
+        pass
+
 class GameEngine:
     def __init__(self):
         self.console = Console()
         self.state = GameState.MENU
         self.music_generator = LogMusicGenerator()
         self.game_map = Map(size=5)
-        self.input_handler = InputHandler()
+        self.input_handler = InputHandler()  # Now safe - doesn't modify terminal
         
         # Sistemas de juego con OpacityTimingSystem real
         self.score_system = ScoreSystem()
@@ -135,7 +109,7 @@ class GameEngine:
         self.music_thread = None
         self.game_thread = None
         
-        # SOLO inicializar audio, NO pygame completo para evitar ventanas
+        # Restore pygame audio - now that we know it doesn't break the map
         try:
             pg.mixer.pre_init(frequency=22050, size=-16, channels=1, buffer=256)
             pg.mixer.init()
@@ -152,16 +126,15 @@ class GameEngine:
             pg.mixer.stop()
             pg.mixer.music.stop()
             pg.mixer.quit()
-            print("🔇 Música detenida correctamente")
+            print("Música detenida correctamente")
         except Exception as e:
             print(f"Error al detener música: {e}")
     
     def reset_game(self):
-        """Reiniciar todos los valores del juego para una nueva partida"""
         self.score = 0
         self.combo = 0
         self.max_combo = 0
-        self.health = 200  # ✅ Más vida inicial
+        self.health = 200 
         self.current_time = 0.0
         self.current_action_index = 0
         self.state = GameState.PLAYING
@@ -190,6 +163,7 @@ class GameEngine:
                     coordenada=action_data['coordenada'],
                     tipo=action_data['tipo'],
                     duracion=action_data['duracion'],
+                    line=action_data.get('line', ''),
                     completada=False,
                     tiempo_inicio_hold=None
                 )
@@ -200,11 +174,8 @@ class GameEngine:
     def start_game(self):
         """Initialize and start the game directly"""
         self.state = GameState.PLAYING
+        # Clear console for clean start
         self.console.clear()
-        
-        # Show simple loading message
-        self.console.print("[bold green]🎮 BEATBUGGING INICIANDO...[/bold green]")
-        self.console.print("[dim]Los errores de logs se convierten en música y patrones visuales...[/dim]")
         
         # Generate music and gameplay actions
         try:
@@ -219,7 +190,8 @@ class GameEngine:
                     tiempo=action["tiempo"],
                     coordenada=action["coordenada"],
                     tipo=action["tipo"],
-                    duracion=action["duracion"]
+                    duracion=action["duracion"],
+                    line=action.get("line", "")
                 )
                 for action in self.music_data["gameplay_actions"]
             ]
@@ -229,9 +201,9 @@ class GameEngine:
         except Exception as e:
             # Silent error handling - create minimal data to continue
             self.actions = [
-                GameAction(tiempo=2.0, coordenada='AJ', tipo='tap', duracion=0),
-                GameAction(tiempo=4.0, coordenada='SK', tipo='tap', duracion=0),
-                GameAction(tiempo=6.0, coordenada='DL', tipo='tap', duracion=0),
+                GameAction(tiempo=2.0, coordenada='AJ', tipo='tap', duracion=0, line="DEBUG: Test log line 1"),
+                GameAction(tiempo=4.0, coordenada='SK', tipo='tap', duracion=0, line="INFO: Test log line 2"),
+                GameAction(tiempo=6.0, coordenada='DL', tipo='tap', duracion=0, line="ERROR: Test log line 3"),
             ]
             self.music_data = {'audio_data': None}
         
@@ -291,87 +263,78 @@ class GameEngine:
         self.music_thread.start()
     
     def game_loop(self):
-        """Main game loop SIN ventana pygame, solo audio"""
+        """Complete game loop with fixed InputHandler"""
         try:
-        
             self.loading_screen.show_loading("INITIALIZING BEATBUGGING SYSTEM", 3.0)
-            
             self.start_music()
-            
-            with Live(self.game_map.build_layout(), refresh_per_second=4) as live:
-                # Calcular duración basada en las acciones generadas
+
+            # Use the configuration that works for map rendering
+            with Live(self.game_map.build_layout(), screen=True, redirect_stderr=False, vertical_overflow="visible") as live:
                 game_duration = max([action.tiempo for action in self.actions]) + 10.0 if self.actions else 90.0
                 start_time = time.time()
-                
+
                 while self.state == GameState.PLAYING and self.running:
                     current_time = time.time() - start_time
 
-                    # Procesar input del usuario
+                    # Process input (safe now)
                     pressed_keys = self.input_handler.update()
                     if pressed_keys:
                         coordinate = self.input_handler.get_coordinate_from_keys()
                         if coordinate:
-                            print(f"[DEBUG] Tecla presionada: {coordinate} en tiempo {current_time:.2f}")
                             self.process_user_input(coordinate, current_time)
 
-                    self.process_actions(current_time, current_time)  # game_time and absolute_time
+                    self.process_actions(current_time, current_time)
 
-                    # VERIFY DEATH FIRST - priority over victory
+                    # Check death
                     current_health = self.health_system.get_health_percentage()
                     if self.health_system.is_dead() or current_health <= 0:
-                        self.console.print(f"[red]GAME OVER: Health depleted ({current_health:.1f}%)[/red]")
-                        print(f"[DEBUG] Setting state to GAME_OVER, health: {current_health}")  # Debug
                         self.state = GameState.GAME_OVER
                         break
 
-                    # Terminar juego después de la duración establecida SOLAMENTE
-                    # No verificar mixer porque puede no estar activo al inicio
+                    # Check victory
                     if current_time >= game_duration:
                         self.state = GameState.VICTORY
                         break
 
-                    # Actualizar pantalla
+                    # Update display
                     self.update_display(live)
+                    time.sleep(0.1)
 
-                    # Control de FPS mejorado para mejor responsividad
-                    time.sleep(0.1)  # ✅ 10 FPS para mejor gameplay
-                        
         except KeyboardInterrupt:
             self.console.print("\n[red]Juego interrumpido[/red]")
         except Exception as e:
             self.console.print(f"[red]Error en game loop: {e}[/red]")
         finally:
             self.stop_music()
-            self.input_handler._restore_input()  # Restaurar configuración de terminal
-            # NO hay display pygame que cerrar
-            
-        # Mostrar pantalla final SIN pygame
-        if self.state == GameState.GAME_OVER:
-            self.show_game_over()
-        elif self.state == GameState.VICTORY:
-            self.show_victory()
+            self.input_handler._restore_input()
     
     def run(self):
         try:
             while self.running:
                 if self.state == GameState.MENU:
                     from src.menu.main_menu import run_menu
-                    selected_file = run_menu()
-                    if selected_file:
+                    game_config = run_menu()
+                    if game_config:
+                        # Use the file and difficulty from menu
+                        print(f"Starting game with: {game_config}")
                         self.reset_game()
                         self.start_game()
+                        # Después de start_game(), el estado ya cambió y game_loop() se ejecutó
+                        # No necesitamos hacer nada más aquí
                     else:
                         self.running = False
 
                 elif self.state == GameState.PLAYING:
-                    self.start_game()
+                    # Si llegamos aquí, significa que algo está mal
+                    # El juego debería manejarse completamente en start_game() -> game_loop()
+                    break
 
                 elif self.state == GameState.GAME_OVER:
                     self.show_game_over()
 
                 elif self.state == GameState.VICTORY:
                     self.show_victory()
-                    
+
         except KeyboardInterrupt:
             self.console.print("\n[bold red]Juego interrumpido por el usuario[/bold red]")
         finally:
@@ -381,40 +344,62 @@ class GameEngine:
 
     
     def process_actions(self, current_time, elapsed_time=None):
-        """Procesar acciones - usar lógica simple del mapa"""
+        """ULTRA SIMPLE: Solo una nota a la vez, timing muy generoso"""
         if not self.actions:
             return
 
-        # Limpiar mapa primero
+        # Limpiar mapa completamente
         for coord in self.game_map.grid_state:
             self.game_map.set_cell_state(coord, 0)
 
-        # Mostrar próximas acciones usando timing system simple
-        upcoming_coords = []
-        for action in self.actions[self.current_action_index:self.current_action_index + 10]:
+        # Buscar SOLO la próxima nota sin completar
+        current_action = None
+        for action in self.actions[self.current_action_index:]:
             if not action.completada:
-                timing_offset = current_time - action.tiempo
-                # Ventana de aparición más amplia: -4s a +3s
-                if -4.0 <= timing_offset <= 3.0:
-                    if abs(timing_offset) <= 0.5:
-                        self.game_map.set_cell_state(action.coordenada, 3)  # PERFECT
-                    elif abs(timing_offset) <= 1.5:
-                        self.game_map.set_cell_state(action.coordenada, 2)  # GOOD
-                    else:
-                        self.game_map.set_cell_state(action.coordenada, 1)  # OK
-                    upcoming_coords.append(action.coordenada)
-                elif timing_offset > 3.0:  # Miss solo después de 3 segundos
-                    action.completada = True
-                    self.combo_system.break_combo()
-                    self.health_system.take_damage(10)
+                current_action = action
+                break
 
-        # Actualizar coordenadas activas
-        self.game_map.set_active_coords(" - ".join(upcoming_coords[:3]))
+        if current_action:
+            timing_offset = current_time - current_action.tiempo
 
-        # Actualizar barras
+            # TIMING MUY GENEROSO: 3 segundos antes, 2 segundos después
+            if -3.0 <= timing_offset <= 2.0:
+                # Estados visuales más claros
+                if timing_offset < -1.0:
+                    # Muy temprano - apenas visible
+                    self.game_map.set_cell_state(current_action.coordenada, 1)
+                elif timing_offset < 0.5:
+                    # Momento perfecto - muy visible y parpadea
+                    self.game_map.set_cell_state(current_action.coordenada, 3)
+                else:
+                    # Tardío pero aún válido
+                    self.game_map.set_cell_state(current_action.coordenada, 2)
+
+                # Mostrar la línea del log que se está debuggeando
+                if current_action.line:
+                    # Truncar la línea si es muy larga para que quepa en pantalla
+                    log_line = current_action.line[:60] + "..." if len(current_action.line) > 60 else current_action.line
+                    self.game_map.set_actual_line(f"DEBUGGING: {log_line}")
+                else:
+                    self.game_map.set_actual_line(f"GET READY... {current_action.coordenada}")
+
+                self.game_map.set_active_coords(f"HIT: {current_action.coordenada} | TIMING: {timing_offset:.1f}s")
+
+            elif timing_offset > 2.0:
+                # Miss automático después de 2 segundos
+                current_action.completada = True
+                self.combo_system.break_combo()
+                self.health_system.take_damage(10)
+                self.game_map.set_actual_line("MISSED! Get ready for next...")
+        else:
+            # No hay más notas
+            self.game_map.set_actual_line("♪ Song complete! ♪")
+            self.game_map.set_active_coords("FINAL SCORE")
+
+        # Actualizar estadísticas
         completed = sum(1 for action in self.actions if action.completada)
         self.current_action_index = completed
-        progress = int((completed / len(self.actions)) * 100) if self.actions else 0
+        progress = int((completed / len(self.actions)) * 100) if self.actions else 100
         self.game_map.set_progress(progress)
 
         current_health = self.health_system.get_health_percentage()
@@ -425,14 +410,13 @@ class GameEngine:
         self.score = self.score_system.score
         self.combo = self.combo_system.current_combo
 
-        # Check victory/death
+        # Check game end conditions
         if self.health_system.is_dead() or current_health <= 0:
             self.state = GameState.GAME_OVER
             return
 
-        # Victory cuando termine la música
-        total_music_time = max([action.tiempo for action in self.actions]) if self.actions else 90.0
-        if elapsed_time and elapsed_time >= total_music_time:
+        # Victoria cuando todas las notas están completadas
+        if completed >= len(self.actions):
             self.state = GameState.VICTORY
     
     def _opacity_to_visual_state(self, opacity: float, timing_state: str) -> int:
@@ -466,8 +450,8 @@ class GameEngine:
 
             timing_offset = current_time - action.tiempo
 
-            # Ventana de hit: -2s a +2s
-            if -2.0 <= timing_offset <= 2.0:
+            # Ventana de hit más estricta: -1s a +1s
+            if -1.0 <= timing_offset <= 1.0:
                 action.completada = True
                 action.hit_successfully = True
                 self.game_map.update_cell(action.coordenada, True)
@@ -475,13 +459,10 @@ class GameEngine:
                 # Puntaje basado en precisión
                 if abs(timing_offset) <= 0.5:
                     points = 300
-                    print(f"✨ PERFECT! {coordinate} (+{points} pts)")
                 elif abs(timing_offset) <= 1.0:
                     points = 150
-                    print(f"👍 GOOD! {coordinate} (+{points} pts)")
                 else:
                     points = 50
-                    print(f"👌 OK! {coordinate} (+{points} pts)")
 
                 self.score_system.add_score(points)
                 self.health_system.heal(5)
@@ -491,7 +472,6 @@ class GameEngine:
                 # Miss
                 self.combo_system.break_combo()
                 self.health_system.take_damage(15)
-                print(f"❌ MISS! {coordinate}")
                 break
 
     def update_display(self, live):
@@ -540,11 +520,11 @@ class GameEngine:
             self.health_system.heal(hit_result.health_change)
             result_name = hit_result.result.name
             if result_name == "PERFECT":
-                print(f"✨ PERFECT! {action.coordenada}")
+                print(f"PERFECT! {action.coordenada}")
             elif result_name == "GOOD":
                 print(f"GOOD! {action.coordenada}")
             elif result_name == "OKAY":
-                print(f"👍 OKAY! {action.coordenada}")
+                print(f"OKAY! {action.coordenada}")
         else:
             self.combo_system.break_combo()
             self.health_system.take_damage(-hit_result.health_change)
@@ -572,23 +552,21 @@ class GameEngine:
 
         while True:
             try:
-
-                key = keyboard.read_key()
-
-                if key == "q":
+                user_input = input("\n> ").strip().lower()
+                if user_input == "q":
                     self.state = GameState.MENU
                     return
-                elif key == "enter":
+                elif user_input == "" or user_input == "enter":
                     # reiniciar nivel
                     self.reset_game()
                     self.start_game()
                     return
-                elif key == "esc":
+                elif user_input == "esc":
                     # salir del juego
                     self.running = False
                     return
                 else:
-                    self.console.print("[yellow] Opción inválida. Usa ESC, Q o ENTER[/yellow]")
+                    self.console.print("[yellow] Opción inválida. Usa Q, ENTER o ESC[/yellow]")
             except (KeyboardInterrupt, EOFError):
                 self.running = False
                 return
@@ -674,6 +652,7 @@ class GameEngine:
                 return
             
 def main():
+    # Start with menu for proper integration
     engine = GameEngine()
     engine.state = GameState.MENU
     engine.run()
