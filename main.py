@@ -15,6 +15,7 @@ from cli.map import Map
 from game.timing_system import ScoreSystem, ComboSystem, HealthSystem, HitResult
 from game.opacity_timing import OpacityTimingSystem
 from game.screens import GameOverAnimation, GameOverScreen, VictoryScreen, LoadingScreen
+from src.menu.main_menu import run_menu
 from rich.console import Console
 from rich.text import Text
 from rich.live import Live
@@ -312,7 +313,6 @@ class GameEngine:
         try:
             while self.running:
                 if self.state == GameState.MENU:
-                    from src.menu.main_menu import run_menu
                     game_config = run_menu()
                     if game_config:
                         # Use the file and difficulty from menu
