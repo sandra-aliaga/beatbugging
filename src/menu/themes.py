@@ -3,7 +3,9 @@ import os
 
 class ThemeManager:
     def __init__(self, theme_file="themes.json"):
-        self.theme_file = theme_file
+        # Get the absolute path to the themes.json file in the same directory as this file
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        self.theme_file = os.path.join(current_dir, theme_file)
         self.themes = {}
         self.current_theme = {}
 
