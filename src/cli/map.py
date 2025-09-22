@@ -62,12 +62,16 @@ class Map:
         self.col_labels = ['A', 'S', 'D', 'E', 'F'][:size]
         self.grid_state = {f"{col}{row}": 0 for row in self.row_labels for col in self.col_labels}
 
+        # Input zone variables
+        self.current_input = ""
+        self.input_status = "Type coordinate (e.g. AJ, SK)..."
+
     def update_cell(self, coordinate: str, is_active: bool):
         if coordinate in self.grid_state:
             self.grid_state[coordinate] = 3 if is_active else 0
     
     def set_cell_state(self, coordinate: str, state: int):
-        if coordinate in self.grid_state and 0 <= state <= 5:  # ✅ Ahora soporta estados 0-5
+        if coordinate in self.grid_state and 0 <= state <= 5:
             self.grid_state[coordinate] = state
     
     def transition_cell(self, coordinate: str, target_state: int, steps: int = 1):
@@ -88,8 +92,20 @@ class Map:
     def set_progress(self, value: int): 
         self.progress_value = max(0, min(100, value))
     
-    def set_health(self, value: int): 
+    def set_health(self, value: int):
         self.health_value = max(0, min(100, value))
+
+    def set_input(self, input_text: str):
+        """Update current input text"""
+        self.current_input = input_text
+
+    def set_input_status(self, status: str):
+        """Update input status message"""
+        self.input_status = status
+
+    def clear_input(self):
+        """Clear the input field"""
+        self.current_input = ""
 
     def _create_header_layout(self) -> Layout:
         header_layout = Layout(name="header")
@@ -123,7 +139,7 @@ class Map:
         
         return header_layout
 
-    def _create_vertical_bar(self, value: int, height: int = 20) -> Text:
+    def _create_vertical_bar(self, value: int, height: int = 18) -> Text:
         
         filled_count = int((value / 100) * height)
         empty_count = height - filled_count
@@ -166,22 +182,21 @@ class Map:
 
     def _get_cell_display(self, coord: str, state: int):
         cell_templates = [
-            CELL_INACTIVE,      # Estado 0: Inactivo 
-            CELL_EARLY,         # Estado 1: Early - apenas visible
-            CELL_ALMOST_EARLY,  # Estado 2: Almost Early - más visible
-            CELL_PERFECT,       # Estado 3: Perfect - completamente visible
-            CELL_ALMOST_LATE,   # Estado 4: Almost Late - desvaneciendo
-            CELL_EARLY          # Estado 5: Late - muy tenue (reutiliza early)
+            CELL_INACTIVE,       
+            CELL_EARLY,         
+            CELL_ALMOST_EARLY,  
+            CELL_PERFECT,       
+            CELL_ALMOST_LATE,   
+            CELL_EARLY          
         ]
         
-        # Estilos con colores mejorados basados en timing
         styles = [
-            "dim green",                    # Estado 0: Inactivo
-            "dim blue",                     # Estado 1: Early
-            "blue",                         # Estado 2: Almost Early  
-            "bold blink bright_green",      # Estado 3: Perfect - ¡momento exacto!
-            "yellow",                       # Estado 4: Almost Late
-            "dim orange"                    # Estado 5: Late
+            "dim green",                   
+            "dim blue",                     
+            "blue",
+            "bold blink bright_green",
+            "yellow",
+            "dim orange"                    
         ]
         
         # Asegurar que el estado esté en rango válido
@@ -237,67 +252,47 @@ class Map:
             expand=True
         )
 
+    def _create_input_panel(self) -> Panel:
+        """Create the input panel for user interaction"""
+        input_grid = Table.grid(expand=True, padding=(0, 1))
+        input_grid.add_column(justify="left", width=15)
+        input_grid.add_column(justify="left", ratio=1)
+
+        # Format current input with cursor effect
+        display_input = self.current_input + "_" if len(self.current_input) < 2 else self.current_input
+
+        input_grid.add_row(
+            Text("INPUT:", style="bold bright_green"),
+            Text(display_input, style="bold yellow")
+        )
+        input_grid.add_row(
+            Text("STATUS:", style="bold bright_green"),
+            Text(self.input_status, style="green")
+        )
+
+        return Panel(
+            input_grid,
+            border_style=BORDER_COLOR,
+            title=f"[{ACCENT_STYLE}]PLAYER INPUT[/]",
+            height=4,
+            expand=True
+        )
+
     def build_layout(self) -> Layout:
         layout = Layout()
         layout.split_column(
-            Layout(self._create_header_layout(), name="header", size=7), 
+            Layout(self._create_header_layout(), name="header", size=7),
             Layout(name="main", ratio=1),
         )
-        
+
         main_content_grid = Table.grid(expand=True, padding=1)
         main_content_grid.add_column(ratio=2)
         main_content_grid.add_column(ratio=1)
-        
+
         main_content_grid.add_row(
             self._create_map_display(),
             self._create_stats_panel()
         )
-        
+
         layout["main"].update(main_content_grid)
         return layout
-
-    def run_demo(self):
-        actions = ["AJ", "SK", "DL", "EM", "FN", "AJ", "SK", "DL"]
-        
-        with Live(self.build_layout(), screen=True, redirect_stderr=False, vertical_overflow="visible") as live:
-            for i, coord in enumerate(actions):
-                health = max(0, 100 - (i * 15))
-                progress = (i + 1) * (100 / len(actions))
-                self.set_health(health)
-                self.set_progress(progress)
-                
-                for state in range(1, 4):
-                    self.set_cell_state(coord, state)
-                    self.set_actual_line(f"TRACE {i*128:04x}: Preparing node '{coord}'... State {state}")
-                    live.update(self.build_layout())
-                    time.sleep(0.2)
-                
-                self.set_actual_line(f"TRACE {i*128:04x}: ACTIVE! Press '{coord}' NOW!")
-                if i < len(actions) - 1:
-                    self.set_active_coords(f"UPCOMING: {actions[i+1]}")
-                else:
-                    self.set_active_coords(">> SEQUENCE COMPLETE <<")
-                
-                live.update(self.build_layout())
-                time.sleep(0.5)
-                
-                self.set_cell_state(coord, 0)
-                live.update(self.build_layout())
-                time.sleep(0.3)
-            
-            time.sleep(2)
-
-
-if __name__ == "__main__":
-    game_map = Map(size=5)
-    try:
-        game_map.run_demo()
-    except KeyboardInterrupt:
-        print("\n[bold red]>> SESSION TERMINATED BY USER <<[/bold red]")
-
-"""
-Metodos para manejar estados:
-- set_cell_state(coord, state): Establece directamente el estado (0-3)
-- transition_cell(coord, target, steps): Transición gradual entre estados
-- update_cell(coord, is_active): Compatibilidad - activa (3) o desactiva (0)
-"""
