@@ -98,38 +98,6 @@ python main.py
 - Combo system rewards consistent accuracy
 - Dynamic difficulty adapts to log complexity
 
-## 📁 Project Architecture
-
-```
-beatbugging/
-├── main.py                    # Game engine and main loop
-├── requirements.txt           # Dependencies
-├── src/
-│   ├── cli/
-│   │   └── map.py            # 5×5 grid visualization and rendering
-│   ├── config/
-│   │   └── timing_states.json # Game timing configuration
-│   ├── game/
-│   │   ├── opacity_timing.py  # Visual timing system
-│   │   ├── screens.py         # Game over/victory/loading screens
-│   │   └── timing_system.py   # Score, combo, and health systems
-│   ├── menu/
-│   │   ├── main_menu.py       # Textual-based menu system
-│   │   ├── themes.json        # UI color themes
-│   │   ├── themes.py          # Theme management
-│   │   └── res/               # Audio assets
-│   │       ├── game-start.mp3
-│   │       └── menu-click.mp3
-│   └── music/
-│       ├── generator.py       # Core music generation engine
-│       ├── log_utils.py       # Log parsing and conversion
-│       └── DOCUMENTATION.md   # Technical documentation
-├── logs/
-│   ├── default.log           # Sample log file
-│   └── test-app.log          # Android app logs
-└── myvenv/                   # Python virtual environment
-```
-
 ## 🎼 Technical Innovation
 
 ### **Procedural Audio Generation**
@@ -160,22 +128,6 @@ We welcome contributions from developers and musicians alike!
 - **📊 Log Formats** - Support additional log parsing formats
 - **🐛 Bug Reports** - [GitHub Issues](https://github.com/sandra-aliaga/beatbugging/issues)
 - **💡 Feature Requests** - Share your creative ideas!
-
-### Development Setup
-```bash
-# Fork the repository and clone your fork
-git clone https://github.com/YOUR_USERNAME/beatbugging.git
-cd beatbugging
-
-# Create feature branch
-git checkout -b feature/amazing-new-feature
-
-# Make changes and commit
-git commit -m "Add amazing new feature"
-
-# Push and create pull request
-git push origin feature/amazing-new-feature
-```
 
 ## 📋 Dependencies
 
