@@ -1,5 +1,7 @@
 numpy==2.3.2
 pygame==2.6.1
+rich==13.9.4
+keyboard==0.13.5
 linkify-it-py==2.0.3
 markdown-it-py==4.0.0
 mdit-py-plugins==0.5.0
