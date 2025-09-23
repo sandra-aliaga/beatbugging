@@ -158,21 +158,21 @@ This epic debugging adventure was built by a team of passionate developers who b
       <a href="https://github.com/sandra-aliaga">
         <img src="https://github.com/sandra-aliaga.png" width="100px;" alt="Sandra"/>
         <br />
-        <sub><b>Sandra Aliaga</b></sub>
+        <sub><b>Sandra</b></sub>
       </a>
     </td>
     <td align="center">
-      <a href="https://github.com/rvaldiviase">
-        <img src="https://github.com/rvaldiviase.png" width="100px;" alt="Ryan"/>
+      <a href="https://github.com/RyanValdivia">
+        <img src="https://github.com/RyanValdivia.png" width="100px;" alt="Ryan"/>
         <br />
-        <sub><b>Rodrigo Valdivias</b></sub>
+        <sub><b>Ryan</b></sub>
       </a>
     </td>
     <td align="center">
       <a href="https://github.com/Joshep-c">
         <img src="https://github.com/Joshep-c.png" width="100px;" alt="Joseph"/>
         <br />
-        <sub><b>Joseph C</b></sub>
+        <sub><b>Joseph</b></sub>
       </a>
     </td>
     <td align="center">
