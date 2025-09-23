@@ -146,7 +146,6 @@ class LogMusicGenerator:
         2. Para cada nota JSON: detecta severidad → selecciona onda → genera audio
         3. Combina todas las muestras en secuencia musical
         """
-        print("GENERANDO...")
         
         self.scale = scale
         self.freq = freq
@@ -213,50 +212,3 @@ class LogMusicGenerator:
             "speed_multiplier": speed,
             "gameplay_actions": gameplay_actions
         }
-
-
-def main():
-    """
-    FUNCIÓN DE PRUEBA:
-    - Genera música desde default.log
-    - Muestra estadísticas del proceso
-    - Reproduce el audio generado (opcional)
-    """
-    
-    # Crear generador (usará default.log automáticamente)
-    generator = LogMusicGenerator()
-
-    result = generator.generate_music(scale="pentatonic", rate=44100, speed=2.0)
-
-    for i, action in enumerate(result['gameplay_actions']):
-        print(f"  {i+1}. {action}")
-    
-    try:
-        print(f"\nReproduciendo audio...")
-        pg.mixer.init(frequency=result['sample_rate'], size=-16, channels=2, buffer=1024)
-        
-        sound_array = result['audio_data']
-        # Convertir a estéreo si es mono
-        if sound_array.ndim == 1:
-            sound_array = np.column_stack((sound_array, sound_array))
-        sound = pg.sndarray.make_sound(sound_array)
-        
-        print("   ▶ Presiona Enter para reproducir, Ctrl+C para salir")
-        input()
-        sound.play()
-        pg.mixer.music.set_volume(0.5)  # Ajustar volumen
-        
-        while pg.mixer.get_busy():
-            time.sleep(0.1)
-            
-        print(" Reproducción completada")
-        
-    except Exception as e:
-        print(f"     No se pudo reproducir audio: {e}")
-        print(f"    Audio generado correctamente (datos disponibles)")
-    
-    print("\n Prueba completada!")
-
-
-if __name__ == "__main__":
-    main()

@@ -65,6 +65,7 @@ class Map:
         # Input zone variables
         self.current_input = ""
         self.input_status = "Type coordinate (e.g. AJ, SK)..."
+        self.target_coordinate = "EM"  # The coordinate to show in Line panel
 
     def update_cell(self, coordinate: str, is_active: bool):
         if coordinate in self.grid_state:
@@ -106,6 +107,10 @@ class Map:
     def clear_input(self):
         """Clear the input field"""
         self.current_input = ""
+
+    def set_target_coordinate(self, coordinate: str):
+        """Set the target coordinate to display in Line panel"""
+        self.target_coordinate = coordinate
 
     def _create_header_layout(self) -> Layout:
         header_layout = Layout(name="header")
@@ -252,29 +257,44 @@ class Map:
             expand=True
         )
 
-    def _create_input_panel(self) -> Panel:
-        """Create the input panel for user interaction"""
-        input_grid = Table.grid(expand=True, padding=(0, 1))
-        input_grid.add_column(justify="left", width=15)
-        input_grid.add_column(justify="left", ratio=1)
+    def _create_line_panel(self) -> Panel:
+        """Create the line display panel"""
+        line_grid = Table.grid(expand=True, padding=(0, 1))
+        line_grid.add_column(justify="left", width=8)
+        line_grid.add_column(justify="left", ratio=1)
 
-        # Format current input with cursor effect
-        display_input = self.current_input + "_" if len(self.current_input) < 2 else self.current_input
+        # Show target coordinate
+        display_coord = self.target_coordinate
 
-        input_grid.add_row(
-            Text("INPUT:", style="bold bright_green"),
-            Text(display_input, style="bold yellow")
-        )
-        input_grid.add_row(
-            Text("STATUS:", style="bold bright_green"),
-            Text(self.input_status, style="green")
+        line_grid.add_row(
+            Text("Line:", style="bold bright_green"),
+            Text(display_coord, style="bold yellow")
         )
 
         return Panel(
-            input_grid,
+            line_grid,
             border_style=BORDER_COLOR,
-            title=f"[{ACCENT_STYLE}]PLAYER INPUT[/]",
-            height=4,
+            height=3,
+            expand=True
+        )
+
+    def _create_terminal_panel(self) -> Panel:
+        """Create the terminal input panel for user interaction"""
+        terminal_grid = Table.grid(expand=True, padding=(0, 1))
+        terminal_grid.add_column(justify="left", ratio=1)
+
+        # Terminal prompt with current input and cursor
+        display_input = self.current_input + "_" if len(self.current_input) < 2 else self.current_input
+        prompt_text = f"[user@01010]$ {display_input}"
+
+        terminal_grid.add_row(
+            Text(prompt_text, style="bold green")
+        )
+
+        return Panel(
+            terminal_grid,
+            border_style=BORDER_COLOR,
+            height=3,
             expand=True
         )
 
@@ -282,9 +302,23 @@ class Map:
         layout = Layout()
         layout.split_column(
             Layout(self._create_header_layout(), name="header", size=7),
-            Layout(name="main", ratio=1),
+            Layout(name="input_panels", size=4),
+            Layout(name="main", ratio=1)
         )
 
+        # Input panels (line display + terminal input) - above the matrix
+        input_content_grid = Table.grid(expand=True, padding=1)
+        input_content_grid.add_column(ratio=1)
+        input_content_grid.add_column(ratio=1)
+
+        input_content_grid.add_row(
+            self._create_line_panel(),
+            self._create_terminal_panel()
+        )
+
+        layout["input_panels"].update(input_content_grid)
+
+        # Main content (map + stats)
         main_content_grid = Table.grid(expand=True, padding=1)
         main_content_grid.add_column(ratio=2)
         main_content_grid.add_column(ratio=1)

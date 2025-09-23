@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional
 import sys
 import os
+import keyboard
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
@@ -40,43 +41,128 @@ class GameAction:
     tiempo_inicio_hold: Optional[float] = None
 
 class InputHandler:
-    def __init__(self):
-        self.recent_presses = []
+    def __init__(self, game_map):
+        self.game_map = game_map
         self.running = True
-        # NO modificamos el terminal - eso rompe Rich
+        self.current_input = ""
+        self.input_thread = None
+        self.coordinate_ready = False
+        self.last_coordinate = None
 
-    def update(self):
-        """Simple input that doesn't break Rich - for now just return empty"""
-        return []
+    def start_capture(self):
+        """Start keyboard capture in a separate thread"""
+        self.running = True
+        self.input_thread = threading.Thread(target=self._keyboard_listener, daemon=True)
+        self.input_thread.start()
+        # Debug: show input system started
+        self.game_map.set_actual_line("Input system started. Press A-F then J-N to enter coordinates.")
 
-    def get_recent_key_press(self, window_seconds=0.1):
-        """Obtiene la tecla presionada más recientemente en la ventana de tiempo"""
-        current_time = time.time()
-        recent = [key for key, t in self.recent_presses if current_time - t <= window_seconds]
-        return recent[-1] if recent else None
+        # Test: Force set input to see if terminal updates
+        self.game_map.set_input("TEST")
+        threading.Timer(2.0, lambda: self.game_map.set_input("")).start()
 
-    def add_key_press(self, key):
-        """Agregar una tecla presionada manualmente"""
-        self.recent_presses.append((key, time.time()))
+    def stop_capture(self):
+        """Stop keyboard capture"""
+        self.running = False
 
-    def get_coordinate_from_keys(self):
-        """Combina teclas presionadas para formar coordenadas como AJ, SK, etc."""
-        current_time = time.time()
-        recent_keys = [key for key, t in self.recent_presses if current_time - t <= 0.3]
+    def _keyboard_listener(self):
+        """Listen for keyboard input without blocking the main thread"""
+        try:
+            # Track pressed keys to avoid repetition
+            pressed_keys = set()
 
-        if len(recent_keys) >= 2:
-            # Buscar columna (A,S,D,E,F) y fila (J,K,L,M,N)
-            cols = [k for k in recent_keys if k in ['A', 'S', 'D', 'E', 'F']]
-            rows = [k for k in recent_keys if k in ['J', 'K', 'L', 'M', 'N']]
+            self.game_map.set_actual_line("Keyboard ready! Press column (A,S,D,E,F) then row (J,K,L,M,N)")
 
-            if cols and rows:
-                return f"{cols[-1]}{rows[-1]}"
+            while self.running:
+                try:
+                    # Simple key detection
+                    valid_keys = ['a', 's', 'd', 'e', 'f', 'j', 'k', 'l', 'm', 'n']
 
+                    current_pressed = set()
+                    for key in valid_keys:
+                        if keyboard.is_pressed(key) and self.running:
+                            current_pressed.add(key)
+
+                            # Only process if key wasn't already pressed
+                            if key not in pressed_keys:
+                                self._handle_key_press(key.upper())
+
+                    # Update pressed keys tracking
+                    pressed_keys = current_pressed
+
+                    time.sleep(0.05)  # Small delay to avoid excessive CPU usage
+
+                except Exception as e:
+                    self.game_map.set_actual_line("Keyboard detection failed - may need admin permissions")
+                    time.sleep(1.0)
+
+        except Exception as e:
+            # Major error - fallback
+            self.game_map.set_actual_line("Keyboard system failed. Check permissions or try running as admin.")
+
+    def _handle_key_press(self, key):
+        """Handle a key press and build coordinate"""
+        # ALWAYS update debug line to show we detected a key
+        self.game_map.set_actual_line(f"Key detected: {key} | Current input: '{self.current_input}'")
+
+        if len(self.current_input) == 0:
+            # First character - should be A,S,D,E,F
+            if key in ['A', 'S', 'D', 'E', 'F']:
+                self.current_input = key
+                self.game_map.set_input(self.current_input)
+                # Debug: update debug line to show key press
+                self.game_map.set_actual_line(f"First key: {key} | Need row key (J,K,L,M,N)")
+        elif len(self.current_input) == 1:
+            # Second character - should be J,K,L,M,N
+            if key in ['J', 'K', 'L', 'M', 'N']:
+                self.current_input += key
+                self.game_map.set_input(self.current_input)
+                # Coordinate is ready
+                self.coordinate_ready = True
+                self.last_coordinate = self.current_input
+                # Debug: show coordinate completed
+                self.game_map.set_actual_line(f"Coordinate complete: {self.current_input} - submitting!")
+                # Clear input after a short delay
+                threading.Timer(0.5, self._clear_input).start()
+            else:
+                # Wrong second key
+                self.game_map.set_actual_line(f"Wrong key {key}! Need J,K,L,M,N after {self.current_input}")
+        else:
+            # Input too long, reset
+            self.current_input = ""
+            self.game_map.set_input(self.current_input)
+            self.game_map.set_actual_line(f"Input reset. Key {key} - start with A,S,D,E,F")
+
+    def _clear_input(self):
+        """Clear the input after coordinate is submitted"""
+        self.current_input = ""
+        self.game_map.set_input(self.current_input)
+        self.coordinate_ready = False
+
+    def _skip_current_note(self):
+        """Skip current note for debugging purposes"""
+        self.game_map.set_actual_line("ESC pressed - skipping current note (debug feature)")
+
+    def get_coordinate_if_ready(self):
+        """Get coordinate if one is ready, then mark as consumed"""
+        if self.coordinate_ready and self.last_coordinate:
+            coord = self.last_coordinate
+            self.coordinate_ready = False
+            return coord
         return None
 
+    def update(self):
+        """Update method for compatibility - now just returns coordinate if ready"""
+        coord = self.get_coordinate_if_ready()
+        return [coord] if coord else []
+
+    def get_coordinate_from_keys(self):
+        """Get coordinate if ready - for compatibility"""
+        return self.get_coordinate_if_ready()
+
     def _restore_input(self):
-        """No-op since we don't modify terminal"""
-        pass
+        """Stop capture when game ends"""
+        self.stop_capture()
 
 class GameEngine:
     def __init__(self):
@@ -84,7 +170,7 @@ class GameEngine:
         self.state = GameState.MENU
         self.music_generator = LogMusicGenerator()
         self.game_map = Map(size=Config.GRID_SIZE)
-        self.input_handler = InputHandler()  # Now safe - doesn't modify terminal
+        self.input_handler = InputHandler(self.game_map)  # Pass game_map reference
         
         # Sistemas de juego con OpacityTimingSystem real
         self.score_system = ScoreSystem()
@@ -130,20 +216,20 @@ class GameEngine:
             pg.mixer.stop()
             pg.mixer.music.stop()
             # NO hacer quit() aquí para que el audio se pueda reiniciar
-            print("Música detenida correctamente")
+            print("Music stopped cleanly")
         except Exception as e:
-            print(f"Error al detener música: {e}")
-    
+            print(f"Error stopping music: {e}")
+
     def reinit_audio(self):
         """Reinicializar el sistema de audio si es necesario"""
         try:
             if not pg.mixer.get_init():
                 pg.mixer.pre_init(frequency=22050, size=-16, channels=1, buffer=256)
                 pg.mixer.init()
-                print("Audio reinicializado")
+                print("Audio reinitialized")
         except Exception as e:
-            print(f"Error al reinicializar audio: {e}")
-    
+            print(f"Error reinitializing audio: {e}")
+
     def reset_game(self):
         self.current_time = 0.0
         self.current_action_index = 0
@@ -192,10 +278,8 @@ class GameEngine:
         
         # Initialize music generator with the selected file
         if self.selected_log_file:
-            print(f"Generando música desde: {self.selected_log_file}")
             self.music_generator = LogMusicGenerator(log_path=self.selected_log_file)
         else:
-            print("Usando archivo de log por defecto")
             self.music_generator = LogMusicGenerator()
         
         # Generate music and gameplay actions
@@ -217,10 +301,8 @@ class GameEngine:
                 for action in self.music_data["gameplay_actions"]
             ]
             
-            print(f"✅ Generadas {len(self.actions)} notas desde el archivo seleccionado")
             
         except Exception as e:
-            print(f"❌ Error generando música: {e}")
             # Silent error handling - create minimal data to continue
             self.actions = [
                 GameAction(tiempo=2.0, coordenada='AJ', tipo='tap', duracion=0, line="DEBUG: Test log line 1"),
@@ -274,7 +356,6 @@ class GameEngine:
                     time.sleep(0.1)
                         
             except Exception as e:
-                print(f"Error en audio: {e}")
                 self.start_time = time.time()
         
         self.music_thread = threading.Thread(target=play_music, daemon=True)
@@ -285,6 +366,9 @@ class GameEngine:
         try:
             self.loading_screen.show_loading("INITIALIZING BEATBUGGING SYSTEM", 3.0)
             self.start_music()
+
+            # Start keyboard capture
+            self.input_handler.start_capture()
 
             # Use the configuration that works for map rendering
             with Live(self.game_map.build_layout(), screen=True, redirect_stderr=False, vertical_overflow="visible") as live:
@@ -319,9 +403,9 @@ class GameEngine:
                     time.sleep(0.1)
 
         except KeyboardInterrupt:
-            self.console.print("\n[red]Juego interrumpido[/red]")
+            self.console.print("\n[red]Game interrupted[/red]")
         except Exception as e:
-            self.console.print(f"[red]Error en game loop: {e}[/red]")
+            self.console.print(f"[red]Error in game loop: {e}[/red]")
         finally:
             self.stop_music()
             self.input_handler._restore_input()
@@ -332,9 +416,6 @@ class GameEngine:
                 if self.state == GameState.MENU:
                     game_config = run_menu()
                     if game_config:
-                        # Use the file and difficulty from menu
-                        print(f"Starting game with: {game_config}")
-                        
                         # Guardar el archivo seleccionado
                         self.selected_log_file = game_config.get('file')
                         
@@ -357,12 +438,12 @@ class GameEngine:
                     self.show_victory()
 
         except KeyboardInterrupt:
-            self.console.print("\n[bold red]Juego interrumpido por el usuario[/bold red]")
+            self.console.print("\n[bold red]Game interrupted by user[/bold red]")
         finally:
             self.stop_music()
             pg.mixer.quit()  # Cerrar completamente el audio al salir
             pg.quit()
-            self.console.print("[bold green]¡Gracias por jugar BeatBugging![/bold green]")
+            self.console.print("[bold green]¡THANKS for BeatBugging![/bold green]")
 
     
     def process_actions(self, current_time, elapsed_time=None):
@@ -383,6 +464,9 @@ class GameEngine:
 
         if current_action:
             timing_offset = current_time - current_action.tiempo
+
+            # Update target coordinate in Line panel
+            self.game_map.set_target_coordinate(current_action.coordenada)
 
             # Timing window usando configuración
             timing_window = Config.OKAY_WINDOW * 10  # 3 segundos por defecto
@@ -409,10 +493,12 @@ class GameEngine:
                 self.game_map.set_active_coords(f"HIT: {current_action.coordenada} | TIMING: {timing_offset:.1f}s")
 
             elif timing_offset > timing_window * 0.67:
-                # Miss automático después del timing window
+                # Miss automático después del timing window - COMO ANTES
                 current_action.completada = True
+                current_action.missed = True
                 self.combo_system.break_combo()
                 self.health_system.take_damage(abs(Config.HEALTH_CHANGES["MISS"]))
+                self.game_map.set_cell_state(current_action.coordenada, 5)  # Red for miss
                 self.game_map.set_actual_line("MISSED! Get ready for next...")
         else:
             # No hay más notas
@@ -428,19 +514,23 @@ class GameEngine:
         current_health = self.health_system.get_health_percentage()
         self.game_map.set_health(max(0, int(current_health)))
 
+        # Debug: show game stats
+        total_actions = len(self.actions)
+        if total_actions == 0:
+            self.game_map.set_active_coords("ERROR: No actions loaded! Check log file.")
+        else:
+            self.game_map.set_active_coords(f"Actions: {completed}/{total_actions} | Health: {current_health:.0f}%")
 
         # Check game end conditions
         if self.health_system.is_dead() or current_health <= 0:
             self.state = GameState.GAME_OVER
             return
 
-        # Victoria cuando todas las notas están completadas
-        if completed >= len(self.actions):
+        # Victoria cuando todas las notas están completadas - ONLY if we have actions
+        if total_actions > 0 and completed >= total_actions:
             self.state = GameState.VICTORY
     
     def _opacity_to_visual_state(self, opacity: float, timing_state: str) -> int:
-        """Convierte opacidad y estado de timing a estados visuales del mapa"""
-        # Mapear estados de timing a números para mejor visualización
         timing_states_map = {
             "early": 1,
             "almost_early": 2, 
@@ -473,15 +563,22 @@ class GameEngine:
             if -Config.OKAY_WINDOW <= timing_offset <= Config.OKAY_WINDOW:
                 action.completada = True
                 action.hit_successfully = True
-                self.game_map.update_cell(action.coordenada, True)
+
+                # Visual feedback - make cell flash green
+                self.game_map.set_cell_state(action.coordenada, 3)
+                # Mark that user attempted this action
+                action.user_attempted = True
 
                 # Puntaje basado en precisión usando configuración
                 if abs(timing_offset) <= Config.PERFECT_WINDOW:
                     points = Config.BASE_POINTS["PERFECT"]
+                    self.game_map.set_active_coords(f"PERFECT! +{points} pts")
                 elif abs(timing_offset) <= Config.GOOD_WINDOW:
                     points = Config.BASE_POINTS["GOOD"]
+                    self.game_map.set_active_coords(f"GOOD! +{points} pts")
                 else:
                     points = Config.BASE_POINTS["OKAY"]
+                    self.game_map.set_active_coords(f"OKAY! +{points} pts")
 
                 self.score_system.add_score(points)
                 # Determinar healing basado en precisión
@@ -496,14 +593,23 @@ class GameEngine:
                 self.combo_system.add_hit()
                 break
             else:
-                # Miss
+                # Miss - visual feedback
+                self.game_map.set_cell_state(action.coordenada, 5)  # Show miss state
+                self.game_map.set_active_coords(f"MISS! Wrong timing for {action.coordenada}")
+                action.user_attempted = True  # Mark as attempted
+                action.completada = True  # Complete with miss
+                action.missed = True
                 self.combo_system.break_combo()
                 self.health_system.take_damage(abs(Config.HEALTH_CHANGES["MISS"]))
                 break
 
+        # If coordinate doesn't match any active action
+        if coordinate and not any(action.coordenada == coordinate and not action.completada for action in self.actions):
+            self.game_map.set_active_coords(f"MISS! Wrong coordinate: {coordinate}")
+            self.combo_system.break_combo()
+            self.health_system.take_damage(abs(Config.HEALTH_CHANGES["MISS"]))
+
     def update_display(self, live):
-        """Actualiza el display del juego de manera simple y efectiva"""
-        # Solo actualizar el layout sin reconstruirlo completamente
         live.update(self.game_map.build_layout())
 
     def update_game_logic_old(self):
@@ -593,7 +699,7 @@ class GameEngine:
                     self.running = False
                     return
                 else:
-                    self.console.print("[yellow] Opción inválida. Usa Q, ENTER o ESC[/yellow]")
+                    self.console.print("[yellow] Invalid option. Use Q, ENTER or ESC[/yellow]")
             except (KeyboardInterrupt, EOFError):
                 self.running = False
                 return
@@ -608,13 +714,10 @@ class GameEngine:
             'time_taken': getattr(self, 'current_time', 0)
         }
         
-        # Mostrar solo la animación de victoria
         self.victory_animation.show_victory_animation()
         
-        # Limpiar pantalla después de la animación
         os.system("cls" if os.name == "nt" else "clear")
         
-        # Mostrar pantalla de estadísticas (sin arte ASCII extra)
         self.victory_screen.display(stats)
         
         while True:
@@ -632,7 +735,7 @@ class GameEngine:
                     self.running = False
                     return
                 else:
-                    print("❓ Opción inválida. Usa ENTER, R o Q")
+                    print("Invalid option. Use ENTER, R or Q")
             except (KeyboardInterrupt, EOFError):
                 self.running = False
                 return

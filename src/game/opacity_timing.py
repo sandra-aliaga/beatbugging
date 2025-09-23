@@ -6,7 +6,6 @@ from typing import Tuple, Optional, Dict, Any
 import time
 
 class TimingState(Enum):
-    """Enum para los 6 estados de timing en orden temporal"""
     EARLY = "early"
     ALMOST_EARLY = "almost_early"
     PERFECT = "perfect"
@@ -16,7 +15,6 @@ class TimingState(Enum):
 
 @dataclass
 class TimingResult:
-    """Resultado del cálculo de timing incluyendo estado y efectos visuales"""
     state: TimingState
     opacity: float
     time_offset: float
@@ -25,7 +23,6 @@ class TimingResult:
     should_display: bool
 
 class OpacityTimingSystem:
-    """Sistema de timing basado en opacidad para BeatBugging"""
     
     def __init__(self, config_path: Optional[str] = None):
         self.config_path = config_path or self._get_default_config_path()
@@ -34,12 +31,10 @@ class OpacityTimingSystem:
         self.global_settings = self.config["global_settings"]
         
     def _get_default_config_path(self) -> str:
-        """Obtiene la ruta del archivo de configuración"""
         current_dir = os.path.dirname(__file__)
         return os.path.join(current_dir, "..", "config", "timing_states.json")
     
     def _load_config(self) -> Dict[str, Any]:
-        """Carga la configuración desde el archivo JSON"""
         try:
             with open(self.config_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
@@ -51,12 +46,12 @@ class OpacityTimingSystem:
         """Configuración por defecto si no existe el archivo JSON"""
         return {
             "timing_states": {
-                "early": {"time_range": [-4.0, -2.0], "opacity": 0.2, "color_hint": "dim_blue"},  # ✅ 2 segundos de early
-                "almost_early": {"time_range": [-2.0, -1.0], "opacity": 0.5, "color_hint": "blue"},  # ✅ 1 segundo de almost_early
-                "perfect": {"time_range": [-1.0, 1.0], "opacity": 1.0, "color_hint": "bright_green"},  # ✅ 2 segundos de ventana perfecta!
-                "almost_late": {"time_range": [1.0, 2.0], "opacity": 0.6, "color_hint": "yellow"},  # ✅ 1 segundo de almost_late
-                "late": {"time_range": [2.0, 3.0], "opacity": 0.3, "color_hint": "orange"},  # ✅ 1 segundo de late
-                "miss": {"time_range": [3.0, 5.0], "opacity": 0.0, "color_hint": "red"}  # ✅ 2 segundos antes de miss
+                "early": {"time_range": [-4.0, -2.0], "opacity": 0.2, "color_hint": "dim_blue"}, 
+                "almost_early": {"time_range": [-2.0, -1.0], "opacity": 0.5, "color_hint": "blue"},
+                "perfect": {"time_range": [-1.0, 1.0], "opacity": 1.0, "color_hint": "bright_green"},
+                "almost_late": {"time_range": [1.0, 2.0], "opacity": 0.6, "color_hint": "yellow"},
+                "late": {"time_range": [2.0, 3.0], "opacity": 0.3, "color_hint": "orange"},
+                "miss": {"time_range": [3.0, 5.0], "opacity": 0.0, "color_hint": "red"}
             },
             "global_settings": {
                 "anticipation_window": 2.0,
@@ -69,17 +64,6 @@ class OpacityTimingSystem:
         }
     
     def calculate_timing_state(self, current_time: float, target_time: float) -> TimingResult:
-        """
-        Calcula el estado de timing actual basado en el tiempo.
-        
-        Args:
-            current_time: Tiempo actual del juego
-            target_time: Tiempo objetivo del bug/acción
-            
-        Returns:
-            TimingResult con el estado, opacidad y efectos visuales
-        """
-        # Calcular offset temporal (positivo = tarde, negativo = temprano)
         time_offset = current_time - target_time
         
         # Buscar en qué estado estamos
@@ -131,10 +115,7 @@ class OpacityTimingSystem:
         return result.opacity
     
     def get_interpolated_opacity(self, current_time: float, target_time: float) -> float:
-        """
-        Calcula una opacidad interpolada suavemente entre estados.
-        Esto crea transiciones más fluidas en lugar de cambios abruptos.
-        """
+
         time_offset = current_time - target_time
         
         # Encontrar los dos estados más cercanos para interpolar
@@ -171,10 +152,7 @@ class OpacityTimingSystem:
         return result.points > 0
     
     def get_visual_feedback(self, current_time: float, target_time: float) -> Dict[str, Any]:
-        """
-        Obtiene información completa para efectos visuales.
-        Útil para el sistema de renderizado.
-        """
+
         result = self.calculate_timing_state(current_time, target_time)
         
         return {
@@ -187,63 +165,9 @@ class OpacityTimingSystem:
             "interpolated_opacity": self.get_interpolated_opacity(current_time, target_time)
         }
 
-# Función de conveniencia para uso directo
 def get_bug_opacity(current_time: float, target_time: float, timing_system: Optional[OpacityTimingSystem] = None) -> float:
-    """
-    Función simple para obtener la opacidad de un bug en un momento dado.
-    
-    Args:
-        current_time: Tiempo actual del juego
-        target_time: Tiempo objetivo cuando el bug debe presionarse
-        timing_system: Sistema de timing (opcional, se crea uno por defecto)
-    
-    Returns:
-        float: Opacidad entre 0.0 (invisible) y 1.0 (completamente visible)
-    """
+
     if timing_system is None:
         timing_system = OpacityTimingSystem()
     
     return timing_system.get_opacity_for_timing(current_time, target_time)
-
-# Demo/Test del sistema
-def demo_timing_system():
-    """Función de demostración del sistema de timing"""
-    print("🎮 Demo del Sistema de Timing con Opacidad")
-    print("=" * 50)
-    
-    timing_system = OpacityTimingSystem()
-    target_time = 10.0  # Bug objetivo a los 10 segundos
-    
-    print(f"Objetivo del bug: {target_time}s")
-    print("\nSimulación temporal:")
-    
-    # Simular desde 2 segundos antes hasta 2 segundos después
-    for t in range(8 * 10, 12 * 10 + 1):  # 8.0s a 12.0s con pasos de 0.1s
-        current_time = t / 10.0
-        result = timing_system.calculate_timing_state(current_time, target_time)
-        
-        # Crear barra visual de opacidad
-        opacity_bar = "█" * int(result.opacity * 10) + "░" * (10 - int(result.opacity * 10))
-        
-        print(f"Tiempo: {current_time:4.1f}s | {result.state.value:12} | "
-              f"Opacidad: {result.opacity:.1f} [{opacity_bar}] | "
-              f"Puntos: {result.points:3d}")
-    
-    print("\n🔍 Casos de uso:")
-    
-    # Casos específicos
-    test_cases = [
-        (8.5, "Bug apareciendo (early)"),
-        (9.7, "Preparándose (almost_early)"),
-        (10.0, "¡MOMENTO EXACTO! (perfect)"),
-        (10.2, "Todavía bien (almost_late)"),
-        (10.7, "Se está yendo (late)"),
-        (11.5, "Perdido (miss)")
-    ]
-    
-    for test_time, description in test_cases:
-        result = timing_system.calculate_timing_state(test_time, target_time)
-        print(f"  {test_time}s - {description}: Opacidad {result.opacity:.1f}, Puntos {result.points}")
-
-if __name__ == "__main__":
-    demo_timing_system()
