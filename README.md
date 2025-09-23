@@ -23,8 +23,54 @@
 
 ## 🎬 Demo
 
-![BeatBugging Gameplay](screenshots/gameplay.gif)
-*Coming soon - Recording epic debugging sessions!*
+<div align="center">
+<video width="50%" controls>
+<source src="img/gameplay.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+</div>
+
+## 📸 Screenshots
+
+### Main Menu
+<div align="center">
+<img src="img/MainMenu.png" alt="Main Menu" width="50%">
+</div>
+
+### Data Selection
+<div align="center">
+<img src="img/DataSelection.png" alt="Data Selection Screen" width="50%">
+</div>
+
+### Loading Screen
+<div align="center">
+<img src="img/Loading.png" alt="Loading" width="50%">
+</div>
+
+### Gameplay
+<div align="center">
+<img src="img/GamePlay.png" alt="Gameplay Screenshot" width="50%">
+</div>
+
+### Victory Screen
+<div align="center">
+<img src="img/Victoria.png" alt="Victory" width="50%">
+</div>
+
+### Win Screen
+<div align="center">
+<img src="img/Win.png" alt="Win" width="50%">
+</div>
+
+### Game Over
+<div align="center">
+<img src="img/GameOver.png" alt="Game Over" width="50%">
+</div>
+
+### Skull Icon
+<div align="center">
+<img src="img/Skull.png" alt="Skull" width="50%">
+</div>
 
 ## 🎯 What Makes This Special?
 
@@ -132,21 +178,6 @@ def create_musical_note(log_line):
 ```
 
 **Zero paid services required** - just Python and the love of turning bugs into beats! 🎵
-
-
-## 📸 Screenshots
-
-![Main Menu](screenshots/menu.png)
-*Beautiful terminal interface with theme selection*
-
-![File Browser](screenshots/file_browser.png) 
-*Smart log file discovery with metadata previews*
-
-![Gameplay](screenshots/gameplay.png)
-*5×5 grid with real-time visual feedback and combo system*
-
-![Victory Screen](screenshots/victory.png)
-*Epic victory animations when you successfully debug all errors*
 
 
 ## 🏆 For the Love of Code - Category 4: Game on

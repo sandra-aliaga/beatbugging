@@ -103,12 +103,22 @@ def make_title_css():
         
     }}
 
+    #subtitle_container {{
+        align: center middle;
+        width: 100%;
+        height: auto;
+        content-align: center middle;
+    }}
+
     #subtitle {{
         color: {secondary_color};
         margin-bottom: 1;
         text-align: center;
         text-style: bold;
         height: auto;
+        align: center middle;
+        width: 100%;
+        content-align: center middle;
     }}
 
     Button {{
@@ -334,7 +344,8 @@ class TitleScreen(Screen):
             yield self.ascii_widget
 
             errors = random.randint(5000, 99999)
-            yield Label(f"{errors} errors found", id="subtitle")
+            with Vertical(id="subtitle_container"):
+                yield Label(f"{errors} errors found", id="subtitle")
 
             yield Vertical(
                 Button("Play", id="play_button"),
