@@ -7,7 +7,8 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional
 import sys
 import os
-import keyboard
+import queue
+from pynput import keyboard
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
@@ -48,57 +49,53 @@ class InputHandler:
         self.input_thread = None
         self.coordinate_ready = False
         self.last_coordinate = None
+        self.input_queue = queue.Queue()
+        self.last_input_time = time.time()
+        self.key_events = queue.Queue()
 
     def start_capture(self):
-        """Start keyboard capture in a separate thread"""
+        """Start global keyboard capture using pynput"""
         self.running = True
-        self.input_thread = threading.Thread(target=self._keyboard_listener, daemon=True)
-        self.input_thread.start()
-        # Debug: show input system started
-        self.game_map.set_actual_line("Input system started. Press A-F then J-N to enter coordinates.")
+        self.game_map.set_actual_line("pynput ready! Press keys: A,S,D,E,F then J,K,L,M,N")
 
-        # Test: Force set input to see if terminal updates
-        self.game_map.set_input("TEST")
-        threading.Timer(2.0, lambda: self.game_map.set_input("")).start()
+        # Start pynput listener
+        self.listener = keyboard.Listener(on_press=self._on_key_press)
+        self.listener.start()
 
     def stop_capture(self):
         """Stop keyboard capture"""
         self.running = False
+        if hasattr(self, 'listener'):
+            self.listener.stop()
 
-    def _keyboard_listener(self):
-        """Listen for keyboard input without blocking the main thread"""
+    def _on_key_press(self, key):
+        """Handle pynput key press events"""
+        if not self.running:
+            return False  # Stop listener
+
         try:
-            # Track pressed keys to avoid repetition
-            pressed_keys = set()
+            # Map pynput keys to our game keys
+            valid_keys = {
+                'a': 'A', 's': 'S', 'd': 'D', 'e': 'E', 'f': 'F',
+                'j': 'J', 'k': 'K', 'l': 'L', 'm': 'M', 'n': 'N'
+            }
 
-            self.game_map.set_actual_line("Keyboard ready! Press column (A,S,D,E,F) then row (J,K,L,M,N)")
+            # Get the character representation
+            key_char = None
+            if hasattr(key, 'char') and key.char:
+                key_char = key.char.lower()
 
-            while self.running:
-                try:
-                    # Simple key detection
-                    valid_keys = ['a', 's', 'd', 'e', 'f', 'j', 'k', 'l', 'm', 'n']
-
-                    current_pressed = set()
-                    for key in valid_keys:
-                        if keyboard.is_pressed(key) and self.running:
-                            current_pressed.add(key)
-
-                            # Only process if key wasn't already pressed
-                            if key not in pressed_keys:
-                                self._handle_key_press(key.upper())
-
-                    # Update pressed keys tracking
-                    pressed_keys = current_pressed
-
-                    time.sleep(0.05)  # Small delay to avoid excessive CPU usage
-
-                except Exception as e:
-                    self.game_map.set_actual_line("Keyboard detection failed - may need admin permissions")
-                    time.sleep(1.0)
+            if key_char in valid_keys:
+                game_key = valid_keys[key_char]
+                # Show immediate feedback in debug line
+                self.game_map.set_actual_line(f"pynput detected: {game_key}")
+                # Handle the key press
+                self._handle_key_press(game_key)
 
         except Exception as e:
-            # Major error - fallback
-            self.game_map.set_actual_line("Keyboard system failed. Check permissions or try running as admin.")
+            self.game_map.set_actual_line(f"pynput error: {str(e)}")
+
+        return True  # Continue listening
 
     def _handle_key_press(self, key):
         """Handle a key press and build coordinate"""
@@ -194,6 +191,7 @@ class GameEngine:
         self.music_thread = None
         self.game_thread = None
         self.selected_log_file = None  # Archivo seleccionado del menú
+        self.selected_difficulty = "user"  # Dificultad seleccionada del menú
         
         # Restore pygame audio - now that we know it doesn't break the map
         try:
@@ -282,12 +280,18 @@ class GameEngine:
         else:
             self.music_generator = LogMusicGenerator()
         
-        # Generate music and gameplay actions
+        # Generate music and gameplay actions with difficulty-based speed
         try:
+            # Set speed based on difficulty
+            if self.selected_difficulty == "root":
+                game_speed = 1.8
+            else:  # user mode
+                game_speed = 1.4
+
             self.music_data = self.music_generator.generate_music(
                 scale=Config.DEFAULT_SCALE,
                 rate=Config.AUDIO_SAMPLE_RATE,
-                speed=Config.DEFAULT_SPEED_MULTIPLIER
+                speed=game_speed
             )
             
             self.actions = [
@@ -370,8 +374,12 @@ class GameEngine:
             # Start keyboard capture
             self.input_handler.start_capture()
 
+            # Show difficulty mode info
+            mode_text = "ROOT MODE (Speed: 1.8x)" if self.selected_difficulty == "root" else "USER MODE (Speed: 1.4x)"
+            self.game_map.set_actual_line(f"Starting {mode_text}")
+
             # Use the configuration that works for map rendering
-            with Live(self.game_map.build_layout(), screen=True, redirect_stderr=False, vertical_overflow="visible") as live:
+            with Live(self.game_map.build_layout(), screen=True, redirect_stderr=False) as live:
                 game_duration = max([action.tiempo for action in self.actions]) + 10.0 if self.actions else 90.0
                 start_time = time.time()
 
@@ -416,9 +424,10 @@ class GameEngine:
                 if self.state == GameState.MENU:
                     game_config = run_menu()
                     if game_config:
-                        # Guardar el archivo seleccionado
+                        # Guardar el archivo y dificultad seleccionados
                         self.selected_log_file = game_config.get('file')
-                        
+                        self.selected_difficulty = game_config.get('difficulty', 'user')
+
                         self.reset_game()
                         self.start_game()
                         # Después de start_game(), el estado ya cambió y game_loop() se ejecutó
@@ -468,8 +477,8 @@ class GameEngine:
             # Update target coordinate in Line panel
             self.game_map.set_target_coordinate(current_action.coordenada)
 
-            # Timing window usando configuración
-            timing_window = Config.OKAY_WINDOW * 10  # 3 segundos por defecto
+            # Timing window usando configuración - MUCHO más tiempo visible
+            timing_window = Config.OKAY_WINDOW * 8  # 8 segundos para ver la nota venir
             if -timing_window <= timing_offset <= timing_window * 0.67:
                 # Estados visuales más claros
                 if timing_offset < -timing_window * 0.33:
@@ -564,8 +573,10 @@ class GameEngine:
                 action.completada = True
                 action.hit_successfully = True
 
-                # Visual feedback - make cell flash green
+                # Visual feedback - make cell flash green for HIT
                 self.game_map.set_cell_state(action.coordenada, 3)
+                # Reset visual feedback after 1 second
+                threading.Timer(1.0, lambda: self.game_map.set_cell_state(action.coordenada, 0)).start()
                 # Mark that user attempted this action
                 action.user_attempted = True
 
@@ -594,7 +605,9 @@ class GameEngine:
                 break
             else:
                 # Miss - visual feedback
-                self.game_map.set_cell_state(action.coordenada, 5)  # Show miss state
+                self.game_map.set_cell_state(action.coordenada, 5)  # Show miss state (red)
+                # Reset visual feedback after 1.5 seconds
+                threading.Timer(1.5, lambda: self.game_map.set_cell_state(action.coordenada, 0)).start()
                 self.game_map.set_active_coords(f"MISS! Wrong timing for {action.coordenada}")
                 action.user_attempted = True  # Mark as attempted
                 action.completada = True  # Complete with miss

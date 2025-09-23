@@ -196,12 +196,12 @@ class Map:
         ]
         
         styles = [
-            "dim green",                   
-            "dim blue",                     
-            "blue",
-            "bold blink bright_green",
-            "yellow",
-            "dim orange"                    
+            "dim green",                    # 0: inactive
+            "dim blue",                     # 1: early
+            "blue",                         # 2: almost_early
+            "bold blink bright_green on black",  # 3: perfect HIT - muy visible
+            "yellow",                       # 4: almost_late
+            "bold blink bright_red on black"     # 5: MISS - muy visible
         ]
         
         # Asegurar que el estado esté en rango válido

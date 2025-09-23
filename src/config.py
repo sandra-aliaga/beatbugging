@@ -19,10 +19,10 @@ class GameConfig:
     DEFAULT_SPEED_MULTIPLIER = 2.0
     FRAME_RATE = 60
     
-    # Timing Windows (in seconds)
-    PERFECT_WINDOW = 0.1
-    GOOD_WINDOW = 0.2
-    OKAY_WINDOW = 0.3
+    # Timing Windows (in seconds) - Very generous for learning
+    PERFECT_WINDOW = 0.8
+    GOOD_WINDOW = 1.5
+    OKAY_WINDOW = 2.0
     
     # Scoring
     BASE_POINTS = {
