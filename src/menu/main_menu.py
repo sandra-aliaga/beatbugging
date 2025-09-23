@@ -82,11 +82,7 @@ def make_title_css():
         border: round {border_color};
         background: {bg_color};
         color: {primary_color};
-<<<<<<< HEAD
-        padding: 1;
-=======
         padding: 2;
->>>>>>> 398ea52 (WIP: Menu improvements with file selection and difficulty modes)
         height: 100%;
         width: 100%;
         content-align: center middle;
@@ -104,11 +100,7 @@ def make_title_css():
         color: {primary_color};
         margin-bottom: 1;
         text-align: center;
-<<<<<<< HEAD
-        border-bottom: solid {theme.get("primary")};
-=======
         border-bottom: solid {primary_color};
->>>>>>> 398ea52 (WIP: Menu improvements with file selection and difficulty modes)
         align: center middle;
         padding-bottom: 0;
         height: auto;
@@ -368,135 +360,6 @@ class SetupScreen(Screen):
 
     def compose(self) -> ComposeResult:
         with Static(id="menu"):  
-<<<<<<< HEAD
-            yield Static("Log File Search", id="title")
-            yield Label("Search by filename only...", id="subtitle")
-    CSS = f"""
-    #menu {{
-        align: center middle;
-        border: round green;
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-        padding: 2;
-        height: 100%;
-        width: 100%;
-        content-align: center middle;
-    }}
-
-    #title {{
-        text-style: bold;
-        color: {theme.get("primary")};
-        margin-bottom: 1;
-        text-align: center;
-        align: center middle;
-    }}
-
-    Tree {{
-        width: 100%;
-        height: 35%;
-        border: solid {theme.get("primary")};
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-        margin-bottom: 1;
-        align: center middle;
-    }}
-
-    Tree:focus {{
-        border: solid {theme.get("primary")};
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-        outline: none;
-    }}
-
-    Tree > .tree--guides {{
-        color: {theme.get("secondary")};
-    }}
-
-    Tree > .tree--cursor {{
-        background: {theme.get("primary")};
-        color: {theme.get("background")};
-    }}
-
-    Select {{
-        border: solid {theme.get("primary")};
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-        margin-top: 1;
-        width: 100%;
-        align: center middle;
-    }}
-
-    Select > SelectCurrent {{
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-    }}
-
-    Select > SelectOverlay {{
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-        border: solid {theme.get("primary")};
-    }}
-
-    OptionList {{
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-        border: solid {theme.get("primary")};
-    }}
-
-    OptionList > .option-list--option {{
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-    }}
-
-    OptionList > .option-list--option-highlighted {{
-        background: {theme.get("primary")} !important;
-        color: {theme.get("background")} !important;
-        text-style: bold;
-    }}
-
-    OptionList > .option-list--option-selected {{
-        background: {theme.get("primary")} !important;
-        color: {theme.get("background")} !important;
-        text-style: bold;
-    }}
-
-    OptionList:focus > .option-list--option-highlighted {{
-        background: {theme.get("primary")} !important;
-        color: {theme.get("background")} !important;
-    }}
-
-    Button {{
-        margin-top: 2;
-        width: 25;
-        border: solid {theme.get("primary")};
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-    }}
-
-    #start_button {{
-        margin-top: 2;
-        width: 25;
-        border: solid {theme.get("primary")};
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-    }}
-
-    #button_container {{
-        align: center middle;
-        width: 100%;
-    }}
-
-    .root_mode {{
-        border: solid {theme.get("primary")};
-        background: {theme.get("primary")};
-        color: {theme.get("background")};
-    }}
-    """
-
-    def compose(self) -> ComposeResult:
-        with Static(id="menu"):  
-=======
->>>>>>> 398ea52 (WIP: Menu improvements with file selection and difficulty modes)
             yield Static(
                 """╺┳┓┏━┓╺┳╸┏━┓   ┏━┓┏━╸╻  ┏━╸┏━╸╺┳╸╻┏━┓┏┓╻
  ┃┃┣━┫ ┃ ┣━┫   ┗━┓┣╸ ┃  ┣╸ ┃   ┃ ┃┃ ┃┃┗┫

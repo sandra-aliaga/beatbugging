@@ -82,15 +82,9 @@ class GameEngine:
     def __init__(self):
         self.console = Console()
         self.state = GameState.MENU
-<<<<<<< HEAD
         self.music_generator = LogMusicGenerator()
         self.game_map = Map(size=Config.GRID_SIZE)
         self.input_handler = InputHandler()  # Now safe - doesn't modify terminal
-=======
-        self.music_generator = None  # Será inicializado con el archivo del menú
-        self.game_map = Map(size=5)
-        self.input_handler = InputHandler()
->>>>>>> 398ea52 (WIP: Menu improvements with file selection and difficulty modes)
         
         # Sistemas de juego con OpacityTimingSystem real
         self.score_system = ScoreSystem()
