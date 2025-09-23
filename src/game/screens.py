@@ -544,37 +544,168 @@ class VictoryScreen:
         
         self.console.print(layout)
 
+
 class LoadingScreen:
     def __init__(self, console: Console):
         self.console = console
-        self.animation_frames = AsciiArt.get_loading_animation()
+        self.animation_frames = self._get_hacker_loading_frames()
+        self.matrix_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?"
+        self.wave_chars = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
         
+    def _get_hacker_loading_frames(self):
+        """Generate hacker-style loading animation frames"""
+        return [
+            "[██████████████████████████████████████████████████████████████████] 100%",
+            "[████████████████████████████████████████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 85%",
+            "[████████████████████████████████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 70%",
+            "[██████████████████████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 55%",
+            "[██████████████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 40%",
+            "[████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 25%",
+            "[██████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 10%"
+        ]
+    
+    def _generate_matrix_line(self, width=70):
+        """Generate a single line of matrix-style characters"""
+        line = ""
+        for _ in range(width):
+            if random.random() > 0.75:
+                line += random.choice(self.matrix_chars)
+            else:
+                line += " "
+        return line
+    
+    def _generate_wave_pattern(self, width=80, phase=0):
+        """Generate audio wave visualization"""
+        wave = ""
+        for i in range(width):
+            # Create wave pattern based on sine function
+            import math
+            height = int(3.5 * (1 + math.sin((i * 0.15) + (phase * 0.4))))
+            if height >= len(self.wave_chars):
+                height = len(self.wave_chars) - 1
+            wave += self.wave_chars[height]
+        return wave
+    
+    def _create_system_status(self, frame_index):
+        """Create system status display"""
+        statuses = [
+            "SCANNING SYSTEM LOGS FOR RHYTHM PATTERNS",
+            "PARSING ERROR FREQUENCIES AND BEAT MAPPING", 
+            "ANALYZING MUSICAL PATTERNS IN DEBUG DATA",
+            "CALIBRATING AUDIO SYNTHESIS ENGINE",
+            "SYNCHRONIZING BEATS WITH LOG TIMESTAMPS",
+            "INITIALIZING MUSICAL DEBUGGING INTERFACE",
+            "LOADING RHYTHM-BASED ERROR DETECTION"
+        ]
+        
+        current_status = statuses[frame_index % len(statuses)]
+        dots = "." * ((frame_index % 4) + 1)
+        return f"[SYSTEM] {current_status}{dots}"
+    
+    def _create_data_stream(self, width=50):
+        """Create scrolling data stream effect"""
+        hex_chars = "0123456789ABCDEF"
+        stream = ""
+        for _ in range(width):
+            if random.random() > 0.6:
+                stream += random.choice(hex_chars)
+            else:
+                stream += " "
+        return f"0x{stream}"
+    
     def show_loading(self, message: str, duration: float = 3.0):
         start_time = time.time()
         frame_index = 0
         
         while time.time() - start_time < duration:
+            # Get current frame
             frame = self.animation_frames[frame_index % len(self.animation_frames)]
             
+            # Generate dynamic content
+            matrix_line_1 = self._generate_matrix_line(70)
+            matrix_line_2 = self._generate_matrix_line(70)
+            wave_pattern = self._generate_wave_pattern(60, frame_index)
+            system_status = self._create_system_status(frame_index)
+            data_stream = self._create_data_stream(50)
+            
+            # Create loading display with centered larger text
             loading_text = Text(
-                f"{frame} {message} {frame}",
-                style="bold green",
+                f"{frame}",
+                style="bold bright_green",
                 justify="center"
             )
             
-            matrix_chars = " ".join(AsciiArt.get_matrix_rain()[:20])
-            matrix_text = Text(matrix_chars, style="dim green")
-            
-            panel_content = Text("\n").join([matrix_text, loading_text, matrix_text])
-            
-            panel = Panel(
-                Align.center(panel_content),
-                border_style="green",
-                title="[bold green]INITIALIZING BEATBUGGING SYSTEM[/bold green]"
+            # Create message text - larger and more prominent
+            message_text = Text(
+                f">>> {message.upper()} <<<",
+                style="bold bright_white",
+                justify="center"
             )
             
-            self.console.clear()
-            self.console.print(panel)
+            # Create system status with better formatting
+            status_text = Text(
+                system_status,
+                style="bright_cyan",
+                justify="center"
+            )
             
-            time.sleep(0.1)
+            # Create enhanced wave visualization
+            wave_text = Text(
+                f"AUDIO: {wave_pattern}",
+                style="bright_yellow",
+                justify="center"
+            )
+            
+            # Create frequency display
+            freq_display = Text(
+                "FREQUENCIES: 440Hz | 523Hz | 659Hz | 784Hz",
+                style="dim bright_yellow",
+                justify="center"
+            )
+            
+            # Create data stream
+            stream_text = Text(
+                f"MEMORY: {data_stream}",
+                style="dim bright_green",
+                justify="center"
+            )
+            
+            # Create matrix effects - not centered for authentic matrix look
+            matrix_text_1 = Text(matrix_line_1, style="dim green")
+            matrix_text_2 = Text(matrix_line_2, style="dim green")
+            
+            # Combine all content with clean spacing
+            panel_content = Text("\n").join([
+                Text(""),
+                matrix_text_1,
+                Text(""),
+                loading_text,
+                Text(""),
+                message_text,
+                Text(""),
+                status_text,
+                Text(""),
+                wave_text,
+                freq_display,
+                Text(""),
+                stream_text,
+                Text(""),
+                matrix_text_2,
+                Text("")
+            ])
+            
+            # Create panel with clean styling
+            panel = Panel(
+                panel_content,
+                border_style="bright_green",
+                title="[bold bright_green]BEATBUGGING SYSTEM[/bold bright_green]",
+                subtitle="[dim bright_red]CTRL+C to abort[/dim bright_red]",
+                padding=(1, 2)
+            )
+            
+            # Display
+            self.console.clear()
+            self.console.print(Align.center(panel))
+            
+            time.sleep(0.15)
             frame_index += 1
