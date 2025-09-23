@@ -1,0 +1,59 @@
+{
+  "timing_states": {
+    "early": {
+      "time_range": [-4.0, -2.0],
+      "opacity": 0.2,
+      "description": "Buy it's not very visible yet, far from the moment",
+      "color_hint": "dim_blue"
+    },
+    "almost_early": {
+      "time_range": [-2.0, -1.0],
+      "opacity": 0.5,
+      "description": "Bug is becoming more visible, approaching the moment",
+      "color_hint": "blue"
+    },
+    "perfect": {
+      "time_range": [-1.0, 1.0],
+      "opacity": 1.0,
+      "description": "Fully visible, perfect timing!",
+      "color_hint": "bright_green"
+    },
+    "almost_late": {
+      "time_range": [1.0, 2.0],
+      "opacity": 0.6,
+      "description": "It starts to fade, timing is slipping away",
+      "color_hint": "yellow"
+    },
+    "late": {
+      "time_range": [2.0, 3.0],
+      "opacity": 0.3,
+      "description": "Very faint, almost lost the timing",
+      "color_hint": "orange"
+    },
+    "miss": {
+      "time_range": [3.0, 5.0],
+      "opacity": 0.0,
+      "description": "Bug disappears completely, timing lost",
+      "color_hint": "red"
+    }
+  },
+  "global_settings": {
+    "anticipation_window": 4.0,
+    "reaction_window": 3.0,
+    "perfect_window": 2.0,
+    "scoring_weights": {
+      "early": 50,
+      "almost_early": 150,
+      "perfect": 300,
+      "almost_late": 100,
+      "late": 25,
+      "miss": 0
+    }
+  },
+  "visual_transitions": {
+    "fade_in_duration": 0.5,
+    "fade_out_duration": 0.5,
+    "pulse_effect": true,
+    "color_transition": true
+  }
+}

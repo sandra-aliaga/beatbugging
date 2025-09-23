@@ -1,0 +1,514 @@
+2025-09-11 12:16:24.439  9545-9545  Perf                    pdv.test.app                         I  Connecting to perf service.
+2025-09-11 12:16:24.456  9545-9545  NetworkSecurityConfig   pdv.test.app                         D  No Network Security Config specified, using platform default
+2025-09-11 12:16:24.457  9545-9545  NetworkSecurityConfig   pdv.test.app                         D  No Network Security Config specified, using platform default
+2025-09-11 12:16:24.493  9545-9545  Applicatio...ageManager pdv.test.app                         D  hasSystemFeatrue android.software.picture_in_picture pdv.test.app
+2025-09-11 12:16:24.501  9545-9545  PythonActivity          pdv.test.app                         V  PythonActivity onCreate running
+2025-09-11 12:16:24.501  9545-9545  PythonActivity          pdv.test.app                         V  About to do super onCreate
+2025-09-11 12:16:24.501  9545-9545  SDL                     pdv.test.app                         V  Device: J606L
+2025-09-11 12:16:24.501  9545-9545  SDL                     pdv.test.app                         V  Model: Lenovo TB-J606L
+2025-09-11 12:16:24.501  9545-9545  SDL                     pdv.test.app                         V  onCreate()
+2025-09-11 12:16:24.502  9545-9545  PythonActivity          pdv.test.app                         V  Did super onCreate
+2025-09-11 12:16:24.502  9545-9545  SDL                     pdv.test.app                         V  getting identifier
+2025-09-11 12:16:24.502  9545-9545  SDL                     pdv.test.app                         V  kind is layout and name lottie
+2025-09-11 12:16:24.503  9545-9545  SDL                     pdv.test.app                         V  result is 0
+2025-09-11 12:16:24.503  9545-9545  pdv.test.app            pdv.test.app                         E  Invalid ID 0x00000000.
+2025-09-11 12:16:24.503  9545-9545  SDL                     pdv.test.app                         V  couldn't find lottie layout or animation, trying static splash
+2025-09-11 12:16:24.503  9545-9545  SDL                     pdv.test.app                         V  getting identifier
+2025-09-11 12:16:24.503  9545-9545  SDL                     pdv.test.app                         V  kind is drawable and name presplash
+2025-09-11 12:16:24.503  9545-9545  SDL                     pdv.test.app                         V  result is 2130771969
+2025-09-11 12:16:24.517  9545-9545  SDL                     pdv.test.app                         V  asked to get string presplash_color
+2025-09-11 12:16:24.517  9545-9545  SDL                     pdv.test.app                         V  getting identifier
+2025-09-11 12:16:24.517  9545-9545  SDL                     pdv.test.app                         V  kind is string and name presplash_color
+2025-09-11 12:16:24.517  9545-9545  SDL                     pdv.test.app                         V  result is 2131034113
+2025-09-11 12:16:24.558  9545-9545  SDL                     pdv.test.app                         V  onStart()
+2025-09-11 12:16:24.559  9545-9572  PythonActivity          pdv.test.app                         V  Ready to unpack
+2025-09-11 12:16:24.560  9545-9572  pythonutil              pdv.test.app                         V  Unpacking private app
+2025-09-11 12:16:24.561  9545-9545  PythonActivity          pdv.test.app                         V  onResume()
+2025-09-11 12:16:24.561  9545-9545  SDL                     pdv.test.app                         V  onResume()
+2025-09-11 12:16:24.567  9545-9572  pythonutil              pdv.test.app                         V  Data version is b5994269515bd250602940c7b8d5280e15a079de
+2025-09-11 12:16:24.574  9545-9572  pythonutil              pdv.test.app                         V  Unpacking /data/app/~~2UIWr0wa4fD_lgVSJQ9CDQ==/pdv.test.app-kR3XAsyzDqHfyrij3o_8iQ==/lib/arm64/libpybundle app
+2025-09-11 12:16:24.575  9545-9572  pythonutil              pdv.test.app                         V  Data version is b5994269515bd250602940c7b8d5280e15a079de
+2025-09-11 12:16:24.613  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libSDL2.so
+2025-09-11 12:16:24.614  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libSDL2_ttf.so
+2025-09-11 12:16:24.615  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libSDL2_mixer.so
+2025-09-11 12:16:24.615  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libssl1.1.so
+2025-09-11 12:16:24.615  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libpng16.so
+2025-09-11 12:16:24.615  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libfreetype.so
+2025-09-11 12:16:24.615  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libpybundle.so
+2025-09-11 12:16:24.615  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libmain.so
+2025-09-11 12:16:24.615  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libpython3.11.so
+2025-09-11 12:16:24.615  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libcrypto1.1.so
+2025-09-11 12:16:24.615  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libffi.so
+2025-09-11 12:16:24.616  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libsqlite3.so
+2025-09-11 12:16:24.616  9545-9545  pythonutil              pdv.test.app                         V  Pattern libsqlite3\.so matched file libsqlite3.so
+2025-09-11 12:16:24.616  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libSDL2_image.so
+2025-09-11 12:16:24.617  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libSDL2.so
+2025-09-11 12:16:24.617  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libSDL2_ttf.so
+2025-09-11 12:16:24.617  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libSDL2_mixer.so
+2025-09-11 12:16:24.617  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libssl1.1.so
+2025-09-11 12:16:24.617  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libpng16.so
+2025-09-11 12:16:24.618  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libfreetype.so
+2025-09-11 12:16:24.618  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libpybundle.so
+2025-09-11 12:16:24.618  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libmain.so
+2025-09-11 12:16:24.618  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libpython3.11.so
+2025-09-11 12:16:24.618  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libcrypto1.1.so
+2025-09-11 12:16:24.618  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libffi.so
+2025-09-11 12:16:24.618  9545-9545  pythonutil              pdv.test.app                         V  Pattern libffi\.so matched file libffi.so
+2025-09-11 12:16:24.618  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libsqlite3.so
+2025-09-11 12:16:24.618  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libSDL2_image.so
+2025-09-11 12:16:24.619  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libSDL2.so
+2025-09-11 12:16:24.619  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libSDL2_ttf.so
+2025-09-11 12:16:24.619  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libSDL2_mixer.so
+2025-09-11 12:16:24.619  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libssl1.1.so
+2025-09-11 12:16:24.619  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libpng16.so
+2025-09-11 12:16:24.619  9545-9545  pythonutil              pdv.test.app                         V  Pattern libpng16\.so matched file libpng16.so
+2025-09-11 12:16:24.619  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libfreetype.so
+2025-09-11 12:16:24.619  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libpybundle.so
+2025-09-11 12:16:24.619  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libmain.so
+2025-09-11 12:16:24.620  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libpython3.11.so
+2025-09-11 12:16:24.620  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libcrypto1.1.so
+2025-09-11 12:16:24.620  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libffi.so
+2025-09-11 12:16:24.620  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libsqlite3.so
+2025-09-11 12:16:24.620  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libSDL2_image.so
+2025-09-11 12:16:24.620  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libSDL2.so
+2025-09-11 12:16:24.621  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libSDL2_ttf.so
+2025-09-11 12:16:24.621  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libSDL2_mixer.so
+2025-09-11 12:16:24.621  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libssl1.1.so
+2025-09-11 12:16:24.621  9545-9545  pythonutil              pdv.test.app                         V  Pattern libssl.*\.so matched file libssl1.1.so
+2025-09-11 12:16:24.621  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libpng16.so
+2025-09-11 12:16:24.621  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libfreetype.so
+2025-09-11 12:16:24.621  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libpybundle.so
+2025-09-11 12:16:24.621  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libmain.so
+2025-09-11 12:16:24.621  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libpython3.11.so
+2025-09-11 12:16:24.621  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libcrypto1.1.so
+2025-09-11 12:16:24.622  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libffi.so
+2025-09-11 12:16:24.622  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libsqlite3.so
+2025-09-11 12:16:24.622  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libSDL2_image.so
+2025-09-11 12:16:24.622  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libSDL2.so
+2025-09-11 12:16:24.622  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libSDL2_ttf.so
+2025-09-11 12:16:24.622  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libSDL2_mixer.so
+2025-09-11 12:16:24.622  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libssl1.1.so
+2025-09-11 12:16:24.623  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libpng16.so
+2025-09-11 12:16:24.623  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libfreetype.so
+2025-09-11 12:16:24.623  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libpybundle.so
+2025-09-11 12:16:24.623  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libmain.so
+2025-09-11 12:16:24.623  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libpython3.11.so
+2025-09-11 12:16:24.623  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libcrypto1.1.so
+2025-09-11 12:16:24.623  9545-9545  pythonutil              pdv.test.app                         V  Pattern libcrypto.*\.so matched file libcrypto1.1.so
+2025-09-11 12:16:24.623  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libffi.so
+2025-09-11 12:16:24.623  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libsqlite3.so
+2025-09-11 12:16:24.623  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libSDL2_image.so
+2025-09-11 12:16:24.624  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libSDL2.so
+2025-09-11 12:16:24.624  9545-9545  pythonutil              pdv.test.app                         V  Pattern libSDL2\.so matched file libSDL2.so
+2025-09-11 12:16:24.624  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libSDL2_ttf.so
+2025-09-11 12:16:24.624  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libSDL2_mixer.so
+2025-09-11 12:16:24.624  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libssl1.1.so
+2025-09-11 12:16:24.624  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libpng16.so
+2025-09-11 12:16:24.624  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libfreetype.so
+2025-09-11 12:16:24.624  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libpybundle.so
+2025-09-11 12:16:24.624  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libmain.so
+2025-09-11 12:16:24.625  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libpython3.11.so
+2025-09-11 12:16:24.625  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libcrypto1.1.so
+2025-09-11 12:16:24.625  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libffi.so
+2025-09-11 12:16:24.625  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libsqlite3.so
+2025-09-11 12:16:24.625  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libSDL2_image.so
+2025-09-11 12:16:24.625  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libSDL2.so
+2025-09-11 12:16:24.625  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libSDL2_ttf.so
+2025-09-11 12:16:24.625  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libSDL2_mixer.so
+2025-09-11 12:16:24.626  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libssl1.1.so
+2025-09-11 12:16:24.626  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libpng16.so
+2025-09-11 12:16:24.626  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libfreetype.so
+2025-09-11 12:16:24.626  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libpybundle.so
+2025-09-11 12:16:24.626  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libmain.so
+2025-09-11 12:16:24.626  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libpython3.11.so
+2025-09-11 12:16:24.626  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libcrypto1.1.so
+2025-09-11 12:16:24.626  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libffi.so
+2025-09-11 12:16:24.626  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libsqlite3.so
+2025-09-11 12:16:24.626  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libSDL2_image.so
+2025-09-11 12:16:24.626  9545-9545  pythonutil              pdv.test.app                         V  Pattern libSDL2_image\.so matched file libSDL2_image.so
+2025-09-11 12:16:24.627  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libSDL2.so
+2025-09-11 12:16:24.627  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libSDL2_ttf.so
+2025-09-11 12:16:24.627  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libSDL2_mixer.so
+2025-09-11 12:16:24.627  9545-9545  pythonutil              pdv.test.app                         V  Pattern libSDL2_mixer\.so matched file libSDL2_mixer.so
+2025-09-11 12:16:24.627  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libssl1.1.so
+2025-09-11 12:16:24.627  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libpng16.so
+2025-09-11 12:16:24.627  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libfreetype.so
+2025-09-11 12:16:24.627  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libpybundle.so
+2025-09-11 12:16:24.627  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libmain.so
+2025-09-11 12:16:24.628  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libpython3.11.so
+2025-09-11 12:16:24.628  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libcrypto1.1.so
+2025-09-11 12:16:24.628  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libffi.so
+2025-09-11 12:16:24.628  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libsqlite3.so
+2025-09-11 12:16:24.628  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libSDL2_image.so
+2025-09-11 12:16:24.631  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libSDL2.so
+2025-09-11 12:16:24.632  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libSDL2_ttf.so
+2025-09-11 12:16:24.632  9545-9545  pythonutil              pdv.test.app                         V  Pattern libSDL2_ttf\.so matched file libSDL2_ttf.so
+2025-09-11 12:16:24.632  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libSDL2_mixer.so
+2025-09-11 12:16:24.632  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libssl1.1.so
+2025-09-11 12:16:24.632  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libpng16.so
+2025-09-11 12:16:24.632  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libfreetype.so
+2025-09-11 12:16:24.633  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libpybundle.so
+2025-09-11 12:16:24.633  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libmain.so
+2025-09-11 12:16:24.633  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libpython3.11.so
+2025-09-11 12:16:24.635  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libcrypto1.1.so
+2025-09-11 12:16:24.635  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libffi.so
+2025-09-11 12:16:24.636  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libsqlite3.so
+2025-09-11 12:16:24.636  9545-9545  pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libSDL2_image.so
+2025-09-11 12:16:24.636  9545-9545  pythonutil              pdv.test.app                         V  Loading library: sqlite3
+2025-09-11 12:16:24.643  9545-9545  pythonutil              pdv.test.app                         V  Loading library: ffi
+2025-09-11 12:16:24.648  9545-9545  pythonutil              pdv.test.app                         V  Loading library: png16
+2025-09-11 12:16:24.655  9545-9545  pythonutil              pdv.test.app                         V  Loading library: ssl1.1
+2025-09-11 12:16:24.672  9545-9545  pythonutil              pdv.test.app                         V  Loading library: crypto1.1
+2025-09-11 12:16:24.673  9545-9545  pythonutil              pdv.test.app                         V  Loading library: SDL2
+2025-09-11 12:16:24.687  9545-9545  pythonutil              pdv.test.app                         V  Loading library: SDL2_image
+2025-09-11 12:16:24.699  9545-9545  pythonutil              pdv.test.app                         V  Loading library: SDL2_mixer
+2025-09-11 12:16:24.705  9545-9545  pythonutil              pdv.test.app                         V  Loading library: SDL2_ttf
+2025-09-11 12:16:24.726  9545-9545  pythonutil              pdv.test.app                         V  Loading library: python3.5m
+2025-09-11 12:16:24.735  9545-9545  pythonutil              pdv.test.app                         V  Library loading error: dlopen failed: library "libpython3.5m.so" not found
+2025-09-11 12:16:24.736  9545-9545  pythonutil              pdv.test.app                         V  Loading library: python3.6m
+2025-09-11 12:16:24.739  9545-9545  pythonutil              pdv.test.app                         V  Library loading error: dlopen failed: library "libpython3.6m.so" not found
+2025-09-11 12:16:24.739  9545-9545  pythonutil              pdv.test.app                         V  Loading library: python3.7m
+2025-09-11 12:16:24.740  9545-9545  pythonutil              pdv.test.app                         V  Library loading error: dlopen failed: library "libpython3.7m.so" not found
+2025-09-11 12:16:24.741  9545-9545  pythonutil              pdv.test.app                         V  Loading library: python3.8
+2025-09-11 12:16:24.742  9545-9545  pythonutil              pdv.test.app                         V  Library loading error: dlopen failed: library "libpython3.8.so" not found
+2025-09-11 12:16:24.742  9545-9545  pythonutil              pdv.test.app                         V  Loading library: python3.9
+2025-09-11 12:16:24.744  9545-9545  pythonutil              pdv.test.app                         V  Library loading error: dlopen failed: library "libpython3.9.so" not found
+2025-09-11 12:16:24.744  9545-9545  pythonutil              pdv.test.app                         V  Loading library: python3.10
+2025-09-11 12:16:24.746  9545-9545  pythonutil              pdv.test.app                         V  Library loading error: dlopen failed: library "libpython3.10.so" not found
+2025-09-11 12:16:24.747  9545-9545  pythonutil              pdv.test.app                         V  Loading library: python3.11
+2025-09-11 12:16:24.766  9545-9545  pythonutil              pdv.test.app                         V  Loading library: main
+2025-09-11 12:16:24.771  9545-9545  pythonutil              pdv.test.app                         V  Loaded everything!
+2025-09-11 12:16:24.774  9545-9545  SDL                     pdv.test.app                         V  nativeSetupJNI()
+2025-09-11 12:16:24.775  9545-9545  SDL                     pdv.test.app                         V  AUDIO nativeSetupJNI()
+2025-09-11 12:16:24.775  9545-9545  SDL                     pdv.test.app                         V  CONTROLLER nativeSetupJNI()
+2025-09-11 12:16:24.803  9545-9545  Applicatio...ageManager pdv.test.app                         D  hasSystemFeatrue org.chromium.arc.device_management pdv.test.app
+2025-09-11 12:16:24.832  9545-9545  PythonActivity          pdv.test.app                         V  Setting env vars for start.c and Python to use
+2025-09-11 12:16:24.832  9545-9545  PythonActivity          pdv.test.app                         V  Access to our meta-data...
+2025-09-11 12:16:24.836  9545-9545  PythonActivity          pdv.test.app                         I  Surface will NOT be transparent
+2025-09-11 12:16:24.848  9545-9545  DecorViewInjector       pdv.test.app                         I  onWindowSystemUiVisibilityChanged: 0
+2025-09-11 12:16:24.889  9545-9569  AdrenoGLES-0            pdv.test.app                         I  QUALCOMM build                   : 2bd16eb911, I3687d7cf91
+                                                                                                    Build Date                       : 02/10/21
+                                                                                                    OpenGL ES Shader Compiler Version: EV031.32.02.08
+                                                                                                    Local Branch                     : 
+                                                                                                    Remote Branch                    : 
+                                                                                                    Remote Branch                    : 
+                                                                                                    Reconstruct Branch               : 
+2025-09-11 12:16:24.889  9545-9569  AdrenoGLES-0            pdv.test.app                         I  Build Config                     : S P 10.0.7 AArch64
+2025-09-11 12:16:24.889  9545-9569  AdrenoGLES-0            pdv.test.app                         I  Driver Path                      : /vendor/lib64/egl/libGLESv2_adreno.so
+2025-09-11 12:16:24.900  9545-9569  AdrenoGLES-0            pdv.test.app                         I  PFP: 0x016ee195, ME: 0x00000000
+2025-09-11 12:16:24.904  9545-9545  SDL                     pdv.test.app                         V  surfaceCreated()
+2025-09-11 12:16:24.904  9545-9545  SDL                     pdv.test.app                         V  surfaceChanged()
+2025-09-11 12:16:24.904  9545-9545  SDL                     pdv.test.app                         V  Window size: 2000x1140
+2025-09-11 12:16:24.904  9545-9545  SDL                     pdv.test.app                         V  Device size: 2000x1200
+2025-09-11 12:16:24.924  9545-9587  SDL                     pdv.test.app                         V  Running main function SDL_main from library /data/app/~~2UIWr0wa4fD_lgVSJQ9CDQ==/pdv.test.app-kR3XAsyzDqHfyrij3o_8iQ==/lib/arm64/libmain.so
+2025-09-11 12:16:24.924  9545-9587  PythonActivity          pdv.test.app                         V  appConfirmedActive() -> preparing loading screen removal
+2025-09-11 12:16:24.924  9545-9587  SDL                     pdv.test.app                         V  nativeRunMain()
+2025-09-11 12:16:24.925  9545-9587  python                  pdv.test.app                         I  Initializing Python for Android
+2025-09-11 12:16:24.925  9545-9587  python                  pdv.test.app                         I  Setting additional env vars from p4a_env_vars.txt
+2025-09-11 12:16:24.960  9545-9587  python                  pdv.test.app                         I  Changing directory to the one provided by ANDROID_ARGUMENT
+2025-09-11 12:16:24.960  9545-9587  python                  pdv.test.app                         I  /data/user/0/pdv.test.app/files/app
+2025-09-11 12:16:24.967  9545-9587  python                  pdv.test.app                         I  Preparing to initialize python
+2025-09-11 12:16:24.968  9545-9587  python                  pdv.test.app                         I  _python_bundle dir exists
+2025-09-11 12:16:24.968  9545-9587  python                  pdv.test.app                         I  calculated paths to be...
+2025-09-11 12:16:24.968  9545-9587  python                  pdv.test.app                         I  /data/user/0/pdv.test.app/files/app/_python_bundle/stdlib.zip:/data/user/0/pdv.test.app/files/app/_python_bundle/modules
+2025-09-11 12:16:24.968  9545-9587  python                  pdv.test.app                         I  set wchar paths...
+2025-09-11 12:16:25.003  9545-9545  DecorViewInjector       pdv.test.app                         I  onWindowSystemUiVisibilityChanged: 100
+2025-09-11 12:16:25.063  9545-9545  SDL                     pdv.test.app                         V  onWindowFocusChanged(): true
+2025-09-11 12:16:25.108  9545-9587  python                  pdv.test.app                         I  Initialized python
+2025-09-11 12:16:25.108  9545-9587  python                  pdv.test.app                         I  AND: Init threads
+2025-09-11 12:16:25.108  9545-9587  python                  pdv.test.app                         I  testing python print redirection
+2025-09-11 12:16:25.113  9545-9587  python                  pdv.test.app                         I  Android path ['.', '/data/user/0/pdv.test.app/files/app/_python_bundle/stdlib.zip', '/data/user/0/pdv.test.app/files/app/_python_bundle/modules', '/data/user/0/pdv.test.app/files/app/_python_bundle/site-packages']
+2025-09-11 12:16:25.114  9545-9587  python                  pdv.test.app                         I  os.environ is environ({'PATH': '/product/bin:/apex/com.android.runtime/bin:/apex/com.android.art/bin:/system_ext/bin:/system/bin:/system/xbin:/odm/bin:/vendor/bin:/vendor/xbin', 'ANDROID_BOOTLOGO': '1', 'ANDROID_ROOT': '/system', 'ANDROID_ASSETS': '/system/app', 'ANDROID_DATA': '/data', 'ANDROID_STORAGE': '/storage', 'ANDROID_ART_ROOT': '/apex/com.android.art', 'ANDROID_I18N_ROOT': '/apex/com.android.i18n', 'ANDROID_TZDATA_ROOT': '/apex/com.android.tzdata', 'EXTERNAL_STORAGE': '/sdcard', 'ASEC_MOUNTPOINT': '/mnt/asec', 'BOOTCLASSPATH': '/apex/com.android.art/javalib/core-oj.jar:/apex/com.android.art/javalib/core-libart.jar:/apex/com.android.art/javalib/core-icu4j.jar:/apex/com.android.art/javalib/okhttp.jar:/apex/com.android.art/javalib/bouncycastle.jar:/apex/com.android.art/javalib/apache-xml.jar:/system/framework/framework.jar:/system/framework/ext.jar:/system/framework/telephony-common.jar:/system/framework/voip-common.jar:/system/framework/ims-common.jar:/system/framework/framework-atb-backward-compatibility.jar:/system/framework/tcmiface.jar:/system/framework/telephony-ext.jar:/system/framework/qcom.fmradio.jar:/system/framework/QPerformance.jar:/system/framework/UxPerformance.jar:/system/framework/WfdCommon.jar:/apex/com.android.conscrypt/javalib/conscrypt.jar:/apex/com.android.media/javalib/updatable-media.jar:/apex/com.android.mediaprovider/javalib/framework-mediaprovider.jar:/apex/com.android.os.statsd/javalib/framework-statsd.jar:/apex/com.android.permission/javalib/framework-permission.jar:/apex/com.android.sdkext/javalib/framework-sdkextensions.jar:/apex/com.android.wifi/javalib/framework-wifi.jar:/apex/com.android.tethering/javalib/framework-tethering.jar', 'DEX2OATBOOTCLASSPATH': '/apex/com.android.art/javalib/core-oj.jar:/apex/com.android.art/javalib/core-libart.jar:/apex/com.android.art/javalib/core-icu4j.jar:/apex/com.android.art/javalib/okhttp.jar:/apex/com.android.art/javalib/bouncycastle.jar:/apex/com.android.art/javalib/apache-xml.jar:/system/framework/framework.jar:/system/framework/ext.jar:/system/framework/telephony-common.jar:/system/framework/voip-common.jar:/system/framework/ims-common.jar:/system/framework/framework-atb-backward-compatibility.jar:/system/framework/tcmiface.jar:/system/framework/telephony-ext.jar:/system/framework/qcom.fmradio.jar:/system/framework/QPerformance.jar:/system/framework/UxPerformance.jar:/system/framework/WfdCommon.jar', 'SYSTEMSERVERCLASSPATH': '/system/framework/com.android.location.provider.jar:/system/framework/services.jar:/system/framework/ethernet-service.jar:/apex/com.android.permission/javalib/service-permission.jar:/apex/com.android.ipsec/javalib/android.net.ipsec.ike.jar', 'DOWNLOAD_CACHE': '/data/cache', 'ANDROID_SOCKET_zygote': '17', 'ANDROID_SOCKET_usap_pool_primary': '28', 'ANDROID_ENTRYPOINT': 'main.pyc', 'ANDROID_ARGUMENT': '/data/user/0/pdv.test.app/files/app', 'ANDROID_APP_PATH': '/data/user/0/pdv.test.app/files/app', 'ANDROID_PRIVATE': '/data/user/0/pdv.test.app/files', 'ANDROID_UNPACK': '/data/user/0/pdv.test.app/files/app', 'PYTHONHOME': '/data/user/0/pdv.test.app/files/app', 'PYTHONPATH': '/data/user/0/pdv.test.app/files/app:/data/user/0/pdv.test.app/files/app/lib', 'PYTHONOPTIMIZE': '2', 'P4A_BOOTSTRAP': 'SDL2', 'PYTHON_NAME': 'python', 'P4A_IS_WINDOWED': 'True', 'KIVY_ORIENTATION': 'LandscapeLeft', 'P4A_NUMERIC_VERSION': 'None', 'P4A_MINSDK': '29', 'LC_CTYPE': 'C.UTF-8'})
+2025-09-11 12:16:25.114  9545-9587  python                  pdv.test.app                         I  Android kivy bootstrap done. __name__ is __main__
+2025-09-11 12:16:25.114  9545-9587  python                  pdv.test.app                         I  AND: Ran string
+2025-09-11 12:16:25.114  9545-9587  python                  pdv.test.app                         I  Run user program, change dir and execute entrypoint
+2025-09-11 12:16:25.341  9545-9545  SDLThread               pdv.test.app                         W  type=1400 audit(0.0:936): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/_typing.cpython-311.so" dev="dm-12" ino=213481 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:16:25.445  9545-9545  SDLThread               pdv.test.app                         W  type=1400 audit(0.0:937): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/math.cpython-311.so" dev="dm-12" ino=213660 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:16:25.453  9545-9545  SDLThread               pdv.test.app                         W  type=1400 audit(0.0:938): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/_heapq.cpython-311.so" dev="dm-12" ino=213538 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:16:25.457  9545-9545  SDLThread               pdv.test.app                         W  type=1400 audit(0.0:939): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/_queue.cpython-311.so" dev="dm-12" ino=213798 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:16:25.505  9545-9545  SDLThread               pdv.test.app                         W  type=1400 audit(0.0:940): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/_opcode.cpython-311.so" dev="dm-12" ino=213496 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:16:25.569  9545-9587  python                  pdv.test.app                         I  [INFO   ] [Logger      ] Record log in /data/user/0/pdv.test.app/files/app/.kivy/logs/kivy_25-09-11_0.txt
+2025-09-11 12:16:25.569  9545-9587  python                  pdv.test.app                         I  [INFO   ] [Kivy        ] v2.3.1
+2025-09-11 12:16:25.570  9545-9587  python                  pdv.test.app                         I  [INFO   ] [Kivy        ] Installed at "/data/user/0/pdv.test.app/files/app/_python_bundle/site-packages/kivy/__init__.pyc"
+2025-09-11 12:16:25.570  9545-9587  python                  pdv.test.app                         I  [INFO   ] [Python      ] v3.11.5 (main, Aug 13 2025, 12:24:47) [Clang 14.0.6 (https://android.googlesource.com/toolchain/llvm-project 4c603efb0
+2025-09-11 12:16:25.571  9545-9587  python                  pdv.test.app                         I  [INFO   ] [Python      ] Interpreter at ""
+2025-09-11 12:16:25.572  9545-9587  python                  pdv.test.app                         I  [INFO   ] [Logger      ] Purge log fired. Processing...
+2025-09-11 12:16:25.573  9545-9587  python                  pdv.test.app                         I  [INFO   ] [Logger      ] Purge finished!
+2025-09-11 12:16:26.901  9545-9545  SDLThread               pdv.test.app                         W  type=1400 audit(0.0:952): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/_socket.cpython-311.so" dev="dm-12" ino=213468 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:16:26.917  9545-9545  SDLThread               pdv.test.app                         W  type=1400 audit(0.0:953): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/array.cpython-311.so" dev="dm-12" ino=213616 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:16:26.925  9545-9545  SDLThread               pdv.test.app                         W  type=1400 audit(0.0:954): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/_ssl.cpython-311.so" dev="dm-12" ino=213540 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:16:26.945  9545-9545  SDLThread               pdv.test.app                         W  type=1400 audit(0.0:955): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/binascii.cpython-311.so" dev="dm-12" ino=213624 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:16:26.965  9545-9545  SDLThread               pdv.test.app                         W  type=1400 audit(0.0:956): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/_contextvars.cpython-311.so" dev="dm-12" ino=213504 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:16:27.133  9545-9587  python                  pdv.test.app                         I  [INFO   ] [Factory     ] 195 symbols loaded
+2025-09-11 12:16:27.575  9545-9587  python                  pdv.test.app                         I   Traceback (most recent call last):
+2025-09-11 12:16:27.576  9545-9587  python                  pdv.test.app                         I     File "/home/gabri/Documents/Work/PDV/.buildozer/android/app/main.py", line 1, in <module>
+2025-09-11 12:16:27.576  9545-9587  python                  pdv.test.app                         I     File "/home/gabri/Documents/Work/PDV/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/python-installs/app/arm64-v8a/kivy/app.py", line 425, in <module>
+2025-09-11 12:16:27.577  9545-9587  python                  pdv.test.app                         I     File "/home/gabri/Documents/Work/PDV/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/python-installs/app/arm64-v8a/kivy/uix/widget.py", line 249, in <module>
+2025-09-11 12:16:27.578  9545-9587  python                  pdv.test.app                         I     File "/home/gabri/Documents/Work/PDV/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/python-installs/app/arm64-v8a/kivy/graphics/__init__.py", line 89, in <module>
+2025-09-11 12:16:27.579  9545-9587  python                  pdv.test.app                         I     File "kivy/graphics/instructions.pyx", line 1, in init kivy.graphics.instructions
+2025-09-11 12:16:27.579  9545-9587  python                  pdv.test.app                         I     File "kivy/graphics/vbo.pyx", line 1, in init kivy.graphics.vbo
+2025-09-11 12:16:27.580  9545-9587  python                  pdv.test.app                         I     File "kivy/graphics/compiler.pyx", line 1, in init kivy.graphics.compiler
+2025-09-11 12:16:27.581  9545-9587  python                  pdv.test.app                         I     File "kivy/graphics/shader.pyx", line 1, in init kivy.graphics.shader
+2025-09-11 12:16:27.581  9545-9587  python                  pdv.test.app                         I     File "kivy/graphics/texture.pyx", line 1, in init kivy.graphics.texture
+2025-09-11 12:16:27.582  9545-9587  python                  pdv.test.app                         I     File "kivy/graphics/context_instructions.pyx", line 30, in init kivy.graphics.context_instructions
+2025-09-11 12:16:27.583  9545-9587  python                  pdv.test.app                         I     File "/home/gabri/Documents/Work/PDV/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/python-installs/app/arm64-v8a/kivy/core/image/__init__.py", line 65, in <module>
+2025-09-11 12:16:27.584  9545-9587  python                  pdv.test.app                         I   ModuleNotFoundError: No module named 'filetype'
+2025-09-11 12:16:27.584  9545-9587  python                  pdv.test.app                         I  Python for android ended.
+2025-09-11 12:16:27.848  9545-9587  BpBinder                pdv.test.app                         I  onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+2025-09-11 12:18:15.426 11104-11104 Perf                    pdv.test.app                         I  Connecting to perf service.
+2025-09-11 12:18:15.437 11104-11104 NetworkSecurityConfig   pdv.test.app                         D  No Network Security Config specified, using platform default
+2025-09-11 12:18:15.438 11104-11104 NetworkSecurityConfig   pdv.test.app                         D  No Network Security Config specified, using platform default
+2025-09-11 12:18:15.469 11104-11104 Applicatio...ageManager pdv.test.app                         D  hasSystemFeatrue android.software.picture_in_picture pdv.test.app
+2025-09-11 12:18:15.473 11104-11104 PythonActivity          pdv.test.app                         V  PythonActivity onCreate running
+2025-09-11 12:18:15.473 11104-11104 PythonActivity          pdv.test.app                         V  About to do super onCreate
+2025-09-11 12:18:15.473 11104-11104 SDL                     pdv.test.app                         V  Device: J606L
+2025-09-11 12:18:15.473 11104-11104 SDL                     pdv.test.app                         V  Model: Lenovo TB-J606L
+2025-09-11 12:18:15.473 11104-11104 SDL                     pdv.test.app                         V  onCreate()
+2025-09-11 12:18:15.474 11104-11104 PythonActivity          pdv.test.app                         V  Did super onCreate
+2025-09-11 12:18:15.474 11104-11104 SDL                     pdv.test.app                         V  getting identifier
+2025-09-11 12:18:15.474 11104-11104 SDL                     pdv.test.app                         V  kind is layout and name lottie
+2025-09-11 12:18:15.474 11104-11104 SDL                     pdv.test.app                         V  result is 0
+2025-09-11 12:18:15.474 11104-11104 pdv.test.app            pdv.test.app                         E  Invalid ID 0x00000000.
+2025-09-11 12:18:15.474 11104-11104 SDL                     pdv.test.app                         V  couldn't find lottie layout or animation, trying static splash
+2025-09-11 12:18:15.475 11104-11104 SDL                     pdv.test.app                         V  getting identifier
+2025-09-11 12:18:15.475 11104-11104 SDL                     pdv.test.app                         V  kind is drawable and name presplash
+2025-09-11 12:18:15.475 11104-11104 SDL                     pdv.test.app                         V  result is 2130771969
+2025-09-11 12:18:15.484 11104-11104 SDL                     pdv.test.app                         V  asked to get string presplash_color
+2025-09-11 12:18:15.484 11104-11104 SDL                     pdv.test.app                         V  getting identifier
+2025-09-11 12:18:15.484 11104-11104 SDL                     pdv.test.app                         V  kind is string and name presplash_color
+2025-09-11 12:18:15.484 11104-11104 SDL                     pdv.test.app                         V  result is 2131034113
+2025-09-11 12:18:15.501 11104-11130 PythonActivity          pdv.test.app                         V  Ready to unpack
+2025-09-11 12:18:15.501 11104-11130 pythonutil              pdv.test.app                         V  Unpacking private app
+2025-09-11 12:18:15.501 11104-11130 pythonutil              pdv.test.app                         V  Data version is b5994269515bd250602940c7b8d5280e15a079de
+2025-09-11 12:18:15.503 11104-11104 SDL                     pdv.test.app                         V  onStart()
+2025-09-11 12:18:15.503 11104-11130 pythonutil              pdv.test.app                         V  Unpacking /data/app/~~2UIWr0wa4fD_lgVSJQ9CDQ==/pdv.test.app-kR3XAsyzDqHfyrij3o_8iQ==/lib/arm64/libpybundle app
+2025-09-11 12:18:15.503 11104-11130 pythonutil              pdv.test.app                         V  Data version is b5994269515bd250602940c7b8d5280e15a079de
+2025-09-11 12:18:15.505 11104-11104 PythonActivity          pdv.test.app                         V  onResume()
+2025-09-11 12:18:15.505 11104-11104 SDL                     pdv.test.app                         V  onResume()
+2025-09-11 12:18:15.524 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libSDL2.so
+2025-09-11 12:18:15.524 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libSDL2_ttf.so
+2025-09-11 12:18:15.524 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libSDL2_mixer.so
+2025-09-11 12:18:15.524 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libssl1.1.so
+2025-09-11 12:18:15.525 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libpng16.so
+2025-09-11 12:18:15.525 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libfreetype.so
+2025-09-11 12:18:15.525 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libpybundle.so
+2025-09-11 12:18:15.525 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libmain.so
+2025-09-11 12:18:15.525 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libpython3.11.so
+2025-09-11 12:18:15.525 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libcrypto1.1.so
+2025-09-11 12:18:15.525 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libffi.so
+2025-09-11 12:18:15.525 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libsqlite3.so
+2025-09-11 12:18:15.525 11104-11104 pythonutil              pdv.test.app                         V  Pattern libsqlite3\.so matched file libsqlite3.so
+2025-09-11 12:18:15.525 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libsqlite3\.so against libSDL2_image.so
+2025-09-11 12:18:15.526 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libSDL2.so
+2025-09-11 12:18:15.526 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libSDL2_ttf.so
+2025-09-11 12:18:15.526 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libSDL2_mixer.so
+2025-09-11 12:18:15.526 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libssl1.1.so
+2025-09-11 12:18:15.526 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libpng16.so
+2025-09-11 12:18:15.526 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libfreetype.so
+2025-09-11 12:18:15.526 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libpybundle.so
+2025-09-11 12:18:15.526 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libmain.so
+2025-09-11 12:18:15.526 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libpython3.11.so
+2025-09-11 12:18:15.526 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libcrypto1.1.so
+2025-09-11 12:18:15.526 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libffi.so
+2025-09-11 12:18:15.526 11104-11104 pythonutil              pdv.test.app                         V  Pattern libffi\.so matched file libffi.so
+2025-09-11 12:18:15.526 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libsqlite3.so
+2025-09-11 12:18:15.527 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libffi\.so against libSDL2_image.so
+2025-09-11 12:18:15.527 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libSDL2.so
+2025-09-11 12:18:15.527 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libSDL2_ttf.so
+2025-09-11 12:18:15.527 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libSDL2_mixer.so
+2025-09-11 12:18:15.527 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libssl1.1.so
+2025-09-11 12:18:15.527 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libpng16.so
+2025-09-11 12:18:15.527 11104-11104 pythonutil              pdv.test.app                         V  Pattern libpng16\.so matched file libpng16.so
+2025-09-11 12:18:15.527 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libfreetype.so
+2025-09-11 12:18:15.527 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libpybundle.so
+2025-09-11 12:18:15.527 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libmain.so
+2025-09-11 12:18:15.527 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libpython3.11.so
+2025-09-11 12:18:15.528 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libcrypto1.1.so
+2025-09-11 12:18:15.528 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libffi.so
+2025-09-11 12:18:15.528 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libsqlite3.so
+2025-09-11 12:18:15.528 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libpng16\.so against libSDL2_image.so
+2025-09-11 12:18:15.528 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libSDL2.so
+2025-09-11 12:18:15.528 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libSDL2_ttf.so
+2025-09-11 12:18:15.528 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libSDL2_mixer.so
+2025-09-11 12:18:15.528 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libssl1.1.so
+2025-09-11 12:18:15.528 11104-11104 pythonutil              pdv.test.app                         V  Pattern libssl.*\.so matched file libssl1.1.so
+2025-09-11 12:18:15.528 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libpng16.so
+2025-09-11 12:18:15.529 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libfreetype.so
+2025-09-11 12:18:15.529 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libpybundle.so
+2025-09-11 12:18:15.529 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libmain.so
+2025-09-11 12:18:15.529 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libpython3.11.so
+2025-09-11 12:18:15.529 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libcrypto1.1.so
+2025-09-11 12:18:15.529 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libffi.so
+2025-09-11 12:18:15.529 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libsqlite3.so
+2025-09-11 12:18:15.529 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libssl.*\.so against libSDL2_image.so
+2025-09-11 12:18:15.530 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libSDL2.so
+2025-09-11 12:18:15.530 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libSDL2_ttf.so
+2025-09-11 12:18:15.530 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libSDL2_mixer.so
+2025-09-11 12:18:15.530 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libssl1.1.so
+2025-09-11 12:18:15.530 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libpng16.so
+2025-09-11 12:18:15.530 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libfreetype.so
+2025-09-11 12:18:15.530 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libpybundle.so
+2025-09-11 12:18:15.530 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libmain.so
+2025-09-11 12:18:15.530 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libpython3.11.so
+2025-09-11 12:18:15.530 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libcrypto1.1.so
+2025-09-11 12:18:15.530 11104-11104 pythonutil              pdv.test.app                         V  Pattern libcrypto.*\.so matched file libcrypto1.1.so
+2025-09-11 12:18:15.530 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libffi.so
+2025-09-11 12:18:15.530 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libsqlite3.so
+2025-09-11 12:18:15.531 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libcrypto.*\.so against libSDL2_image.so
+2025-09-11 12:18:15.531 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libSDL2.so
+2025-09-11 12:18:15.531 11104-11104 pythonutil              pdv.test.app                         V  Pattern libSDL2\.so matched file libSDL2.so
+2025-09-11 12:18:15.531 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libSDL2_ttf.so
+2025-09-11 12:18:15.531 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libSDL2_mixer.so
+2025-09-11 12:18:15.531 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libssl1.1.so
+2025-09-11 12:18:15.531 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libpng16.so
+2025-09-11 12:18:15.531 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libfreetype.so
+2025-09-11 12:18:15.532 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libpybundle.so
+2025-09-11 12:18:15.532 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libmain.so
+2025-09-11 12:18:15.532 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libpython3.11.so
+2025-09-11 12:18:15.532 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libcrypto1.1.so
+2025-09-11 12:18:15.532 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libffi.so
+2025-09-11 12:18:15.532 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libsqlite3.so
+2025-09-11 12:18:15.532 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2\.so against libSDL2_image.so
+2025-09-11 12:18:15.532 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libSDL2.so
+2025-09-11 12:18:15.532 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libSDL2_ttf.so
+2025-09-11 12:18:15.533 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libSDL2_mixer.so
+2025-09-11 12:18:15.533 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libssl1.1.so
+2025-09-11 12:18:15.533 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libpng16.so
+2025-09-11 12:18:15.533 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libfreetype.so
+2025-09-11 12:18:15.533 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libpybundle.so
+2025-09-11 12:18:15.533 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libmain.so
+2025-09-11 12:18:15.533 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libpython3.11.so
+2025-09-11 12:18:15.533 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libcrypto1.1.so
+2025-09-11 12:18:15.533 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libffi.so
+2025-09-11 12:18:15.533 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libsqlite3.so
+2025-09-11 12:18:15.533 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_image\.so against libSDL2_image.so
+2025-09-11 12:18:15.534 11104-11104 pythonutil              pdv.test.app                         V  Pattern libSDL2_image\.so matched file libSDL2_image.so
+2025-09-11 12:18:15.534 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libSDL2.so
+2025-09-11 12:18:15.534 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libSDL2_ttf.so
+2025-09-11 12:18:15.534 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libSDL2_mixer.so
+2025-09-11 12:18:15.534 11104-11104 pythonutil              pdv.test.app                         V  Pattern libSDL2_mixer\.so matched file libSDL2_mixer.so
+2025-09-11 12:18:15.534 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libssl1.1.so
+2025-09-11 12:18:15.534 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libpng16.so
+2025-09-11 12:18:15.535 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libfreetype.so
+2025-09-11 12:18:15.535 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libpybundle.so
+2025-09-11 12:18:15.535 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libmain.so
+2025-09-11 12:18:15.535 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libpython3.11.so
+2025-09-11 12:18:15.535 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libcrypto1.1.so
+2025-09-11 12:18:15.535 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libffi.so
+2025-09-11 12:18:15.535 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libsqlite3.so
+2025-09-11 12:18:15.535 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_mixer\.so against libSDL2_image.so
+2025-09-11 12:18:15.536 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libSDL2.so
+2025-09-11 12:18:15.536 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libSDL2_ttf.so
+2025-09-11 12:18:15.536 11104-11104 pythonutil              pdv.test.app                         V  Pattern libSDL2_ttf\.so matched file libSDL2_ttf.so
+2025-09-11 12:18:15.536 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libSDL2_mixer.so
+2025-09-11 12:18:15.536 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libssl1.1.so
+2025-09-11 12:18:15.536 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libpng16.so
+2025-09-11 12:18:15.536 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libfreetype.so
+2025-09-11 12:18:15.536 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libpybundle.so
+2025-09-11 12:18:15.536 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libmain.so
+2025-09-11 12:18:15.536 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libpython3.11.so
+2025-09-11 12:18:15.537 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libcrypto1.1.so
+2025-09-11 12:18:15.537 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libffi.so
+2025-09-11 12:18:15.537 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libsqlite3.so
+2025-09-11 12:18:15.537 11104-11104 pythonutil              pdv.test.app                         V  Checking pattern libSDL2_ttf\.so against libSDL2_image.so
+2025-09-11 12:18:15.537 11104-11104 pythonutil              pdv.test.app                         V  Loading library: sqlite3
+2025-09-11 12:18:15.539 11104-11104 pythonutil              pdv.test.app                         V  Loading library: ffi
+2025-09-11 12:18:15.540 11104-11104 pythonutil              pdv.test.app                         V  Loading library: png16
+2025-09-11 12:18:15.541 11104-11104 pythonutil              pdv.test.app                         V  Loading library: ssl1.1
+2025-09-11 12:18:15.543 11104-11104 pythonutil              pdv.test.app                         V  Loading library: crypto1.1
+2025-09-11 12:18:15.544 11104-11104 pythonutil              pdv.test.app                         V  Loading library: SDL2
+2025-09-11 12:18:15.546 11104-11104 pythonutil              pdv.test.app                         V  Loading library: SDL2_image
+2025-09-11 12:18:15.549 11104-11104 pythonutil              pdv.test.app                         V  Loading library: SDL2_mixer
+2025-09-11 12:18:15.550 11104-11104 pythonutil              pdv.test.app                         V  Loading library: SDL2_ttf
+2025-09-11 12:18:15.556 11104-11104 pythonutil              pdv.test.app                         V  Loading library: python3.5m
+2025-09-11 12:18:15.559 11104-11104 pythonutil              pdv.test.app                         V  Library loading error: dlopen failed: library "libpython3.5m.so" not found
+2025-09-11 12:18:15.559 11104-11104 pythonutil              pdv.test.app                         V  Loading library: python3.6m
+2025-09-11 12:18:15.560 11104-11104 pythonutil              pdv.test.app                         V  Library loading error: dlopen failed: library "libpython3.6m.so" not found
+2025-09-11 12:18:15.560 11104-11104 pythonutil              pdv.test.app                         V  Loading library: python3.7m
+2025-09-11 12:18:15.561 11104-11104 pythonutil              pdv.test.app                         V  Library loading error: dlopen failed: library "libpython3.7m.so" not found
+2025-09-11 12:18:15.561 11104-11104 pythonutil              pdv.test.app                         V  Loading library: python3.8
+2025-09-11 12:18:15.562 11104-11104 pythonutil              pdv.test.app                         V  Library loading error: dlopen failed: library "libpython3.8.so" not found
+2025-09-11 12:18:15.562 11104-11104 pythonutil              pdv.test.app                         V  Loading library: python3.9
+2025-09-11 12:18:15.564 11104-11104 pythonutil              pdv.test.app                         V  Library loading error: dlopen failed: library "libpython3.9.so" not found
+2025-09-11 12:18:15.564 11104-11104 pythonutil              pdv.test.app                         V  Loading library: python3.10
+2025-09-11 12:18:15.565 11104-11104 pythonutil              pdv.test.app                         V  Library loading error: dlopen failed: library "libpython3.10.so" not found
+2025-09-11 12:18:15.565 11104-11104 pythonutil              pdv.test.app                         V  Loading library: python3.11
+2025-09-11 12:18:15.569 11104-11104 pythonutil              pdv.test.app                         V  Loading library: main
+2025-09-11 12:18:15.571 11104-11104 pythonutil              pdv.test.app                         V  Loaded everything!
+2025-09-11 12:18:15.571 11104-11104 SDL                     pdv.test.app                         V  nativeSetupJNI()
+2025-09-11 12:18:15.572 11104-11104 SDL                     pdv.test.app                         V  AUDIO nativeSetupJNI()
+2025-09-11 12:18:15.572 11104-11104 SDL                     pdv.test.app                         V  CONTROLLER nativeSetupJNI()
+2025-09-11 12:18:15.581 11104-11104 Applicatio...ageManager pdv.test.app                         D  hasSystemFeatrue org.chromium.arc.device_management pdv.test.app
+2025-09-11 12:18:15.593 11104-11104 PythonActivity          pdv.test.app                         V  Setting env vars for start.c and Python to use
+2025-09-11 12:18:15.593 11104-11104 PythonActivity          pdv.test.app                         V  Access to our meta-data...
+2025-09-11 12:18:15.594 11104-11104 PythonActivity          pdv.test.app                         I  Surface will NOT be transparent
+2025-09-11 12:18:15.601 11104-11104 DecorViewInjector       pdv.test.app                         I  onWindowSystemUiVisibilityChanged: 0
+2025-09-11 12:18:15.625 11104-11127 AdrenoGLES-0            pdv.test.app                         I  QUALCOMM build                   : 2bd16eb911, I3687d7cf91
+                                                                                                    Build Date                       : 02/10/21
+                                                                                                    OpenGL ES Shader Compiler Version: EV031.32.02.08
+                                                                                                    Local Branch                     : 
+                                                                                                    Remote Branch                    : 
+                                                                                                    Remote Branch                    : 
+                                                                                                    Reconstruct Branch               : 
+2025-09-11 12:18:15.625 11104-11127 AdrenoGLES-0            pdv.test.app                         I  Build Config                     : S P 10.0.7 AArch64
+2025-09-11 12:18:15.625 11104-11127 AdrenoGLES-0            pdv.test.app                         I  Driver Path                      : /vendor/lib64/egl/libGLESv2_adreno.so
+2025-09-11 12:18:15.631 11104-11127 AdrenoGLES-0            pdv.test.app                         I  PFP: 0x016ee195, ME: 0x00000000
+2025-09-11 12:18:15.632 11104-11104 SDL                     pdv.test.app                         V  surfaceCreated()
+2025-09-11 12:18:15.632 11104-11104 SDL                     pdv.test.app                         V  surfaceChanged()
+2025-09-11 12:18:15.632 11104-11104 SDL                     pdv.test.app                         V  Window size: 2000x1140
+2025-09-11 12:18:15.632 11104-11104 SDL                     pdv.test.app                         V  Device size: 2000x1200
+2025-09-11 12:18:15.640 11104-11135 SDL                     pdv.test.app                         V  Running main function SDL_main from library /data/app/~~2UIWr0wa4fD_lgVSJQ9CDQ==/pdv.test.app-kR3XAsyzDqHfyrij3o_8iQ==/lib/arm64/libmain.so
+2025-09-11 12:18:15.641 11104-11135 PythonActivity          pdv.test.app                         V  appConfirmedActive() -> preparing loading screen removal
+2025-09-11 12:18:15.641 11104-11135 SDL                     pdv.test.app                         V  nativeRunMain()
+2025-09-11 12:18:15.642 11104-11135 python                  pdv.test.app                         I  Initializing Python for Android
+2025-09-11 12:18:15.642 11104-11135 python                  pdv.test.app                         I  Setting additional env vars from p4a_env_vars.txt
+2025-09-11 12:18:15.643 11104-11135 python                  pdv.test.app                         I  Changing directory to the one provided by ANDROID_ARGUMENT
+2025-09-11 12:18:15.643 11104-11135 python                  pdv.test.app                         I  /data/user/0/pdv.test.app/files/app
+2025-09-11 12:18:15.643 11104-11135 python                  pdv.test.app                         I  Preparing to initialize python
+2025-09-11 12:18:15.643 11104-11135 python                  pdv.test.app                         I  _python_bundle dir exists
+2025-09-11 12:18:15.643 11104-11135 python                  pdv.test.app                         I  calculated paths to be...
+2025-09-11 12:18:15.643 11104-11135 python                  pdv.test.app                         I  /data/user/0/pdv.test.app/files/app/_python_bundle/stdlib.zip:/data/user/0/pdv.test.app/files/app/_python_bundle/modules
+2025-09-11 12:18:15.643 11104-11135 python                  pdv.test.app                         I  set wchar paths...
+2025-09-11 12:18:15.669 11104-11104 SDLThread               pdv.test.app                         W  type=1400 audit(0.0:1112): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/zlib.cpython-311.so" dev="dm-12" ino=213446 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:18:15.676 11104-11104 DecorViewInjector       pdv.test.app                         I  onWindowSystemUiVisibilityChanged: 100
+2025-09-11 12:18:15.693 11104-11135 python                  pdv.test.app                         I  Initialized python
+2025-09-11 12:18:15.693 11104-11135 python                  pdv.test.app                         I  AND: Init threads
+2025-09-11 12:18:15.694 11104-11135 python                  pdv.test.app                         I  testing python print redirection
+2025-09-11 12:18:15.695 11104-11135 python                  pdv.test.app                         I  Android path ['.', '/data/user/0/pdv.test.app/files/app/_python_bundle/stdlib.zip', '/data/user/0/pdv.test.app/files/app/_python_bundle/modules', '/data/user/0/pdv.test.app/files/app/_python_bundle/site-packages']
+2025-09-11 12:18:15.696 11104-11135 python                  pdv.test.app                         I  os.environ is environ({'PATH': '/product/bin:/apex/com.android.runtime/bin:/apex/com.android.art/bin:/system_ext/bin:/system/bin:/system/xbin:/odm/bin:/vendor/bin:/vendor/xbin', 'ANDROID_BOOTLOGO': '1', 'ANDROID_ROOT': '/system', 'ANDROID_ASSETS': '/system/app', 'ANDROID_DATA': '/data', 'ANDROID_STORAGE': '/storage', 'ANDROID_ART_ROOT': '/apex/com.android.art', 'ANDROID_I18N_ROOT': '/apex/com.android.i18n', 'ANDROID_TZDATA_ROOT': '/apex/com.android.tzdata', 'EXTERNAL_STORAGE': '/sdcard', 'ASEC_MOUNTPOINT': '/mnt/asec', 'BOOTCLASSPATH': '/apex/com.android.art/javalib/core-oj.jar:/apex/com.android.art/javalib/core-libart.jar:/apex/com.android.art/javalib/core-icu4j.jar:/apex/com.android.art/javalib/okhttp.jar:/apex/com.android.art/javalib/bouncycastle.jar:/apex/com.android.art/javalib/apache-xml.jar:/system/framework/framework.jar:/system/framework/ext.jar:/system/framework/telephony-common.jar:/system/framework/voip-common.jar:/system/framework/ims-common.jar:/system/framework/framework-atb-backward-compatibility.jar:/system/framework/tcmiface.jar:/system/framework/telephony-ext.jar:/system/framework/qcom.fmradio.jar:/system/framework/QPerformance.jar:/system/framework/UxPerformance.jar:/system/framework/WfdCommon.jar:/apex/com.android.conscrypt/javalib/conscrypt.jar:/apex/com.android.media/javalib/updatable-media.jar:/apex/com.android.mediaprovider/javalib/framework-mediaprovider.jar:/apex/com.android.os.statsd/javalib/framework-statsd.jar:/apex/com.android.permission/javalib/framework-permission.jar:/apex/com.android.sdkext/javalib/framework-sdkextensions.jar:/apex/com.android.wifi/javalib/framework-wifi.jar:/apex/com.android.tethering/javalib/framework-tethering.jar', 'DEX2OATBOOTCLASSPATH': '/apex/com.android.art/javalib/core-oj.jar:/apex/com.android.art/javalib/core-libart.jar:/apex/com.android.art/javalib/core-icu4j.jar:/apex/com.android.art/javalib/okhttp.jar:/apex/com.android.art/javalib/bouncycastle.jar:/apex/com.android.art/javalib/apache-xml.jar:/system/framework/framework.jar:/system/framework/ext.jar:/system/framework/telephony-common.jar:/system/framework/voip-common.jar:/system/framework/ims-common.jar:/system/framework/framework-atb-backward-compatibility.jar:/system/framework/tcmiface.jar:/system/framework/telephony-ext.jar:/system/framework/qcom.fmradio.jar:/system/framework/QPerformance.jar:/system/framework/UxPerformance.jar:/system/framework/WfdCommon.jar', 'SYSTEMSERVERCLASSPATH': '/system/framework/com.android.location.provider.jar:/system/framework/services.jar:/system/framework/ethernet-service.jar:/apex/com.android.permission/javalib/service-permission.jar:/apex/com.android.ipsec/javalib/android.net.ipsec.ike.jar', 'DOWNLOAD_CACHE': '/data/cache', 'ANDROID_SOCKET_zygote': '17', 'ANDROID_SOCKET_usap_pool_primary': '28', 'ANDROID_ENTRYPOINT': 'main.pyc', 'ANDROID_ARGUMENT': '/data/user/0/pdv.test.app/files/app', 'ANDROID_APP_PATH': '/data/user/0/pdv.test.app/files/app', 'ANDROID_PRIVATE': '/data/user/0/pdv.test.app/files', 'ANDROID_UNPACK': '/data/user/0/pdv.test.app/files/app', 'PYTHONHOME': '/data/user/0/pdv.test.app/files/app', 'PYTHONPATH': '/data/user/0/pdv.test.app/files/app:/data/user/0/pdv.test.app/files/app/lib', 'PYTHONOPTIMIZE': '2', 'P4A_BOOTSTRAP': 'SDL2', 'PYTHON_NAME': 'python', 'P4A_IS_WINDOWED': 'True', 'KIVY_ORIENTATION': 'LandscapeLeft', 'P4A_NUMERIC_VERSION': 'None', 'P4A_MINSDK': '29', 'LC_CTYPE': 'C.UTF-8'})
+2025-09-11 12:18:15.696 11104-11135 python                  pdv.test.app                         I  Android kivy bootstrap done. __name__ is __main__
+2025-09-11 12:18:15.696 11104-11135 python                  pdv.test.app                         I  AND: Ran string
+2025-09-11 12:18:15.696 11104-11135 python                  pdv.test.app                         I  Run user program, change dir and execute entrypoint
+2025-09-11 12:18:15.719 11104-11104 SDL                     pdv.test.app                         V  onWindowFocusChanged(): true
+2025-09-11 12:18:15.777 11104-11104 SDLThread               pdv.test.app                         W  type=1400 audit(0.0:1113): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/_typing.cpython-311.so" dev="dm-12" ino=213481 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:18:15.833 11104-11104 SDLThread               pdv.test.app                         W  type=1400 audit(0.0:1114): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/math.cpython-311.so" dev="dm-12" ino=213660 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:18:15.837 11104-11104 SDLThread               pdv.test.app                         W  type=1400 audit(0.0:1115): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/_heapq.cpython-311.so" dev="dm-12" ino=213538 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:18:15.841 11104-11104 SDLThread               pdv.test.app                         W  type=1400 audit(0.0:1116): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/_queue.cpython-311.so" dev="dm-12" ino=213798 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:18:15.919 11104-11135 python                  pdv.test.app                         I  [INFO   ] [Logger      ] Record log in /data/user/0/pdv.test.app/files/app/.kivy/logs/kivy_25-09-11_1.txt
+2025-09-11 12:18:15.919 11104-11135 python                  pdv.test.app                         I  [INFO   ] [Kivy        ] v2.3.1
+2025-09-11 12:18:15.920 11104-11135 python                  pdv.test.app                         I  [INFO   ] [Kivy        ] Installed at "/data/user/0/pdv.test.app/files/app/_python_bundle/site-packages/kivy/__init__.pyc"
+2025-09-11 12:18:15.920 11104-11135 python                  pdv.test.app                         I  [INFO   ] [Python      ] v3.11.5 (main, Aug 13 2025, 12:24:47) [Clang 14.0.6 (https://android.googlesource.com/toolchain/llvm-project 4c603efb0
+2025-09-11 12:18:15.920 11104-11135 python                  pdv.test.app                         I  [INFO   ] [Python      ] Interpreter at ""
+2025-09-11 12:18:15.921 11104-11135 python                  pdv.test.app                         I  [INFO   ] [Logger      ] Purge log fired. Processing...
+2025-09-11 12:18:15.921 11104-11135 python                  pdv.test.app                         I  [INFO   ] [Logger      ] Purge finished!
+2025-09-11 12:18:16.813 11104-11104 SDLThread               pdv.test.app                         W  type=1400 audit(0.0:1126): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/_socket.cpython-311.so" dev="dm-12" ino=213468 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:18:16.817 11104-11104 SDLThread               pdv.test.app                         W  type=1400 audit(0.0:1127): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/array.cpython-311.so" dev="dm-12" ino=213616 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:18:16.825 11104-11104 SDLThread               pdv.test.app                         W  type=1400 audit(0.0:1128): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/_ssl.cpython-311.so" dev="dm-12" ino=213540 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:18:16.833 11104-11104 SDLThread               pdv.test.app                         W  type=1400 audit(0.0:1129): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/binascii.cpython-311.so" dev="dm-12" ino=213624 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:18:16.841 11104-11104 SDLThread               pdv.test.app                         W  type=1400 audit(0.0:1130): avc: granted { execute } for path="/data/data/pdv.test.app/files/app/_python_bundle/modules/_contextvars.cpython-311.so" dev="dm-12" ino=213504 scontext=u:r:untrusted_app:s0:c67,c257,c512,c768 tcontext=u:object_r:app_data_file:s0:c67,c257,c512,c768 tclass=file app=pdv.test.app
+2025-09-11 12:18:16.903 11104-11135 python                  pdv.test.app                         I  [INFO   ] [Factory     ] 195 symbols loaded
+2025-09-11 12:18:17.198 11104-11135 python                  pdv.test.app                         I   Traceback (most recent call last):
+2025-09-11 12:18:17.198 11104-11135 python                  pdv.test.app                         I     File "/home/gabri/Documents/Work/PDV/.buildozer/android/app/main.py", line 1, in <module>
+2025-09-11 12:18:17.199 11104-11135 python                  pdv.test.app                         I     File "/home/gabri/Documents/Work/PDV/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/python-installs/app/arm64-v8a/kivy/app.py", line 425, in <module>
+2025-09-11 12:18:17.199 11104-11135 python                  pdv.test.app                         I     File "/home/gabri/Documents/Work/PDV/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/python-installs/app/arm64-v8a/kivy/uix/widget.py", line 249, in <module>
+2025-09-11 12:18:17.199 11104-11135 python                  pdv.test.app                         I     File "/home/gabri/Documents/Work/PDV/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/python-installs/app/arm64-v8a/kivy/graphics/__init__.py", line 89, in <module>
+2025-09-11 12:18:17.199 11104-11135 python                  pdv.test.app                         I     File "kivy/graphics/instructions.pyx", line 1, in init kivy.graphics.instructions
+2025-09-11 12:18:17.200 11104-11135 python                  pdv.test.app                         I     File "kivy/graphics/vbo.pyx", line 1, in init kivy.graphics.vbo
+2025-09-11 12:18:17.200 11104-11135 python                  pdv.test.app                         I     File "kivy/graphics/compiler.pyx", line 1, in init kivy.graphics.compiler
+2025-09-11 12:18:17.200 11104-11135 python                  pdv.test.app                         I     File "kivy/graphics/shader.pyx", line 1, in init kivy.graphics.shader
+2025-09-11 12:18:17.200 11104-11135 python                  pdv.test.app                         I     File "kivy/graphics/texture.pyx", line 1, in init kivy.graphics.texture
+2025-09-11 12:18:17.201 11104-11135 python                  pdv.test.app                         I     File "kivy/graphics/context_instructions.pyx", line 30, in init kivy.graphics.context_instructions
+2025-09-11 12:18:17.201 11104-11135 python                  pdv.test.app                         I     File "/home/gabri/Documents/Work/PDV/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/python-installs/app/arm64-v8a/kivy/core/image/__init__.py", line 65, in <module>
+2025-09-11 12:18:17.201 11104-11135 python                  pdv.test.app                         I   ModuleNotFoundError: No module named 'filetype'
+2025-09-11 12:18:17.201 11104-11135 python                  pdv.test.app                         I  Python for android ended.
+2025-09-11 12:18:17.346 11104-11135 BpBinder                pdv.test.app                         I  onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
