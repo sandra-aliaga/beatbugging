@@ -82,9 +82,15 @@ class GameEngine:
     def __init__(self):
         self.console = Console()
         self.state = GameState.MENU
+<<<<<<< HEAD
         self.music_generator = LogMusicGenerator()
         self.game_map = Map(size=Config.GRID_SIZE)
         self.input_handler = InputHandler()  # Now safe - doesn't modify terminal
+=======
+        self.music_generator = None  # Será inicializado con el archivo del menú
+        self.game_map = Map(size=5)
+        self.input_handler = InputHandler()
+>>>>>>> 398ea52 (WIP: Menu improvements with file selection and difficulty modes)
         
         # Sistemas de juego con OpacityTimingSystem real
         self.score_system = ScoreSystem()
@@ -106,6 +112,7 @@ class GameEngine:
         self.running = True
         self.music_thread = None
         self.game_thread = None
+        self.selected_log_file = None  # Archivo seleccionado del menú
         
         # Restore pygame audio - now that we know it doesn't break the map
         try:
@@ -119,7 +126,6 @@ class GameEngine:
             self.force_stereo = False
         except Exception as e:
             self.force_stereo = False
-        
 
         self.temp_screen = None
     
@@ -171,10 +177,18 @@ class GameEngine:
             self.actions = []
         
     def start_game(self):
-        """Initialize and start the game directly"""
+        """Initialize and start the game with the selected log file"""
         self.state = GameState.PLAYING
         # Clear console for clean start
         self.console.clear()
+        
+        # Initialize music generator with the selected file
+        if self.selected_log_file:
+            print(f"Generando música desde: {self.selected_log_file}")
+            self.music_generator = LogMusicGenerator(log_path=self.selected_log_file)
+        else:
+            print("Usando archivo de log por defecto")
+            self.music_generator = LogMusicGenerator()
         
         # Generate music and gameplay actions
         try:
@@ -195,9 +209,10 @@ class GameEngine:
                 for action in self.music_data["gameplay_actions"]
             ]
             
-            # Silently generated actions - no print
+            print(f"✅ Generadas {len(self.actions)} notas desde el archivo seleccionado")
             
         except Exception as e:
+            print(f"❌ Error generando música: {e}")
             # Silent error handling - create minimal data to continue
             self.actions = [
                 GameAction(tiempo=2.0, coordenada='AJ', tipo='tap', duracion=0, line="DEBUG: Test log line 1"),
@@ -311,6 +326,10 @@ class GameEngine:
                     if game_config:
                         # Use the file and difficulty from menu
                         print(f"Starting game with: {game_config}")
+                        
+                        # Guardar el archivo seleccionado
+                        self.selected_log_file = game_config.get('file')
+                        
                         self.reset_game()
                         self.start_game()
                         # Después de start_game(), el estado ya cambió y game_loop() se ejecutó

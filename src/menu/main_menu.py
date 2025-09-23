@@ -1,5 +1,5 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Static, Button, Label, Input, ListView, ListItem
+from textual.widgets import Static, Button, Label, Input, ListView, ListItem, Select
 from textual.containers import Vertical
 from textual.screen import Screen
 from textual.binding import Binding
@@ -25,6 +25,8 @@ class LogFile:
     name: str
     parent_dir: str
     size: int
+    line_count: int = 0
+    content_preview: str = ""
 
 class SimpleFuzzyMatcher:
     """Matcher fuzzy simple solo para nombres de archivos .log"""
@@ -80,7 +82,11 @@ def make_title_css():
         border: round {border_color};
         background: {bg_color};
         color: {primary_color};
+<<<<<<< HEAD
         padding: 1;
+=======
+        padding: 2;
+>>>>>>> 398ea52 (WIP: Menu improvements with file selection and difficulty modes)
         height: 100%;
         width: 100%;
         content-align: center middle;
@@ -98,7 +104,11 @@ def make_title_css():
         color: {primary_color};
         margin-bottom: 1;
         text-align: center;
+<<<<<<< HEAD
         border-bottom: solid {theme.get("primary")};
+=======
+        border-bottom: solid {primary_color};
+>>>>>>> 398ea52 (WIP: Menu improvements with file selection and difficulty modes)
         align: center middle;
         padding-bottom: 0;
         height: auto;
@@ -148,6 +158,11 @@ def make_title_css():
         margin: 1;
     }}
 
+    #file_list.collapsed {{
+        height: 8;
+        border: solid {success_color};
+    }}
+
     #status_label {{
         height: 1;
         color: {secondary_color};
@@ -155,11 +170,59 @@ def make_title_css():
         margin: 1;
     }}
 
+    #difficulty_label {{
+        color: {secondary_color};
+        text-align: center;
+        margin: 1;
+        text-style: bold;
+    }}
+
+    #difficulty_container {{
+        align: center middle;
+        margin: 1;
+    }}
+
+    .difficulty_button {{
+        width: 20;
+        margin: 1;
+        border: solid {primary_color};
+        background: {bg_color};
+        color: {primary_color};
+    }}
+
+    .difficulty_button:hover {{
+        background: {primary_color};
+        color: {bg_color};
+    }}
+
+    .root_mode {{
+        border: solid {danger_color};
+        color: {danger_color};
+    }}
+
+    .root_mode:hover {{
+        background: {danger_color};
+        color: {bg_color};
+    }}
+
+    .selected {{
+        background: {primary_color};
+        color: {bg_color};
+        text-style: bold;
+    }}
+
+    .root_selected {{
+        background: {danger_color};
+        color: {bg_color};
+        text-style: bold;
+    }}
+
     #start_button {{
         border: solid {success_color};
         background: {bg_color};
         color: {success_color};
         width: 25;
+        margin-top: 2;
     }}
 
     #back_button {{
@@ -300,10 +363,12 @@ class SetupScreen(Screen):
         self.all_log_files: List[LogFile] = []
         self.filtered_files: List[LogFile] = []
         self.selected_file: LogFile = None
+        self.selected_difficulty: str = "user"  # Por defecto user mode
         self.fuzzy_matcher = SimpleFuzzyMatcher()
 
     def compose(self) -> ComposeResult:
         with Static(id="menu"):  
+<<<<<<< HEAD
             yield Static("Log File Search", id="title")
             yield Label("Search by filename only...", id="subtitle")
     CSS = f"""
@@ -430,6 +495,8 @@ class SetupScreen(Screen):
 
     def compose(self) -> ComposeResult:
         with Static(id="menu"):  
+=======
+>>>>>>> 398ea52 (WIP: Menu improvements with file selection and difficulty modes)
             yield Static(
                 """╺┳┓┏━┓╺┳╸┏━┓   ┏━┓┏━╸╻  ┏━╸┏━╸╺┳╸╻┏━┓┏┓╻
  ┃┃┣━┫ ┃ ┣━┫   ┗━┓┣╸ ┃  ┣╸ ┃   ┃ ┃┃ ┃┃┗┫
@@ -442,6 +509,16 @@ class SetupScreen(Screen):
 
             yield ListView(id="file_list")
             yield Label("Scanning...", id="status_label")
+
+            # Selector de dificultad con botones como antes
+            yield Label("Select difficulty:", id="difficulty_label")
+            from textual.containers import Horizontal
+            difficulty_container = Horizontal(
+                Button("User (Normal)", id="user_mode", classes="difficulty_button selected"),
+                Button("Root (Hard)", id="root_mode", classes="difficulty_button root_mode"),
+                id="difficulty_container"
+            )
+            yield difficulty_container
 
             yield Vertical(
                 Button("Start Game", id="start_button"),
@@ -462,7 +539,7 @@ class SetupScreen(Screen):
         scan_thread.start()
 
     def _scan_log_files(self) -> None:
-        """Escanea archivos .log optimizado"""
+        """Escanea archivos .log optimizado con información de contenido"""
         self.all_log_files = []
         
         search_paths = [
@@ -490,12 +567,34 @@ class SetupScreen(Screen):
                         if log_file.is_file():
                             stat = log_file.stat()
                             
+                            # Leer contenido para obtener información adicional
+                            line_count = 0
+                            content_preview = ""
+                            try:
+                                with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
+                                    lines = f.readlines()
+                                    line_count = len([line for line in lines if line.strip()])
+                                    # Tomar las primeras líneas no vacías como preview
+                                    non_empty_lines = [line.strip() for line in lines if line.strip()]
+                                    if non_empty_lines:
+                                        content_preview = non_empty_lines[0][:50] + "..." if len(non_empty_lines[0]) > 50 else non_empty_lines[0]
+                                    else:
+                                        content_preview = "(empty file)"
+                            except:
+                                content_preview = "(cannot read)"
+                            
+                            # Filtrar archivos vacíos
+                            if line_count == 0:
+                                continue
+                            
                             log_obj = LogFile(
                                 path=log_file,
                                 score=1.0,
                                 name=log_file.name,
                                 parent_dir=str(log_file.parent),
-                                size=stat.st_size
+                                size=stat.st_size,
+                                line_count=line_count,
+                                content_preview=content_preview
                             )
                             
                             self.all_log_files.append(log_obj)
@@ -506,13 +605,16 @@ class SetupScreen(Screen):
             except (OSError, PermissionError):
                 continue
 
-        # Ordenar por tamaño
-        self.all_log_files.sort(key=lambda f: f.size, reverse=True)
+        # Ordenar por número de líneas (más contenido primero)
+        self.all_log_files.sort(key=lambda f: f.line_count, reverse=True)
 
     def _update_results(self) -> None:
-        """Actualiza la lista de resultados"""
+        """Actualiza la lista de resultados limpia y con información útil"""
         file_list = self.query_one("#file_list", ListView)
         search_input = self.query_one("#search_input", Input)
+        
+        # Quitar clase collapsed cuando estamos buscando
+        file_list.set_class(False, "collapsed")
         
         file_list.clear()
         
@@ -522,12 +624,18 @@ class SetupScreen(Screen):
         for log_file in self.filtered_files:
             size_mb = log_file.size / (1024 * 1024)
             
-            # Formato compacto: filename - parent_dir - size
-            text = f"{log_file.name} - {log_file.parent_dir} - {size_mb:.1f}MB"
+            # Formato limpio: filename | lines | size | path
+            text = f"{log_file.name} | {log_file.line_count} lines | {size_mb:.1f}MB"
             
             if query:
                 score_percent = int(log_file.score * 100)
                 text += f" [{score_percent}%]"
+            
+            # Mostrar ruta del archivo en segunda línea
+            text += f"\n   Path: {log_file.parent_dir}"
+            
+            # Preview del contenido en tercera línea
+            text += f"\n   Content: {log_file.content_preview}"
             
             list_item = ListItem(Label(text))
             list_item.log_file = log_file
@@ -536,19 +644,69 @@ class SetupScreen(Screen):
         status_label = self.query_one("#status_label", Label)
         total_found = len(self.all_log_files)
         filtered_count = len(self.filtered_files)
-        status_label.update(f"{filtered_count}/{total_found} log files | navigate | Enter select")
+        
+        # Mostrar archivo seleccionado si hay uno
+        if self.selected_file:
+            status_label.update(f"Selected: {self.selected_file.name} | {filtered_count}/{total_found} log files")
+        else:
+            status_label.update(f"{filtered_count}/{total_found} log files | navigate | Enter select")
         
         if file_list.children:
             file_list.index = 0
+
+    async def on_mount(self) -> None:
+        search_input = self.query_one("#search_input", Input)
+        search_input.focus()
+        
+        def scan_logs():
+            self._scan_log_files()
+            self.call_from_thread(self._update_results)
+        
+        scan_thread = Thread(target=scan_logs)
+        scan_thread.daemon = True
+        scan_thread.start()
 
     async def on_input_changed(self, event: Input.Changed) -> None:
         if event.input.id == "search_input":
             self._update_results()
 
+    async def on_select_changed(self, event: Select.Changed) -> None:
+        """Remover - ya no usamos Select"""
+        pass
+
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
+        sound_manager.play_menu_click()
+        
+        if event.button.id == "user_mode":
+            self.selected_difficulty = "user"
+            self._update_difficulty_buttons()
+        elif event.button.id == "root_mode":
+            self.selected_difficulty = "root"
+            self._update_difficulty_buttons()
+        elif event.button.id == "start_button":
+            await self._start_game()
+        elif event.button.id == "back_button":
+            self.app.pop_screen()
+
+    def _update_difficulty_buttons(self):
+        """Actualizar visual de botones de dificultad"""
+        user_button = self.query_one("#user_mode", Button)
+        root_button = self.query_one("#root_mode", Button)
+        
+        if self.selected_difficulty == "user":
+            user_button.set_class(True, "selected")
+            root_button.set_class(False, "root_selected")
+        else:
+            user_button.set_class(False, "selected")
+            root_button.set_class(True, "root_selected")
+
     async def on_list_view_selected(self, event: ListView.Selected) -> None:
         sound_manager.play_menu_click()
         if event.item and hasattr(event.item, 'log_file'):
             self.selected_file = event.item.log_file
+            
+            # Colapsar la lista después de seleccionar
+            self._collapse_file_list()
 
     async def action_select(self) -> None:
         file_list = self.query_one("#file_list", ListView)
@@ -556,20 +714,69 @@ class SetupScreen(Screen):
             selected_item = file_list.children[file_list.index]
             if hasattr(selected_item, 'log_file'):
                 self.selected_file = selected_item.log_file
-                await self._start_game()
+                
+                # Colapsar la lista después de seleccionar
+                self._collapse_file_list()
+
+    def _collapse_file_list(self):
+        """Colapsa la lista de archivos después de seleccionar uno"""
+        file_list = self.query_one("#file_list", ListView)
+        search_input = self.query_one("#search_input", Input)
+        
+        # Agregar clase CSS para achicarlo
+        file_list.set_class(True, "collapsed")
+        
+        # Limpiar la lista para que ocupe menos espacio
+        file_list.clear()
+        
+        # Mostrar solo el archivo seleccionado
+        if self.selected_file:
+            size_mb = self.selected_file.size / (1024 * 1024)
+            text = f"✓ SELECTED: {self.selected_file.name} | {self.selected_file.line_count} lines | {size_mb:.1f}MB"
+            text += f"\n   Path: {self.selected_file.parent_dir}"
+            text += f"\n   Content: {self.selected_file.content_preview}"
+            
+            list_item = ListItem(Label(text))
+            list_item.log_file = self.selected_file
+            file_list.append(list_item)
+        
+        # Actualizar status
+        status_label = self.query_one("#status_label", Label)
+        if self.selected_file:
+            status_label.update(f"✓ Selected: {self.selected_file.name} | Type to search again")
+        
+        # Foco en el input para poder buscar de nuevo si quiere
+        search_input.focus()
 
     async def _start_game(self):
         if not self.selected_file:
             self.app.notify("Please select a log file first", severity="warning")
             return
 
+        # Verificar si el archivo tiene contenido suficiente
+        if self.selected_file.line_count < 5:
+            self.app.notify(f"Warning: File has only {self.selected_file.line_count} lines. May generate very short music.", severity="warning")
+
+        # Debug: Mostrar información detallada del archivo seleccionado
+        print(f"\n=== DEBUG: Archivo seleccionado ===")
+        print(f"Nombre: {self.selected_file.name}")
+        print(f"Ruta completa: {self.selected_file.path}")
+        print(f"Tamaño: {self.selected_file.size} bytes")
+        print(f"Líneas: {self.selected_file.line_count}")
+        print(f"Preview: {self.selected_file.content_preview}")
+        print(f"Dificultad: {self.selected_difficulty}")
+        print("=== FIN DEBUG ===\n")
+
         game_start_sound_path = os.path.join(os.path.dirname(__file__), "res", "game-start.mp3")
         play_sound_and_wait(game_start_sound_path)
 
         game_config = {
             "file": str(self.selected_file.path),
-            "difficulty": "user"
+            "difficulty": self.selected_difficulty
         }
+        
+        print(f"Configuración del juego: {game_config}")
+        
         self.app.exit(game_config)
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -601,3 +808,4 @@ if __name__ == "__main__":
         print("El juego debería iniciar ahora...")
     else:
         print("Saliendo del juego...")
+        print("El juego debería iniciar ahora...")
