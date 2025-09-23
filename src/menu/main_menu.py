@@ -120,7 +120,7 @@ def make_title_css():
         background: {bg_color};
         color: {primary_color};
         align-horizontal: center;
-        width: 20;
+        width: 30%;
         margin: 1;
     }}
 
@@ -136,22 +136,22 @@ def make_title_css():
 
     #search_input {{
         height: 3;
-        margin: 1;
+        margin-top: 0;
+        margin-bottom: 0;
         border: solid {primary_color};
         background: {bg_color};
         color: {primary_color};
     }}
 
     #file_list {{
-        height: 25;
+        height: 20%;
         border: solid {primary_color};
         background: {bg_color};
         color: {primary_color};
-        margin: 1;
     }}
 
     #file_list.collapsed {{
-        height: 8;
+        height: 3;
         border: solid {success_color};
     }}
 
@@ -159,24 +159,44 @@ def make_title_css():
         height: 1;
         color: {secondary_color};
         text-align: center;
-        margin: 1;
+        margin-bottom: 0;
+        margin-top: 0;
     }}
 
     #difficulty_label {{
         color: {secondary_color};
         text-align: center;
-        margin: 1;
+        margin-top: 1;
+        margin-bottom: 0;
         text-style: bold;
     }}
 
     #difficulty_container {{
         align: center middle;
-        margin: 1;
+        margin-top: 0;
+        margin-bottom: 0;
+    }}
+
+    #game_modes_container {{
+        align: center middle;
+        margin-top: 0;
+        margin-bottom: 1;
+    }}
+
+    #control_buttons_container {{
+        align: center middle;
+        margin-top: 0;
+        margin-bottom: 0;
+    }}
+
+    #buttons_section {{
+        align: center middle;
+        margin-top: 1;
+        margin-bottom: 0;
     }}
 
     .difficulty_button {{
-        width: 20;
-        margin: 1;
+        margin: 0 1;
         border: solid {primary_color};
         background: {bg_color};
         color: {primary_color};
@@ -184,6 +204,18 @@ def make_title_css():
 
     .difficulty_button:hover {{
         background: {primary_color};
+        color: {bg_color};
+    }}
+
+    .difficulty_button.selected {{
+        border: solid {success_color};
+        background: {success_color};
+        color: {bg_color};
+        text-style: bold;
+    }}
+
+    .difficulty_button.selected:hover {{
+        background: {success_color};
         color: {bg_color};
     }}
 
@@ -197,31 +229,32 @@ def make_title_css():
         color: {bg_color};
     }}
 
-    .selected {{
-        background: {primary_color};
-        color: {bg_color};
-        text-style: bold;
-    }}
-
-    .root_selected {{
+    .root_mode.root_selected {{
         background: {danger_color};
         color: {bg_color};
         text-style: bold;
+        border: solid {danger_color};
+    }}
+
+    .root_mode.root_selected:hover {{
+        background: {danger_color};
+        color: {bg_color};
     }}
 
     #start_button {{
         border: solid {success_color};
         background: {bg_color};
         color: {success_color};
-        width: 25;
-        margin-top: 2;
+        width: 50%;
+        margin: 0 1;
     }}
 
     #back_button {{
         border: solid {primary_color};
         background: {bg_color};
         color: {primary_color};
-        width: 15;
+        width: 50%;
+        margin: 0 1;
     }}
     """
 
@@ -373,21 +406,31 @@ class SetupScreen(Screen):
             yield ListView(id="file_list")
             yield Label("Scanning...", id="status_label")
 
-            # Selector de dificultad con botones como antes
+            # Selector de dificultad
             yield Label("Select difficulty:", id="difficulty_label")
-            from textual.containers import Horizontal
-            difficulty_container = Horizontal(
+            from textual.containers import Horizontal, Vertical
+
+            # Fila de modos de juego
+            game_modes_container = Horizontal(
                 Button("User (Normal)", id="user_mode", classes="difficulty_button selected"),
                 Button("Root (Hard)", id="root_mode", classes="difficulty_button root_mode"),
-                id="difficulty_container"
+                id="game_modes_container"
             )
-            yield difficulty_container
 
-            yield Vertical(
-                Button("Start Game", id="start_button"),
+            # Fila de botones de control
+            control_buttons_container = Horizontal(
                 Button("Back", id="back_button"),
-                id="buttons_container"
+                Button("Start Game", id="start_button"),
+                id="control_buttons_container"
             )
+
+            # Contenedor vertical que agrupa las dos filas
+            buttons_section = Vertical(
+                game_modes_container,
+                control_buttons_container,
+                id="buttons_section"
+            )
+            yield buttons_section
 
     async def on_mount(self) -> None:
         search_input = self.query_one("#search_input", Input)
