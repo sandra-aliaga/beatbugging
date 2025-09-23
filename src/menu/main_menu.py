@@ -13,6 +13,7 @@ from threading import Thread
 from pathlib import Path
 from dataclasses import dataclass
 from typing import List
+from textual.containers import Horizontal, Vertical
 
 # Cargar tema actual
 theme = ThemeManager()
@@ -408,7 +409,6 @@ class SetupScreen(Screen):
 
             # Selector de dificultad
             yield Label("Select difficulty:", id="difficulty_label")
-            from textual.containers import Horizontal, Vertical
 
             # Fila de modos de juego
             game_modes_container = Horizontal(
