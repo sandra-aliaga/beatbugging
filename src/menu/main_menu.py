@@ -1,103 +1,191 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Static, Button, Tree, Label, Select
+from textual.widgets import Static, Button, Label, Input, ListView, ListItem
 from textual.containers import Vertical
 from textual.screen import Screen
+from textual.binding import Binding
 from .themes import ThemeManager
 import random
 import os
 import pygame
 import time
+import difflib
 from threading import Thread
+from pathlib import Path
+from dataclasses import dataclass
+from typing import List
 
 # Cargar tema actual
 theme = ThemeManager()
 
+@dataclass
+class LogFile:
+    """Archivo de log encontrado"""
+    path: Path
+    score: float
+    name: str
+    parent_dir: str
+    size: int
+
+class SimpleFuzzyMatcher:
+    """Matcher fuzzy simple solo para nombres de archivos .log"""
+    
+    @staticmethod
+    def calculate_ratio(query: str, filename: str) -> float:
+        if not query:
+            return 1.0
+        
+        query_lower = query.lower()
+        filename_lower = filename.lower()
+        
+        # Usar difflib para similitud básica
+        ratio = difflib.SequenceMatcher(None, query_lower, filename_lower).ratio()
+        
+        # Bonus si contiene el query
+        if query_lower in filename_lower:
+            ratio += 0.4
+        
+        # Bonus si comienza con el query
+        if filename_lower.startswith(query_lower):
+            ratio += 0.3
+        
+        return min(ratio, 1.0)
+    
+    @staticmethod
+    def find_matches(query: str, files: List[LogFile], limit: int = 100) -> List[LogFile]:
+        if not query.strip():
+            return files[:limit]
+        
+        scored_files = []
+        for file in files:
+            score = SimpleFuzzyMatcher.calculate_ratio(query, file.name)
+            if score > 0.1:
+                file.score = score
+                scored_files.append(file)
+        
+        scored_files.sort(key=lambda x: x.score, reverse=True)
+        return scored_files[:limit]
+
 def make_title_css():
+    # Obtener colores del tema con fallbacks seguros
+    border_color = theme.get("border") or "green"
+    bg_color = theme.get("background") or "black"
+    primary_color = theme.get("primary") or "green"
+    secondary_color = theme.get("secondary") or "cyan"
+    danger_color = theme.get("danger") or "red"
+    success_color = theme.get("success") or "green"
+    
     return f"""
     #menu {{
         align: center middle;
-        border: round {theme.get("border")};
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
+        border: round {border_color};
+        background: {bg_color};
+        color: {primary_color};
         padding: 1;
-        height: 90%;
+        height: 95%;
         content-align: center middle;
     }}
 
     #title {{
         text-style: bold;
-        color: {theme.get("primary")};
+        color: {primary_color};
         margin-bottom: 1;
         text-align: center;
-        border-bottom: solid {theme.get("primary")};
+        border-bottom: solid {primary_color};
         padding-bottom: 0;
         height: auto;
     }}
 
     #subtitle {{
-        color: {theme.get("secondary")};
+        color: {secondary_color};
         margin-bottom: 1;
         text-align: center;
-        width: 100%;
-        content-align: center middle;
         text-style: bold;
-        padding: 0;
         height: auto;
     }}
 
     Button {{
-        border: solid {theme.get("primary")};
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
+        border: solid {primary_color};
+        background: {bg_color};
+        color: {primary_color};
         align-horizontal: center;
         width: 20;
         margin: 1;
     }}
 
     #exit_button {{
-        border: solid {theme.get("danger")};
-        background: {theme.get("background")};
-        color: {theme.get("danger")};
+        border: solid {danger_color};
+        background: {bg_color};
+        color: {danger_color};
     }}
 
     #buttons_container {{
         align: center middle;
     }}
-    """
 
+    #search_input {{
+        height: 3;
+        margin: 1;
+        border: solid {primary_color};
+        background: {bg_color};
+        color: {primary_color};
+    }}
+
+    #file_list {{
+        height: 25;
+        border: solid {primary_color};
+        background: {bg_color};
+        color: {primary_color};
+        margin: 1;
+    }}
+
+    #status_label {{
+        height: 1;
+        color: {secondary_color};
+        text-align: center;
+        margin: 1;
+    }}
+
+    #start_button {{
+        border: solid {success_color};
+        background: {bg_color};
+        color: {success_color};
+        width: 25;
+    }}
+
+    #back_button {{
+        border: solid {primary_color};
+        background: {bg_color};
+        color: {primary_color};
+        width: 15;
+    }}
+    """
 
 def play_sound_and_wait(sound_path):
     """Play a sound file and wait for it to finish"""
     try:
-        # Initialize pygame mixer if not already initialized
         if not pygame.mixer.get_init():
             pygame.mixer.init()
         
-        # Load and play the sound
         sound = pygame.mixer.Sound(sound_path)
-        sound.set_volume(0.4)  # Set reduced volume for game start sound
+        sound.set_volume(0.4)
         sound.play()
         
-        # Wait for the sound to finish
         while pygame.mixer.get_busy():
             time.sleep(0.1)
             
     except Exception as e:
-        # If sound fails, just continue without sound
         print(f"Could not play sound: {e}")
         pass
-
 
 class SoundManager:
     """Manages menu sounds with overlap prevention"""
     
     def __init__(self):
         self.last_click_time = 0
-        self.click_delay = 0.2  # Minimum delay between clicks in seconds
-        self.volume = 0.3  # Volume level (0.0 to 1.0) - reduced from default
+        self.click_delay = 0.2
+        self.volume = 0.3
         self.menu_click_path = os.path.join(os.path.dirname(__file__), "res", "menu-click.mp3")
         
-        # Initialize pygame mixer
         try:
             if not pygame.mixer.get_init():
                 pygame.mixer.init()
@@ -105,30 +193,25 @@ class SoundManager:
             pass
     
     def play_menu_click(self):
-        """Play menu click sound with overlap prevention"""
         current_time = time.time()
         
-        # Check if enough time has passed since last click
         if current_time - self.last_click_time >= self.click_delay:
             self.last_click_time = current_time
             
             def play_click():
                 try:
                     sound = pygame.mixer.Sound(self.menu_click_path)
-                    sound.set_volume(self.volume)  # Set reduced volume
+                    sound.set_volume(self.volume)
                     sound.play()
                 except Exception as e:
                     print(f"Could not play menu click sound: {e}")
             
-            # Play in separate thread to avoid blocking
             click_thread = Thread(target=play_click)
             click_thread.daemon = True
             click_thread.start()
 
-
 # Global sound manager instance
 sound_manager = SoundManager()
-
 
 class TitleScreen(Screen):
     CSS = make_title_css()
@@ -141,7 +224,7 @@ class TitleScreen(Screen):
 ░░███░░░░░███░░███░░░░░█  ███░░░░░███ ░█░░░███░░░█   ░░███░░░░░███░░███  ░░███   ███░░░░░███  ███░░░░░███░░███ ░░██████ ░░███   ███░░░░░███
  ░███    ░███ ░███  █ ░  ░███    ░███ ░   ░███  ░     ░███    ░███ ░███   ░███  ███     ░░░  ███     ░░░  ░███  ░███░███ ░███  ███     ░░░ 
  ░██████████  ░██████    ░███████████     ░███        ░██████████  ░███   ░███ ░███         ░███          ░███  ░███░░███░███ ░███         
- ░███░░░░░███ ░███░░█    ░███░░░░░███     ░███        ░███░░░░░███ ░███   ░███ ░███    █████░███    █████ ░███  ░███ ░░██████ ░███    █████
+ ░███░░░░░███ ░███░░█    ░███░░░░░███     ░███        ░███░░░░░███ ░███   ░███ ░███    █████░███    █████ ░███  ░███  ░░██████ ░███    █████
  ░███    ░███ ░███ ░   █ ░███    ░███     ░███        ░███    ░███ ░███   ░███ ░░███  ░░███ ░░███  ░░███  ░███  ░███  ░░█████ ░░███  ░░███ 
  ███████████  ██████████ █████   █████    █████       ███████████  ░░████████   ░░█████████  ░░█████████  █████ █████  ░░█████ ░░█████████ 
 ░░░░░░░░░░░  ░░░░░░░░░░ ░░░░░   ░░░░░    ░░░░░       ░░░░░░░░░░░    ░░░░░░░░     ░░░░░░░░░    ░░░░░░░░░  ░░░░░ ░░░░░    ░░░░░   ░░░░░░░░░
@@ -186,7 +269,6 @@ class TitleScreen(Screen):
         self.schedule_next()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        # Play menu click sound for all buttons except start
         sound_manager.play_menu_click()
         
         if event.button.id == "play_button":
@@ -194,237 +276,174 @@ class TitleScreen(Screen):
         elif event.button.id == "exit_button":
             self.app.exit(None)
 
-
 class SetupScreen(Screen):
-    CSS = f"""
-    #menu {{
-        align: center middle;
-        border: round green;
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-        padding: 2;
-    }}
+    CSS = make_title_css()
+    
+    BINDINGS = [
+        Binding("ctrl+c", "cancel", "Cancel"),
+        Binding("escape", "cancel", "Cancel"),
+        Binding("enter", "select", "Select"),
+    ]
 
-    #title {{
-        text-style: bold;
-        color: {theme.get("primary")};
-        margin-bottom: 1;
-    }}
-
-    Tree {{
-        width: 100%;
-        height: 7;
-        border: solid {theme.get("primary")};
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-        margin-bottom: 1;
-    }}
-
-    Tree:focus {{
-        border: solid {theme.get("primary")};
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-        outline: none;
-    }}
-
-    Tree > .tree--guides {{
-        color: {theme.get("secondary")};
-    }}
-
-    Tree > .tree--cursor {{
-        background: {theme.get("primary")};
-        color: {theme.get("background")};
-    }}
-
-    Select {{
-        border: solid {theme.get("primary")};
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-        margin-top: 1;
-    }}
-
-    Select > SelectCurrent {{
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-    }}
-
-    Select > SelectOverlay {{
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-        border: solid {theme.get("primary")};
-    }}
-
-    OptionList {{
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-        border: solid {theme.get("primary")};
-    }}
-
-    OptionList > .option-list--option {{
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-    }}
-
-    OptionList > .option-list--option-highlighted {{
-        background: {theme.get("primary")} !important;
-        color: {theme.get("background")} !important;
-        text-style: bold;
-    }}
-
-    OptionList > .option-list--option-selected {{
-        background: {theme.get("primary")} !important;
-        color: {theme.get("background")} !important;
-        text-style: bold;
-    }}
-
-    OptionList:focus > .option-list--option-highlighted {{
-        background: {theme.get("primary")} !important;
-        color: {theme.get("background")} !important;
-    }}
-
-    Button {{
-        margin-top: 2;
-        width: 25;
-        border: solid {theme.get("primary")};
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-    }}
-
-    #start_button {{
-        margin-top: 2;
-        width: 25;
-        border: solid {theme.get("primary")};
-        background: {theme.get("background")};
-        color: {theme.get("primary")};
-    }}
-
-    #button_container {{
-        align: center middle;
-        width: 100%;
-    }}
-
-    .root_mode {{
-        border: solid {theme.get("primary")};
-        background: {theme.get("primary")};
-        color: {theme.get("background")};
-    }}
-    """
+    def __init__(self):
+        super().__init__()
+        self.all_log_files: List[LogFile] = []
+        self.filtered_files: List[LogFile] = []
+        self.selected_file: LogFile = None
+        self.fuzzy_matcher = SimpleFuzzyMatcher()
 
     def compose(self) -> ComposeResult:
         with Static(id="menu"):  
-            yield Static("⚡ Data Selection ⚡", id="title")
+            yield Static("Log File Search", id="title")
+            yield Label("Search by filename only...", id="subtitle")
 
-            # Use platform-appropriate root directory
-            if os.name == 'nt':  # Windows
-                root_dir = "C:\\"
-            else:  # Linux/Unix
-                root_dir = "/"
-            
-            tree = Tree(root_dir, id="file_tree")
-            try:
-                self._populate_tree_node(tree.root, root_dir)
-            except PermissionError:
-                # If we can't access root, use home directory instead
-                home_dir = os.path.expanduser("~")
-                tree = Tree(home_dir, id="file_tree")
-                self._populate_tree_node(tree.root, home_dir)
-            yield tree
-
-            yield Select(
-                options=[
-                    ("User (normal)", "user"),
-                    ("Root (hard)", "root"),
-                ],
-                id="difficulty_select",
-                prompt="Select difficulty"
+            yield Input(
+                placeholder="Type filename to search (e.g. 'system', 'error', 'app')...",
+                id="search_input"
             )
 
-            with Static(id="button_container"):
-                yield Button("Start Game", id="start_button")
+            yield ListView(id="file_list")
+            yield Label("Scanning...", id="status_label")
 
-    def _populate_tree_node(self, node, path):
-        """Populate a tree node with files and directories"""
-        try:
-            items = os.listdir(path)
-            # Sort directories first, then files
-            dirs = []
-            files = []
+            yield Vertical(
+                Button("Start Game", id="start_button"),
+                Button("Back", id="back_button"),
+                id="buttons_container"
+            )
 
-            for item in items:
-                if item.startswith('.'):  # Skip hidden files/dirs
+    async def on_mount(self) -> None:
+        search_input = self.query_one("#search_input", Input)
+        search_input.focus()
+        
+        def scan_logs():
+            self._scan_log_files()
+            self.call_from_thread(self._update_results)
+        
+        scan_thread = Thread(target=scan_logs)
+        scan_thread.daemon = True
+        scan_thread.start()
+
+    def _scan_log_files(self) -> None:
+        """Escanea archivos .log optimizado"""
+        self.all_log_files = []
+        
+        search_paths = [
+            os.path.expanduser("~"),
+            "/var/log",
+            "/tmp", 
+            "."
+        ]
+        
+        if os.name == 'nt':
+            search_paths.extend([
+                "C:\\Windows\\Logs",
+                "C:\\ProgramData"
+            ])
+
+        for search_path in search_paths:
+            try:
+                if not os.path.exists(search_path):
                     continue
+                    
+                path_obj = Path(search_path)
+                
+                for log_file in path_obj.rglob("*.log"):
+                    try:
+                        if log_file.is_file():
+                            stat = log_file.stat()
+                            
+                            log_obj = LogFile(
+                                path=log_file,
+                                score=1.0,
+                                name=log_file.name,
+                                parent_dir=str(log_file.parent),
+                                size=stat.st_size
+                            )
+                            
+                            self.all_log_files.append(log_obj)
+                            
+                    except (OSError, PermissionError):
+                        continue
+                        
+            except (OSError, PermissionError):
+                continue
 
-                full_path = os.path.join(path, item)
-                try:
-                    if os.path.isdir(full_path):
-                        dirs.append(item)
-                    elif item.endswith(('.log', '.txt')):  # Only show log files
-                        files.append(item)
-                except (PermissionError, OSError):
-                    continue
+        # Ordenar por tamaño
+        self.all_log_files.sort(key=lambda f: f.size, reverse=True)
 
-            # Add directories first (expandable)
-            for dir_name in sorted(dirs):
-                dir_node = node.add(f"{dir_name}", data={"path": os.path.join(path, dir_name), "type": "dir"})
-                # Add a placeholder so it appears expandable
-                dir_node.add_leaf("...", data={"type": "placeholder"})
+    def _update_results(self) -> None:
+        """Actualiza la lista de resultados"""
+        file_list = self.query_one("#file_list", ListView)
+        search_input = self.query_one("#search_input", Input)
+        
+        file_list.clear()
+        
+        query = search_input.value
+        self.filtered_files = self.fuzzy_matcher.find_matches(query, self.all_log_files, 50)
+        
+        for log_file in self.filtered_files:
+            size_mb = log_file.size / (1024 * 1024)
+            
+            # Formato compacto: filename - parent_dir - size
+            text = f"{log_file.name} - {log_file.parent_dir} - {size_mb:.1f}MB"
+            
+            if query:
+                score_percent = int(log_file.score * 100)
+                text += f" [{score_percent}%]"
+            
+            list_item = ListItem(Label(text))
+            list_item.log_file = log_file
+            file_list.append(list_item)
+        
+        status_label = self.query_one("#status_label", Label)
+        total_found = len(self.all_log_files)
+        filtered_count = len(self.filtered_files)
+        status_label.update(f"{filtered_count}/{total_found} log files | navigate | Enter select")
+        
+        if file_list.children:
+            file_list.index = 0
 
-            # Add files
-            for file_name in sorted(files):
-                node.add_leaf(f"[LOG] {file_name}", data={"path": os.path.join(path, file_name), "type": "file"})
+    async def on_input_changed(self, event: Input.Changed) -> None:
+        if event.input.id == "search_input":
+            self._update_results()
 
-        except (PermissionError, OSError):
-            node.add_leaf("Access denied", data={"type": "error"})
-
-    def on_tree_node_expanded(self, event: Tree.NodeExpanded) -> None:
-        """Handle when a directory node is expanded"""
-        node = event.node
-        if node.data and node.data.get("type") == "dir":
-            # Clear placeholder and populate with actual contents
-            node.remove_children()
-            self._populate_tree_node(node, node.data["path"])
-
-    def on_tree_node_selected(self, event: Tree.NodeSelected) -> None:
-        """Play click sound when a tree node is selected"""
+    async def on_list_view_selected(self, event: ListView.Selected) -> None:
         sound_manager.play_menu_click()
+        if event.item and hasattr(event.item, 'log_file'):
+            self.selected_file = event.item.log_file
 
-    def on_select_changed(self, event: Select.Changed) -> None:
-        # Play menu click sound when difficulty selection changes
+    async def action_select(self) -> None:
+        file_list = self.query_one("#file_list", ListView)
+        if file_list.children and file_list.index is not None:
+            selected_item = file_list.children[file_list.index]
+            if hasattr(selected_item, 'log_file'):
+                self.selected_file = selected_item.log_file
+                await self._start_game()
+
+    async def _start_game(self):
+        if not self.selected_file:
+            self.app.notify("Please select a log file first", severity="warning")
+            return
+
+        game_start_sound_path = os.path.join(os.path.dirname(__file__), "res", "game-start.mp3")
+        play_sound_and_wait(game_start_sound_path)
+
+        game_config = {
+            "file": str(self.selected_file.path),
+            "difficulty": "user"
+        }
+        self.app.exit(game_config)
+
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
         sound_manager.play_menu_click()
         
-        start_button = self.query_one("#start_button", Button)
-        if event.value == "root":
-            start_button.set_class(True, "root_mode")
-        else:
-            start_button.set_class(False, "root_mode")
-
-    def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "start_button":
-            diff = self.query_one("#difficulty_select", Select).value
-            file_tree = self.query_one("#file_tree", Tree)
-            selected = file_tree.cursor_node
-            if selected is None:
-                self.app.bell()
-                return
+            await self._start_game()
+        elif event.button.id == "back_button":
+            self.app.pop_screen()
 
-            # Check if it's a valid log file
-            if not selected.data or selected.data.get("type") != "file":
-                self.app.notify("Please select a log file (.log or .txt)", severity="warning")
-                return
-
-            file_chosen = selected.data["path"]
-
-            # Play game start sound and wait for it to finish
-            game_start_sound_path = os.path.join(os.path.dirname(__file__), "res", "game-start.mp3")
-            play_sound_and_wait(game_start_sound_path)
-
-            # Return game configuration and exit the app
-            game_config = {
-                "file": file_chosen,
-                "difficulty": diff
-            }
-            self.app.exit(game_config)
-
+    async def action_cancel(self) -> None:
+        self.app.pop_screen()
 
 class BeatBuggingApp(App):
     def on_mount(self) -> None:
@@ -443,4 +462,4 @@ if __name__ == "__main__":
         print(f"Archivo seleccionado: {result}")
         print("El juego debería iniciar ahora...")
     else:
-        print("nSaliendo del juego...")
+        print("Saliendo del juego...")
