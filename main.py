@@ -10,12 +10,14 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
+from config import Config
+
 from music.generator import LogMusicGenerator
 from cli.map import Map
 from game.timing_system import ScoreSystem, ComboSystem, HealthSystem, HitResult
 from game.opacity_timing import OpacityTimingSystem
 from game.screens import GameOverAnimation, GameOverScreen, VictoryScreen, LoadingScreen
-from src.menu.main_menu import run_menu
+from menu.main_menu import run_menu
 from rich.console import Console
 from rich.text import Text
 from rich.live import Live
@@ -81,7 +83,7 @@ class GameEngine:
         self.console = Console()
         self.state = GameState.MENU
         self.music_generator = LogMusicGenerator()
-        self.game_map = Map(size=5)
+        self.game_map = Map(size=Config.GRID_SIZE)
         self.input_handler = InputHandler()  # Now safe - doesn't modify terminal
         
         # Sistemas de juego con OpacityTimingSystem real
@@ -101,18 +103,18 @@ class GameEngine:
         self.start_time = 0
         self.current_time = 0
         
-        self.health = 200  
-        self.score = 0
-        self.combo = 0
-        self.max_combo = 0
-        
         self.running = True
         self.music_thread = None
         self.game_thread = None
         
         # Restore pygame audio - now that we know it doesn't break the map
         try:
-            pg.mixer.pre_init(frequency=22050, size=-16, channels=1, buffer=256)
+            pg.mixer.pre_init(
+                frequency=Config.AUDIO_SAMPLE_RATE,
+                size=-Config.AUDIO_BIT_DEPTH,
+                channels=Config.AUDIO_CHANNELS,
+                buffer=Config.AUDIO_BUFFER_SIZE
+            )
             pg.mixer.init()
             self.force_stereo = False
         except Exception as e:
@@ -132,10 +134,6 @@ class GameEngine:
             print(f"Error al detener música: {e}")
     
     def reset_game(self):
-        self.score = 0
-        self.combo = 0
-        self.max_combo = 0
-        self.health = 200 
         self.current_time = 0.0
         self.current_action_index = 0
         self.state = GameState.PLAYING
@@ -143,7 +141,7 @@ class GameEngine:
         # Reiniciar sistemas con OpacityTimingSystem
         self.score_system = ScoreSystem()
         self.combo_system = ComboSystem()
-        self.health_system = HealthSystem(max_health=300)  # Increased to 300
+        self.health_system = HealthSystem(max_health=Config.MAX_HEALTH)
         self.opacity_timing = OpacityTimingSystem()
         
         # Limpiar grid
@@ -181,9 +179,9 @@ class GameEngine:
         # Generate music and gameplay actions
         try:
             self.music_data = self.music_generator.generate_music(
-                scale="minor", 
-                rate=22050,  # Match mixer frequency
-                speed=1.0
+                scale=Config.DEFAULT_SCALE,
+                rate=Config.AUDIO_SAMPLE_RATE,
+                speed=Config.DEFAULT_SPEED_MULTIPLIER
             )
             
             self.actions = [
@@ -215,10 +213,6 @@ class GameEngine:
         self.opacity_timing = OpacityTimingSystem()
         self.current_action_index = 0
         
-        # Sync stats
-        self.health = self.health_system.current_health
-        self.score = self.score_system.score
-        self.combo = self.combo_system.current_combo
         
         # Start game loop (music will start after loading screen)
         self.game_loop()
@@ -362,13 +356,14 @@ class GameEngine:
         if current_action:
             timing_offset = current_time - current_action.tiempo
 
-            # TIMING MUY GENEROSO: 3 segundos antes, 2 segundos después
-            if -3.0 <= timing_offset <= 2.0:
+            # Timing window usando configuración
+            timing_window = Config.OKAY_WINDOW * 10  # 3 segundos por defecto
+            if -timing_window <= timing_offset <= timing_window * 0.67:
                 # Estados visuales más claros
-                if timing_offset < -1.0:
+                if timing_offset < -timing_window * 0.33:
                     # Muy temprano - apenas visible
                     self.game_map.set_cell_state(current_action.coordenada, 1)
-                elif timing_offset < 0.5:
+                elif timing_offset < timing_window * 0.17:
                     # Momento perfecto - muy visible y parpadea
                     self.game_map.set_cell_state(current_action.coordenada, 3)
                 else:
@@ -385,11 +380,11 @@ class GameEngine:
 
                 self.game_map.set_active_coords(f"HIT: {current_action.coordenada} | TIMING: {timing_offset:.1f}s")
 
-            elif timing_offset > 2.0:
-                # Miss automático después de 2 segundos
+            elif timing_offset > timing_window * 0.67:
+                # Miss automático después del timing window
                 current_action.completada = True
                 self.combo_system.break_combo()
-                self.health_system.take_damage(10)
+                self.health_system.take_damage(abs(Config.HEALTH_CHANGES["MISS"]))
                 self.game_map.set_actual_line("MISSED! Get ready for next...")
         else:
             # No hay más notas
@@ -405,10 +400,6 @@ class GameEngine:
         current_health = self.health_system.get_health_percentage()
         self.game_map.set_health(max(0, int(current_health)))
 
-        # Sync stats
-        self.health = int(self.health_system.current_health)
-        self.score = self.score_system.score
-        self.combo = self.combo_system.current_combo
 
         # Check game end conditions
         if self.health_system.is_dead() or current_health <= 0:
@@ -450,28 +441,36 @@ class GameEngine:
 
             timing_offset = current_time - action.tiempo
 
-            # Ventana de hit más estricta: -1s a +1s
-            if -1.0 <= timing_offset <= 1.0:
+            # Ventana de hit usando configuración
+            if -Config.OKAY_WINDOW <= timing_offset <= Config.OKAY_WINDOW:
                 action.completada = True
                 action.hit_successfully = True
                 self.game_map.update_cell(action.coordenada, True)
 
-                # Puntaje basado en precisión
-                if abs(timing_offset) <= 0.5:
-                    points = 300
-                elif abs(timing_offset) <= 1.0:
-                    points = 150
+                # Puntaje basado en precisión usando configuración
+                if abs(timing_offset) <= Config.PERFECT_WINDOW:
+                    points = Config.BASE_POINTS["PERFECT"]
+                elif abs(timing_offset) <= Config.GOOD_WINDOW:
+                    points = Config.BASE_POINTS["GOOD"]
                 else:
-                    points = 50
+                    points = Config.BASE_POINTS["OKAY"]
 
                 self.score_system.add_score(points)
-                self.health_system.heal(5)
+                # Determinar healing basado en precisión
+                if abs(timing_offset) <= Config.PERFECT_WINDOW:
+                    heal_amount = Config.HEALTH_CHANGES["PERFECT"]
+                elif abs(timing_offset) <= Config.GOOD_WINDOW:
+                    heal_amount = Config.HEALTH_CHANGES["GOOD"]
+                else:
+                    heal_amount = Config.HEALTH_CHANGES["OKAY"]
+
+                self.health_system.heal(heal_amount)
                 self.combo_system.add_hit()
                 break
             else:
                 # Miss
                 self.combo_system.break_combo()
-                self.health_system.take_damage(15)
+                self.health_system.take_damage(abs(Config.HEALTH_CHANGES["MISS"]))
                 break
 
     def update_display(self, live):
@@ -487,8 +486,8 @@ class GameEngine:
             action = self.actions[i]
             timing_offset = self.current_time - action.tiempo
             
-            # Ventana de tiempo NORMAL como era antes
-            if not action.completada and abs(timing_offset) <= 0.5:
+            # Ventana de tiempo usando configuración
+            if not action.completada and abs(timing_offset) <= Config.OKAY_WINDOW:
                 if current_coord == action.coordenada:
                     if action.tipo == "tap":
                         self.process_hit(action, i, timing_offset)
@@ -502,7 +501,7 @@ class GameEngine:
                         
                         self.game_map.update_cell(action.coordenada, True)
                 
-            elif timing_offset > 0.5 and not action.completada:
+            elif timing_offset > Config.OKAY_WINDOW and not action.completada:
                 self.process_miss(action, i)
         
         while (self.current_action_index < len(self.actions) and 

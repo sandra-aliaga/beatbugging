@@ -3,6 +3,7 @@ import os
 import pygame as pg
 import numpy as np
 from .log_utils import LogMusic
+from config import Config
 
 class LogMusicGenerator:
     
@@ -10,7 +11,7 @@ class LogMusicGenerator:
         self.log_path = log_path
         self.fileState = False
         self.musicState = False
-        self.default_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs", "test-app.log")
+        self.default_path = str(Config.get_test_log_path())
         self.scale = ""
         self.freq = ""
         self.rate = ""
@@ -22,8 +23,8 @@ class LogMusicGenerator:
             "triangle": self.__triangle_wave
         }
         
-        self.grid_columns = ['A', 'S', 'D', 'E', 'F']
-        self.grid_rows = ['J', 'K', 'L', 'M', 'N']
+        self.grid_columns = Config.GRID_COLUMNS
+        self.grid_rows = Config.GRID_ROWS
         
         if self.log_path != "none":
             if os.path.isfile(self.log_path):
@@ -47,18 +48,11 @@ class LogMusicGenerator:
             self.log_data = ""
             
     def __generate_scale_notes(self):
-        
-        scales = {
-            "minor": [0, 2, 3, 5, 7, 8, 10],  # Escala menor natural - sonido melancólico
-            "major": [0, 2, 4, 5, 7, 9, 11],  # Escala mayor - sonido alegre/brillante
-            "pentatonic": [0, 2, 4, 7, 9],    # Pentatónica - sonido oriental/folk
-            "blues": [0, 3, 5, 6, 7, 10]      # Escala blues - sonido jazzy
-        }
-        
-        if self.scale not in scales:
-            self.scale = "minor"
-            
-        base_notes = scales[self.scale]
+        # Usar escalas de configuración
+        if self.scale not in Config.SCALES:
+            self.scale = Config.DEFAULT_SCALE
+
+        base_notes = Config.SCALES[self.scale]["intervals"]
         notes = []
 
         for octave in range(3, 5):
