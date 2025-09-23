@@ -95,6 +95,18 @@ Your boring system logs become **actual music**:
 - **Multiple Formats** - JSON logs, Logcat, timestamped entries, raw text
 - **Difficulty Modes** - User (Normal) and Root (Hard) for different skill levels
 
+### 🎨 **Customizable Color Themes**
+Choose your debugging style with multiple color themes for the main menu:
+
+<div align="center">
+<img src="img/theme_blue_1.png" alt="Blue Theme" width="45%">
+<img src="img/theme_blue_2.png" alt="Blue Theme" width="45%">
+</div>
+
+- **Default Theme** - Classic green matrix style for that hacker feel
+- **Blue** - Electric blue and cyan for futuristic debugging
+- **Custom Themes** - Easy theme switching with JSON configuration
+
 ## 🚀 Quick Start
 
 ### Prerequisites
