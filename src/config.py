@@ -43,7 +43,7 @@ class GameConfig:
         "PERFECT": 3,
         "GOOD": 2,
         "OKAY": 1,
-        "MISS": -15
+        "MISS": -25  # Más daño por miss
     }
     
     # Grid Settings

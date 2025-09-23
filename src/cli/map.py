@@ -66,6 +66,7 @@ class Map:
         self.current_input = ""
         self.input_status = "Type coordinate (e.g. AJ, SK)..."
         self.target_coordinate = "EM"  # The coordinate to show in Line panel
+        self.success_count = 0  # Counter for successful hits
 
     def update_cell(self, coordinate: str, is_active: bool):
         if coordinate in self.grid_state:
@@ -111,6 +112,14 @@ class Map:
     def set_target_coordinate(self, coordinate: str):
         """Set the target coordinate to display in Line panel"""
         self.target_coordinate = coordinate
+
+    def increment_success(self):
+        """Increment success counter"""
+        self.success_count += 1
+
+    def reset_success(self):
+        """Reset success counter"""
+        self.success_count = 0
 
     def _create_header_layout(self) -> Layout:
         header_layout = Layout(name="header")
@@ -200,7 +209,7 @@ class Map:
             "dim blue",                     # 1: early
             "blue",                         # 2: almost_early
             "bold blink bright_green on black",  # 3: perfect HIT - muy visible
-            "yellow",                       # 4: almost_late
+            "bold bright_cyan on black",    # 4: SUCCESS HIT - turquesa brillante
             "bold blink bright_red on black"     # 5: MISS - muy visible
         ]
         
@@ -262,13 +271,15 @@ class Map:
         line_grid = Table.grid(expand=True, padding=(0, 1))
         line_grid.add_column(justify="left", width=8)
         line_grid.add_column(justify="left", ratio=1)
+        line_grid.add_column(justify="right", width=12)
 
-        # Show target coordinate
+        # Show target coordinate and success count
         display_coord = self.target_coordinate
 
         line_grid.add_row(
             Text("Line:", style="bold bright_green"),
-            Text(display_coord, style="bold yellow")
+            Text(display_coord, style="bold yellow"),
+            Text(f"Success: {self.success_count}", style="bold bright_green")
         )
 
         return Panel(
