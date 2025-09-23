@@ -2,6 +2,15 @@
 
 **Transform System Logs into Rhythmic Debugging Adventures**
 
+```
+██████╗ ███████╗ █████╗ ████████╗██████╗ ██╗   ██╗ ██████╗  ██████╗ ██╗███╗   ██╗ ██████╗ 
+██╔══██╗██╔════╝██╔══██╗╚══██╔══╝██╔══██╗██║   ██║██╔════╝ ██╔════╝ ██║████╗  ██║██╔════╝ 
+██████╔╝█████╗  ███████║   ██║   ██████╔╝██║   ██║██║  ███╗██║  ███╗██║██╔██╗ ██║██║  ███╗
+██╔══██╗██╔══╝  ██╔══██║   ██║   ██╔══██╗██║   ██║██║   ██║██║   ██║██║██║╚██╗██║██║   ██║
+██████╔╝███████╗██║  ██║   ██║   ██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝██║██║ ╚████║╚██████╔╝
+╚═════╝ ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝ 
+```
+
 > **OH NO, the system crashed!** You open the logs, sit on your hacker's chair and now... IT'S TIME TO BEATBUGGING!
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -125,15 +134,43 @@ def create_musical_note(log_line):
 **Zero paid services required** - just Python and the love of turning bugs into beats! 🎵
 
 
+## 📸 Screenshots
+
+![Main Menu](screenshots/menu.png)
+*Beautiful terminal interface with theme selection*
+
+![File Browser](screenshots/file_browser.png) 
+*Smart log file discovery with metadata previews*
+
+![Gameplay](screenshots/gameplay.png)
+*5×5 grid with real-time visual feedback and combo system*
+
+![Victory Screen](screenshots/victory.png)
+*Epic victory animations when you successfully debug all errors*
+
+
 ## 🏆 For the Love of Code - Category 4: Game on
 
 **Why BeatBugging fits perfectly:**
 
-🎮 **"Code is your controller"** - Your actual log files become the game content
-🎵 **"Fun first, functional close behind"** - Turns boring debugging into addictive gameplay  
-🕹️ **"Interactive experience"** - Real-time rhythm game with immediate feedback
-🎯 **"Completely original"** - Nobody has ever made debugging this fun before!
-🎲 **"Mashing up genres"** - DevOps tools + Rhythm games = Pure innovation
+```
+┌─────────────────────────────────────────────────────────┐
+│ "Code is your controller"                               │
+│ → Your actual log files become the game content         │
+│                                                         │
+│ "Fun first, functional close behind"                    │
+│ → Turns boring debugging into addictive gameplay        │
+│                                                         │
+│ "Interactive experience"                                │
+│ → Real-time rhythm game with immediate feedback         │
+│                                                         │
+│ "Completely original"                                   │
+│ → Nobody has ever made debugging this fun before!       │
+│                                                         │
+│ "Mashing up genres"                                     │
+│ → DevOps tools + Rhythm games = Pure innovation         │
+└─────────────────────────────────────────────────────────┘
+```
 
 *Built with pure joy for the art of coding and the love of making developers smile while they debug!*
 
@@ -146,46 +183,6 @@ def create_musical_note(log_line):
 **Making the world's most boring task into the most epic musical adventure - because debugging should be this fun!**
 
 ---
-
-
-## 👥 Meet the BeatBugging Crew
-
-This epic debugging adventure was built by a team of passionate developers who believe debugging should be as fun as it is functional:
-
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://github.com/sandra-aliaga">
-        <img src="https://github.com/sandra-aliaga.png" width="100px;" alt="Sandra"/>
-        <br />
-        <sub><b>Sandra</b></sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/RyanValdivia">
-        <img src="https://github.com/RyanValdivia.png" width="100px;" alt="Ryan"/>
-        <br />
-        <sub><b>Ryan</b></sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/Joshep-c">
-        <img src="https://github.com/Joshep-c.png" width="100px;" alt="Joseph"/>
-        <br />
-        <sub><b>Joseph</b></sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/tniia">
-        <img src="https://github.com/tniia.png" width="100px;" alt="Tania"/>
-        <br />
-        <sub><b>Tania</b></sub>
-      </a>
-    </td>
-  </tr>
-</table>
-
-*Four developers, one crazy idea: make debugging musical!* 🎵
 
 ## 🆘 Need Help Debugging the Debugger?
 
