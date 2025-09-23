@@ -24,10 +24,7 @@
 ## 🎬 Demo
 
 <div align="center">
-<video width="50%" controls>
-<source src="img/gameplay.mp4" type="video/mp4">
-Your browser does not support the video tag.
-</video>
+<img src="img/gameplay.gif" alt="BeatBugging Gameplay" width="50%">
 </div>
 
 ## 📸 Screenshots
