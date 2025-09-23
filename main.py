@@ -20,6 +20,8 @@ from rich.console import Console
 from rich.text import Text
 from rich.live import Live
 
+import keyboard
+
 class GameState(Enum):
     MENU = "menu"
     PLAYING = "playing"
@@ -571,28 +573,23 @@ class GameEngine:
 
         while True:
             try:
-                user_input = input("\n> ").strip().lower()
-                if user_input == "q":
-                    self.state = GameState.MENU
-                    return
-                elif user_input == "" or user_input == "enter":
-                    # reiniciar nivel
-                    self.reset_game()
-                    self.start_game()
-                    return
-                elif user_input == "esc":
-                    # salir del juego
-                    self.running = False
-                    os.system("cls" if os.name == "nt" else "clear")
-                    return
-                else:
-                    self.console.print("[yellow] Opción inválida. Usa Q, ENTER o ESC[/yellow]")
+                event = keyboard.read_event(suppress=False)
+                if event.event_type == keyboard.KEY_DOWN:
+                    if event.name == "esc":
+                        self.state = GameState.MENU
+                        return
+                    elif event.name == "enter":
+                        self.reset_game()
+                        self.start_game()
+                        return
+                    else:
+                        self.console.print("[yellow] Opción inválida. Usa ENTER o ESC[/yellow]")
             except (KeyboardInterrupt, EOFError):
                 self.running = False
                 return
     
     def show_victory(self):
-        self.stop_music()  # Detener música
+        self.stop_music()
         
         stats = {
             **self.score_system.get_stats(),
@@ -607,28 +604,22 @@ class GameEngine:
         
         while True:
             try:
-                user_input = input("\n> ").strip().lower()
-                if user_input == "q":
-                    self.state = GameState.MENU
-                    return
-                elif user_input == "" or user_input == "enter":
-                    # reiniciar nivel
-                    self.reset_game()
-                    self.start_game()
-                    return
-                elif user_input == "esc":
-                    # salir del juego
-                    self.running = False
-                    os.system("cls" if os.name == "nt" else "clear")
-                    return
-                else:
-                    self.console.print("[yellow] Opción inválida. Usa Q, ENTER o ESC[/yellow]")
+                event = keyboard.read_event(suppress=False)
+                if event.event_type == keyboard.KEY_DOWN:
+                    if event.name == "esc":
+                        self.state = GameState.MENU
+                        return
+                    elif event.name == "enter":
+                        self.reset_game()
+                        self.start_game()
+                        return
+                    else:
+                        self.console.print("[yellow] Opción inválida. Usa ENTER o ESC[/yellow]")
             except (KeyboardInterrupt, EOFError):
                 self.running = False
                 return
             
 def main():
-    # Start with menu for proper integration
     engine = GameEngine()
     engine.state = GameState.MENU
     engine.run()
