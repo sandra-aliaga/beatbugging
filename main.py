@@ -14,7 +14,7 @@ from music.generator import LogMusicGenerator
 from cli.map import Map
 from game.timing_system import ScoreSystem, ComboSystem, HealthSystem, HitResult
 from game.opacity_timing import OpacityTimingSystem
-from game.screens import GameOverAnimation, GameOverScreen, VictoryScreen, LoadingScreen
+from game.screens import GameOverAnimation, GameOverScreen, VictoryAnimation, VictoryScreen, LoadingScreen
 from src.menu.main_menu import run_menu
 from rich.console import Console
 from rich.text import Text
@@ -92,6 +92,7 @@ class GameEngine:
         
         self.game_over_animation = GameOverAnimation(self.console)
         self.game_over_screen = GameOverScreen(self.console)
+        self.victory_animation = VictoryAnimation(self.console)
         self.victory_screen = VictoryScreen(self.console)
         self.loading_screen = LoadingScreen(self.console)
         
@@ -126,10 +127,20 @@ class GameEngine:
         try:
             pg.mixer.stop()
             pg.mixer.music.stop()
-            pg.mixer.quit()
+            # NO hacer quit() aquí para que el audio se pueda reiniciar
             print("Música detenida correctamente")
         except Exception as e:
             print(f"Error al detener música: {e}")
+    
+    def reinit_audio(self):
+        """Reinicializar el sistema de audio si es necesario"""
+        try:
+            if not pg.mixer.get_init():
+                pg.mixer.pre_init(frequency=22050, size=-16, channels=1, buffer=256)
+                pg.mixer.init()
+                print("Audio reinicializado")
+        except Exception as e:
+            print(f"Error al reinicializar audio: {e}")
     
     def reset_game(self):
         self.score = 0
@@ -139,6 +150,9 @@ class GameEngine:
         self.current_time = 0.0
         self.current_action_index = 0
         self.state = GameState.PLAYING
+        
+        # Reinicializar audio si es necesario
+        self.reinit_audio()
         
         # Reiniciar sistemas con OpacityTimingSystem
         self.score_system = ScoreSystem()
@@ -177,6 +191,9 @@ class GameEngine:
         self.state = GameState.PLAYING
         # Clear console for clean start
         self.console.clear()
+        
+        # Reinicializar audio si es necesario
+        self.reinit_audio()
         
         # Generate music and gameplay actions
         try:
@@ -339,6 +356,7 @@ class GameEngine:
             self.console.print("\n[bold red]Juego interrumpido por el usuario[/bold red]")
         finally:
             self.stop_music()
+            pg.mixer.quit()  # Cerrar completamente el audio al salir
             pg.quit()
             self.console.print("[bold green]¡Gracias por jugar BeatBugging![/bold green]")
 
@@ -548,6 +566,7 @@ class GameEngine:
         }
         
         self.game_over_animation.show_game_over_animation()
+        os.system("cls" if os.name == "nt" else "clear")
         self.game_over_screen.display(stats)
 
         while True:
@@ -564,6 +583,7 @@ class GameEngine:
                 elif user_input == "esc":
                     # salir del juego
                     self.running = False
+                    os.system("cls" if os.name == "nt" else "clear")
                     return
                 else:
                     self.console.print("[yellow] Opción inválida. Usa Q, ENTER o ESC[/yellow]")
@@ -581,72 +601,28 @@ class GameEngine:
             'time_taken': getattr(self, 'current_time', 0)
         }
         
+        self.victory_animation.show_victory_animation()
+        os.system("cls" if os.name == "nt" else "clear")
         self.victory_screen.display(stats)
         
-        print("\n")
-        victory_art = (
-            "╔══════════════════════════════════════════════════════════════╗\n"
-            "║                                                              ║\n"
-            "║ ██    ██ ██  ██████ ████████  ██████  ██████  ██  █████     ║\n"
-            "║ ██    ██ ██ ██         ██    ██    ██ ██   ██ ██ ██   ██    ║\n"
-            "║ ██    ██ ██ ██         ██    ██    ██ ██████  ██ ███████    ║\n"
-            "║  ██  ██  ██ ██         ██    ██    ██ ██   ██ ██ ██   ██    ║\n"
-            "║   ████   ██  ██████    ██     ██████  ██   ██ ██ ██   ██    ║\n"
-            "║                                                              ║\n"
-            "║           ███████ ██   ██  ██████ ███████ ██                 ║\n"
-            "║           ██      ██   ██ ██      ██      ██                 ║\n"
-            "║           █████    ██ ██  ██      █████   ██                 ║\n"
-            "║           ██        ███   ██      ██                         ║\n"
-            "║           ███████   ██     ██████ ███████ ██                 ║\n"
-            "║                                                              ║\n"
-            "╚══════════════════════════════════════════════════════════════╝"
-        )
-        
-        print(victory_art)
-        
-        stats_display = (
-            f"\n╔══════════════════════════════════════════════════════════════╗\n"
-            f"║                     ESTADISTICAS FINALES                    ║\n"
-            f"║                                                              ║\n"
-            f"║  Puntuacion Final: {stats.get('score', 0):,}                              ║\n"
-            f"║  Precision: {stats.get('accuracy', 0):.1f}%                                       ║\n"
-            f"║  Combo Maximo: {stats.get('max_combo', 0)}                                    ║\n"
-            f"║                                                              ║\n"
-            f"╚══════════════════════════════════════════════════════════════╝"
-        )
-        
-        print(stats_display)
-        
-        menu_options = (
-            "\n╔══════════════════════════════════════════════════════════════╗\n"
-            "║                    QUE QUIERES HACER?                       ║\n"
-            "║                                                              ║\n"
-            "║  [ENTER] ──────────── Volver al menu principal              ║\n"
-            "║  [R] ──────────────── Jugar otra vez                        ║\n"
-            "║  [Q] ──────────────── Salir del juego                       ║\n"
-            "║                                                              ║\n"
-            "╚══════════════════════════════════════════════════════════════╝"
-        )
-        
-        print(menu_options)
-        
-        # Usar input() normal - SIN pygame
         while True:
             try:
                 user_input = input("\n> ").strip().lower()
-                if user_input == "" or user_input == "1":
+                if user_input == "q":
                     self.state = GameState.MENU
                     return
-                elif user_input == "r" or user_input == "2":
-                    # Reiniciar el juego
+                elif user_input == "" or user_input == "enter":
+                    # reiniciar nivel
                     self.reset_game()
                     self.start_game()
                     return
-                elif user_input == "q" or user_input == "3":
+                elif user_input == "esc":
+                    # salir del juego
                     self.running = False
+                    os.system("cls" if os.name == "nt" else "clear")
                     return
                 else:
-                    print("❓ Opción inválida. Usa ENTER, R o Q")
+                    self.console.print("[yellow] Opción inválida. Usa Q, ENTER o ESC[/yellow]")
             except (KeyboardInterrupt, EOFError):
                 self.running = False
                 return
