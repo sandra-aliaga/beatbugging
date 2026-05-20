@@ -1,22 +1,19 @@
-keyboard==0.13.5
+# Direct dependencies
+numpy==2.3.2
+pygame==2.6.1
+pynput==1.8.1
+rich==13.9.4
+textual==6.1.0
+
+# Transitive deps (textual/rich)
 linkify-it-py==2.0.3
 markdown-it-py==4.0.0
 mdit-py-plugins==0.5.0
 mdurl==0.1.2
-numpy==2.3.2
-pandas==2.3.2
 platformdirs==4.4.0
-pygame==2.6.1
 Pygments==2.19.2
-pynput==1.8.1
-python-dateutil==2.9.0.post0
-python-xlib==0.33
-pytz==2025.2
-PyYAML==6.0.2
-rich==13.9.4
-six==1.17.0
-textual==6.1.0
-themes==0.0.5
 typing_extensions==4.15.0
-tzdata==2025.2
 uc-micro-py==1.0.3
+
+# pynput on Linux
+python-xlib==0.33
