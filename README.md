@@ -14,7 +14,7 @@
 > **OH NO, the system crashed!** You open the logs, sit on your hacker's chair and now... IT'S TIME TO BEATBUGGING!
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.13+-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![ForTheLoveOfCode](https://img.shields.io/badge/%23ForTheLoveOfCode-GitHub%20Hackathon-purple?logo=github)](https://github.com/topics/fortheloveofcode)
 
 > **BeatBugging** revolutionizes debugging by turning system logs into playable music. Built for the **GitHub "For the Love of Code" Hackathon** - **Category 4: Game on** 🎮
@@ -110,29 +110,42 @@ Choose your debugging style with multiple color themes for the main menu:
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **Python 3.8+** 
-- **Audio device** 
+- **Python 3.10+**
+- **Audio device**
 - **Log files to debug!** (the game will find them for you)
 
-### Installation & Play
+### Install once, run from anywhere
 
 ```bash
-# Clone this epic debugging adventure
+# Clone the repo
 git clone https://github.com/sandra-aliaga/beatbugging.git
 cd beatbugging
 
-# Set up your debugging environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+# Run the installer (sets up venv + adds `beatbugging` command to your PATH)
+./install.sh
 
-# Install the rhythm debugging engine
-pip install -r requirements.txt
-
-# START BEATBUGGING! 🎵
-python main.py
+# START BEATBUGGING from any directory! 🎵
+beatbugging
 ```
 
-**That's it!** The game will auto-scan for log files and get you debugging to the beat!
+**That's it!** The installer creates a `beatbugging` command in `~/.local/bin` so you can launch the game from anywhere in your terminal.
+
+> Restart your terminal (or `source ~/.bashrc`) after the first install so the PATH change takes effect.
+
+### Manual setup (alternative)
+
+If you prefer to manage the environment yourself:
+
+```bash
+git clone https://github.com/sandra-aliaga/beatbugging.git
+cd beatbugging
+
+python3 -m venv venv
+source venv/bin/activate
+
+pip install -r requirements.txt
+python main.py
+```
 
 ## 🎮 How to Play Like a Pro
 
@@ -175,7 +188,7 @@ def create_musical_note(log_line):
 {
   "core_engine": {
     "numpy": "High-performance audio array processing",
-    "pygame": "Real-time audio playback and mixing"
+    "pygame-ce": "Real-time audio playback and mixing (community edition, Python 3.10+ support)"
   },
   "game_interface": {
     "rich": "Beautiful terminal rendering and layouts", 
