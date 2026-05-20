@@ -644,7 +644,7 @@ class GameEngine:
             timing_offset = current_time - action.tiempo
 
             # VENTANA SÚPER GENEROSA: ±3 segundos
-            if -3.0 <= timing_offset <= 3.0:
+            if -0.5 <= timing_offset <= Config.OKAY_WINDOW:
                 action.completada = True
                 action.hit_successfully = True
 
