@@ -427,6 +427,7 @@ class SetupScreen(Screen):
 
             control_buttons_container = Horizontal(
                 Button("Back", id="back_button"),
+                Button("Listen", id="listen_button"),
                 Button("Start Game", id="start_button"),
                 id="control_buttons_container"
             )
@@ -598,13 +599,15 @@ class SetupScreen(Screen):
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         sound_manager.play_menu_click()
-        
+
         if event.button.id == "user_mode":
             self.selected_difficulty = "user"
             self._update_difficulty_buttons()
         elif event.button.id == "root_mode":
             self.selected_difficulty = "root"
             self._update_difficulty_buttons()
+        elif event.button.id == "listen_button":
+            await self._start_listen()
         elif event.button.id == "start_button":
             await self._start_game()
         elif event.button.id == "back_button":
@@ -682,6 +685,12 @@ class SetupScreen(Screen):
         
         
         self.app.exit(game_config)
+
+    async def _start_listen(self) -> None:
+        if not self.selected_file:
+            self.app.notify("Please select a log file first", severity="warning")
+            return
+        self.app.push_screen(ListenScreen(self.selected_file))
 
     async def action_cancel(self) -> None:
         self.app.pop_screen()
