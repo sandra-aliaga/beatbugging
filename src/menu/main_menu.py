@@ -11,6 +11,7 @@ import os
 import pygame
 import time
 import difflib
+import itertools
 from threading import Thread
 from pathlib import Path
 from dataclasses import dataclass
@@ -478,17 +479,18 @@ class SetupScreen(Screen):
                             
                             line_count = 0
                             content_preview = ""
+                            MAX_PREVIEW_LINES = 200
                             try:
                                 with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
-                                    lines = f.readlines()
-                                    line_count = len([line for line in lines if line.strip()])
-                                    # Tomar las primeras líneas no vacías como preview
-                                    non_empty_lines = [line.strip() for line in lines if line.strip()]
-                                    if non_empty_lines:
-                                        content_preview = non_empty_lines[0][:50] + "..." if len(non_empty_lines[0]) > 50 else non_empty_lines[0]
-                                    else:
-                                        content_preview = "(empty file)"
-                            except:
+                                    sampled = list(itertools.islice(f, MAX_PREVIEW_LINES))
+                                non_empty = [l.strip() for l in sampled if l.strip()]
+                                line_count = len(non_empty)
+                                if non_empty:
+                                    first = non_empty[0]
+                                    content_preview = first[:50] + "..." if len(first) > 50 else first
+                                else:
+                                    content_preview = "(empty file)"
+                            except Exception:
                                 content_preview = "(cannot read)"
                             
                             # Filtrar archivos vacíos
