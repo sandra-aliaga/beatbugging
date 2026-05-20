@@ -679,14 +679,6 @@ class SetupScreen(Screen):
         
         self.app.exit(game_config)
 
-    async def on_button_pressed(self, event: Button.Pressed) -> None:
-        sound_manager.play_menu_click()
-        
-        if event.button.id == "start_button":
-            await self._start_game()
-        elif event.button.id == "back_button":
-            self.app.pop_screen()
-
     async def action_cancel(self) -> None:
         self.app.pop_screen()
 
