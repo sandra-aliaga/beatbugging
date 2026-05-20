@@ -144,6 +144,7 @@ class LogMusic:
         return result
 
 
-log_music = LogMusic()
-log_music.generate_music()
+if __name__ == "__main__":
+    log_music = LogMusic()
+    log_music.generate_music()
 
