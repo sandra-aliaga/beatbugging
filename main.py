@@ -8,6 +8,8 @@ from typing import Dict, List, Optional
 import sys
 import os
 import queue
+import tty
+import termios
 from pynput import keyboard
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
@@ -381,68 +383,74 @@ class GameEngine:
     
     def game_loop(self):
         """Complete game loop with fixed InputHandler"""
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
         try:
-            # Longer loading for large files
-            loading_time = 6.0 if len(self.actions) > 50 else 3.0
-            self.loading_screen.show_loading("INITIALIZING BEATBUGGING SYSTEM", loading_time)
+            tty.setcbreak(fd)
+            try:
+                # Longer loading for large files
+                loading_time = 6.0 if len(self.actions) > 50 else 3.0
+                self.loading_screen.show_loading("INITIALIZING BEATBUGGING SYSTEM", loading_time)
 
-            # NO EMPEZAR MÚSICA TODAVÍA - esperar el momento exacto
-            # SINCRONIZACIÓN REAL: Empezar música Y timer al mismo tiempo
-            self.start_time = time.time()  # Tiempo de referencia
-            self.start_music()  # Empezar música AHORA
+                # NO EMPEZAR MÚSICA TODAVÍA - esperar el momento exacto
+                # SINCRONIZACIÓN REAL: Empezar música Y timer al mismo tiempo
+                self.start_time = time.time()  # Tiempo de referencia
+                self.start_music()  # Empezar música AHORA
 
-            # Start keyboard capture - CONNECT TO GAME ENGINE
-            self.input_handler.game_engine = self  # Connect!
-            self.input_handler.start_capture()
+                # Start keyboard capture - CONNECT TO GAME ENGINE
+                self.input_handler.game_engine = self  # Connect!
+                self.input_handler.start_capture()
 
-            # Show difficulty mode info
-            mode_text = "ROOT MODE (Speed: 1.6x)" if self.selected_difficulty == "root" else "USER MODE (Speed: 1.2x)"
-            self.game_map.set_actual_line(f"♪ {mode_text} - Music synced!")
-            pass
+                # Show difficulty mode info
+                mode_text = "ROOT MODE (Speed: 1.6x)" if self.selected_difficulty == "root" else "USER MODE (Speed: 1.2x)"
+                self.game_map.set_actual_line(f"♪ {mode_text} - Music synced!")
+                pass
 
-            # Use the configuration that works for map rendering
-            with Live(self.game_map.build_layout(), screen=True, redirect_stderr=False) as live:
-                game_duration = max([action.tiempo for action in self.actions]) + 10.0 if self.actions else 90.0
-                start_time = time.time()
+                # Use the configuration that works for map rendering
+                with Live(self.game_map.build_layout(), screen=True, redirect_stderr=False) as live:
+                    game_duration = max([action.tiempo for action in self.actions]) + 10.0 if self.actions else 90.0
+                    start_time = time.time()
 
-                while self.state == GameState.PLAYING and self.running:
-                    # USAR EL TIEMPO REAL DE LA MÚSICA - NO DEL JUEGO
-                    if hasattr(self, 'start_time') and self.start_time:
-                        current_time = time.time() - self.start_time
-                    else:
-                        current_time = time.time() - start_time  # Fallback
+                    while self.state == GameState.PLAYING and self.running:
+                        # USAR EL TIEMPO REAL DE LA MÚSICA - NO DEL JUEGO
+                        if hasattr(self, 'start_time') and self.start_time:
+                            current_time = time.time() - self.start_time
+                        else:
+                            current_time = time.time() - start_time  # Fallback
 
-                    # Process input (safe now)
-                    pressed_keys = self.input_handler.update()
-                    if pressed_keys:
-                        coordinate = self.input_handler.get_coordinate_from_keys()
-                        if coordinate:
-                            self.process_user_input(coordinate, current_time)
+                        # Process input (safe now)
+                        pressed_keys = self.input_handler.update()
+                        if pressed_keys:
+                            coordinate = self.input_handler.get_coordinate_from_keys()
+                            if coordinate:
+                                self.process_user_input(coordinate, current_time)
 
-                    self.process_actions(current_time, current_time)
+                        self.process_actions(current_time, current_time)
 
-                    # Check death
-                    current_health = self.health_system.get_health_percentage()
-                    if self.health_system.is_dead() or current_health <= 0:
-                        self.state = GameState.GAME_OVER
-                        break
+                        # Check death
+                        current_health = self.health_system.get_health_percentage()
+                        if self.health_system.is_dead() or current_health <= 0:
+                            self.state = GameState.GAME_OVER
+                            break
 
-                    # Check victory
-                    if current_time >= game_duration:
-                        self.state = GameState.VICTORY
-                        break
+                        # Check victory
+                        if current_time >= game_duration:
+                            self.state = GameState.VICTORY
+                            break
 
-                    # Update display
-                    self.update_display(live)
-                    time.sleep(0.1)
+                        # Update display
+                        self.update_display(live)
+                        time.sleep(0.1)
 
-        except KeyboardInterrupt:
-            self.console.print("\n[red]Game interrupted[/red]")
-        except Exception as e:
-            self.console.print(f"[red]Error in game loop: {e}[/red]")
+            except KeyboardInterrupt:
+                self.console.print("\n[red]Game interrupted[/red]")
+            except Exception as e:
+                self.console.print(f"[red]Error in game loop: {e}[/red]")
+            finally:
+                self.stop_music()
+                self.input_handler._restore_input()
         finally:
-            self.stop_music()
-            self.input_handler._restore_input()
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
     
     def run(self):
         try:
