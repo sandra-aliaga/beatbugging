@@ -66,13 +66,13 @@ class SimpleFuzzyMatcher:
 
 TITLE_CSS = """
     Screen {
-        background: ansi_black;
+        background: transparent;
     }
 
     #menu {
         align: center middle;
         border: round ansi_green;
-        background: ansi_black;
+        background: transparent;
         color: ansi_green;
         padding: 2;
         height: 100%;
@@ -118,7 +118,7 @@ TITLE_CSS = """
 
     Button {
         border: solid ansi_green;
-        background: ansi_black;
+        background: transparent;
         color: ansi_green;
         align-horizontal: center;
         width: 30%;
@@ -127,7 +127,7 @@ TITLE_CSS = """
 
     #exit_button {
         border: solid ansi_red;
-        background: ansi_black;
+        background: transparent;
         color: ansi_red;
     }
 
@@ -140,14 +140,14 @@ TITLE_CSS = """
         margin-top: 0;
         margin-bottom: 0;
         border: solid ansi_green;
-        background: ansi_black;
+        background: transparent;
         color: ansi_green;
     }
 
     #file_list {
         height: 20%;
         border: solid ansi_green;
-        background: ansi_black;
+        background: transparent;
         color: ansi_green;
     }
 
@@ -199,51 +199,51 @@ TITLE_CSS = """
     .difficulty_button {
         margin: 0 1;
         border: solid ansi_green;
-        background: ansi_black;
+        background: transparent;
         color: ansi_green;
     }
 
     .difficulty_button:hover {
         background: ansi_green;
-        color: ansi_black;
+        color: transparent;
     }
 
     .difficulty_button.selected {
         background: ansi_green;
-        color: ansi_black;
+        color: transparent;
         text-style: bold;
     }
 
     .difficulty_button.selected:hover {
         background: ansi_green;
-        color: ansi_black;
+        color: transparent;
     }
 
     .root_mode {
         border: solid ansi_red;
-        background: ansi_black;
+        background: transparent;
         color: ansi_red;
     }
 
     .root_mode:hover {
         background: ansi_red;
-        color: ansi_black;
+        color: transparent;
     }
 
     .root_mode.root_selected {
         background: ansi_red;
-        color: ansi_black;
+        color: transparent;
         text-style: bold;
     }
 
     .root_mode.root_selected:hover {
         background: ansi_red;
-        color: ansi_black;
+        color: transparent;
     }
 
     #start_button {
         border: solid ansi_bright_green;
-        background: ansi_black;
+        background: transparent;
         color: ansi_bright_green;
         width: auto;
         margin: 0 1;
@@ -251,7 +251,7 @@ TITLE_CSS = """
 
     #listen_button {
         border: solid ansi_green;
-        background: ansi_black;
+        background: transparent;
         color: ansi_green;
         width: auto;
         margin: 0 1;
@@ -259,35 +259,35 @@ TITLE_CSS = """
 
     #back_button {
         border: solid ansi_green;
-        background: ansi_black;
+        background: transparent;
         color: ansi_green;
         width: auto;
         margin: 0 1;
     }
 
     ListItem {
-        background: ansi_black;
+        background: transparent;
         color: ansi_green;
     }
 
     ListItem:hover {
         background: ansi_green;
-        color: ansi_black;
+        color: transparent;
     }
 
     ListItem.--highlight {
         background: ansi_green;
-        color: ansi_black;
+        color: transparent;
     }
 
     Input {
-        background: ansi_black;
+        background: transparent;
         color: ansi_green;
         border: solid ansi_green;
     }
 
     Input:focus {
-        background: ansi_black;
+        background: transparent;
         border: solid ansi_cyan;
     }
 """
@@ -741,7 +741,7 @@ LISTEN_CSS = TITLE_CSS + """
     }
     #listen_log {
         border: solid ansi_green;
-        background: ansi_black;
+        background: transparent;
         height: 1fr;
         margin: 1;
     }
