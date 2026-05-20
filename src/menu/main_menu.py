@@ -253,7 +253,15 @@ def make_title_css():
         border: solid {success_color};
         background: {bg_color};
         color: {success_color};
-        width: 50%;
+        width: auto;
+        margin: 0 1;
+    }}
+
+    #listen_button {{
+        border: solid {primary_color};
+        background: {bg_color};
+        color: {primary_color};
+        width: auto;
         margin: 0 1;
     }}
 
@@ -261,7 +269,7 @@ def make_title_css():
         border: solid {primary_color};
         background: {bg_color};
         color: {primary_color};
-        width: 50%;
+        width: auto;
         margin: 0 1;
     }}
     """
@@ -703,7 +711,7 @@ class ListenScreen(Screen):
     CSS = make_title_css() + """
     #listen_info {
         text-align: center;
-        color: bright_green;
+        color: ansi_bright_green;
         text-style: bold;
         margin-bottom: 1;
         height: auto;
@@ -721,7 +729,7 @@ class ListenScreen(Screen):
     }
     #listen_hint {
         text-align: center;
-        color: dim green;
+        color: darkgreen;
         height: auto;
         margin-top: 1;
     }
