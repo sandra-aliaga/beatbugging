@@ -144,11 +144,12 @@ class InputHandler:
 
     def get_coordinate_if_ready(self):
         """Get coordinate if one is ready, then mark as consumed"""
-        if self.coordinate_ready and self.last_coordinate:
-            coord = self.last_coordinate
-            self.coordinate_ready = False
-            return coord
-        return None
+        with self._input_lock:
+            if self.coordinate_ready and self.last_coordinate:
+                coord = self.last_coordinate
+                self.coordinate_ready = False
+                return coord
+            return None
 
     def update(self):
         """Update method for compatibility - now just returns coordinate if ready"""
