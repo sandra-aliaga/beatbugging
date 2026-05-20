@@ -265,6 +265,36 @@ def make_title_css():
         margin: 0 1;
     }}
 
+    ListItem {{
+        background: {bg_color};
+        color: {primary_color};
+    }}
+
+    ListItem:hover {{
+        background: {primary_color};
+        color: {bg_color};
+    }}
+
+    ListItem.--highlight {{
+        background: {primary_color};
+        color: {bg_color};
+    }}
+
+    Input {{
+        background: {bg_color};
+        color: {primary_color};
+        border: solid {primary_color};
+    }}
+
+    Input:focus {{
+        background: {bg_color};
+        border: solid {secondary_color};
+    }}
+
+    Screen {{
+        background: {bg_color};
+    }}
+
     #back_button {{
         border: solid {primary_color};
         background: {bg_color};
