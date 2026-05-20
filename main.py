@@ -46,6 +46,7 @@ class InputHandler:
         self.game_map = game_map
         self.running = True
         self.current_input = ""
+        self._input_lock = threading.Lock()
         self.input_thread = None
         self.coordinate_ready = False
         self.last_coordinate = None
@@ -98,42 +99,44 @@ class InputHandler:
 
     def _handle_key_press(self, key):
         """Handle a key press and build coordinate"""
-        if len(self.current_input) == 0:
-            # First character - should be A,S,D,E,F
-            if key in ['A', 'S', 'D', 'E', 'F']:
-                self.current_input = key
-                self.game_map.set_input(self.current_input)
-        elif len(self.current_input) == 1:
-            # Second character - should be J,K,L,M,N
-            if key in ['J', 'K', 'L', 'M', 'N']:
-                self.current_input += key
-                self.game_map.set_input(self.current_input)
+        with self._input_lock:
+            if len(self.current_input) == 0:
+                # First character - should be A,S,D,E,F
+                if key in ['A', 'S', 'D', 'E', 'F']:
+                    self.current_input = key
+                    self.game_map.set_input(self.current_input)
+            elif len(self.current_input) == 1:
+                # Second character - should be J,K,L,M,N
+                if key in ['J', 'K', 'L', 'M', 'N']:
+                    self.current_input += key
+                    self.game_map.set_input(self.current_input)
 
-                # COORDINATE COMPLETE! Check immediately!
-                self.coordinate_ready = True
-                self.last_coordinate = self.current_input
+                    # COORDINATE COMPLETE! Check immediately!
+                    self.coordinate_ready = True
+                    self.last_coordinate = self.current_input
 
-                # LLAMAR DIRECTAMENTE A LA GAME ENGINE
-                if hasattr(self, 'game_engine') and self.game_engine:
-                    current_time = time.time() - self.game_engine.start_time if hasattr(self.game_engine, 'start_time') else 0
-                    self.game_engine.process_user_input(self.current_input, current_time)
+                    # LLAMAR DIRECTAMENTE A LA GAME ENGINE
+                    if hasattr(self, 'game_engine') and self.game_engine:
+                        current_time = time.time() - self.game_engine.start_time if hasattr(self.game_engine, 'start_time') else 0
+                        self.game_engine.process_user_input(self.current_input, current_time)
 
-                # Clear input after delay
-                threading.Timer(1.0, self._clear_input).start()
+                    # Clear input after delay
+                    threading.Timer(1.0, self._clear_input).start()
+                else:
+                    # Wrong second key - reset
+                    self.current_input = ""
+                    self.game_map.set_input(self.current_input)
             else:
-                # Wrong second key - reset
+                # Input too long, reset
                 self.current_input = ""
                 self.game_map.set_input(self.current_input)
-        else:
-            # Input too long, reset
-            self.current_input = ""
-            self.game_map.set_input(self.current_input)
 
     def _clear_input(self):
         """Clear the input after coordinate is submitted"""
-        self.current_input = ""
-        self.game_map.set_input(self.current_input)
-        self.coordinate_ready = False
+        with self._input_lock:
+            self.current_input = ""
+            self.game_map.set_input(self.current_input)
+            self.coordinate_ready = False
 
     def _skip_current_note(self):
         """Skip current note for debugging purposes"""
