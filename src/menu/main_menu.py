@@ -1,5 +1,5 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Static, Button, Label, Input, ListView, ListItem, Select
+from textual.widgets import Static, Button, Label, Input, ListView, ListItem, Select, RichLog
 from textual.containers import Vertical
 from textual.screen import Screen
 from textual.binding import Binding
@@ -12,11 +12,13 @@ import pygame
 import time
 import difflib
 import itertools
+import numpy as np
 from threading import Thread
 from pathlib import Path
 from dataclasses import dataclass
 from typing import List
 from textual.containers import Horizontal, Vertical
+from music.generator import LogMusicGenerator
 
 theme = ThemeManager()
 
@@ -687,6 +689,163 @@ class SetupScreen(Screen):
     def on_setup_screen_update_files_message(self, message: UpdateFilesMessage) -> None:
         """Handle file update message from background thread"""
         self._update_results()
+
+class ListenScreen(Screen):
+    CSS = make_title_css() + """
+    #listen_info {
+        text-align: center;
+        color: bright_green;
+        text-style: bold;
+        margin-bottom: 1;
+        height: auto;
+    }
+    #listen_progress_label {
+        text-align: center;
+        color: green;
+        height: auto;
+        margin-bottom: 1;
+    }
+    #listen_log {
+        border: solid green;
+        height: 1fr;
+        margin: 1;
+    }
+    #listen_hint {
+        text-align: center;
+        color: dim green;
+        height: auto;
+        margin-top: 1;
+    }
+    """
+
+    BINDINGS = [
+        Binding("escape", "stop", "Stop"),
+    ]
+
+    class MusicReadyMessage(Message):
+        def __init__(self, audio_data, actions, total_duration: float) -> None:
+            super().__init__()
+            self.audio_data = audio_data
+            self.actions = actions
+            self.total_duration = total_duration
+
+    def __init__(self, log_file: LogFile) -> None:
+        super().__init__()
+        self.log_file = log_file
+        self.start_time: float | None = None
+        self.total_duration: float = 0.0
+        self.actions: list = []
+        self.lines_shown: int = 0
+        self._tick_timer = None
+
+    def compose(self) -> ComposeResult:
+        size_mb = self.log_file.size / (1024 * 1024)
+        with Static(id="menu"):
+            yield Static(
+                f"♪ LISTEN MODE — {self.log_file.name} | {self.log_file.line_count} lines | {size_mb:.1f}MB",
+                id="listen_info"
+            )
+            yield Label("░" * 40 + "  0%  0:00 / 0:00", id="listen_progress_label")
+            yield RichLog(id="listen_log", auto_scroll=True, highlight=True, markup=False)
+            yield Label("ESC → volver al menú", id="listen_hint")
+
+    async def on_mount(self) -> None:
+        richlog = self.query_one("#listen_log", RichLog)
+        richlog.write("Generating music from log file...")
+
+        def generate() -> None:
+            try:
+                gen = LogMusicGenerator(log_path=str(self.log_file.path))
+                result = gen.generate_music()
+                actions = result["gameplay_actions"]
+                total = max((a["tiempo"] for a in actions), default=0.0)
+                self.post_message(self.MusicReadyMessage(
+                    audio_data=result["audio_data"],
+                    actions=actions,
+                    total_duration=total,
+                ))
+            except Exception:
+                self.post_message(self.MusicReadyMessage(
+                    audio_data=None,
+                    actions=[],
+                    total_duration=0.0,
+                ))
+
+        t = Thread(target=generate)
+        t.daemon = True
+        t.start()
+
+    def on_listen_screen_music_ready_message(self, msg: "ListenScreen.MusicReadyMessage") -> None:
+        self.actions = msg.actions
+        self.total_duration = msg.total_duration
+
+        richlog = self.query_one("#listen_log", RichLog)
+        richlog.clear()
+
+        if msg.audio_data is None or len(msg.audio_data) == 0:
+            richlog.write("Error: could not generate music from this file.")
+            return
+
+        def play() -> None:
+            try:
+                audio = msg.audio_data
+                if not pygame.mixer.get_init():
+                    pygame.mixer.pre_init(frequency=44100, size=-16, channels=1, buffer=1024)
+                    pygame.mixer.init()
+                mixer_config = pygame.mixer.get_init()
+                if mixer_config and mixer_config[2] == 2 and audio.ndim == 1:
+                    audio = np.column_stack((audio, audio))
+                sound = pygame.sndarray.make_sound(audio)
+                sound.play()
+            except Exception:
+                pass
+
+        t = Thread(target=play)
+        t.daemon = True
+        t.start()
+
+        self.start_time = time.time()
+        self._tick_timer = self.set_interval(0.1, self._tick)
+
+    def _tick(self) -> None:
+        if self.start_time is None:
+            return
+
+        elapsed = time.time() - self.start_time
+
+        if self.total_duration > 0:
+            pct = min(100, int(elapsed / self.total_duration * 100))
+            bar_width = 36
+            filled = int(pct / 100 * bar_width)
+            bar = "█" * filled + "░" * (bar_width - filled)
+
+            def fmt(s: float) -> str:
+                return f"{int(s) // 60}:{int(s) % 60:02d}"
+
+            label = self.query_one("#listen_progress_label", Label)
+            label.update(f"{bar}  {pct}%  {fmt(elapsed)} / {fmt(self.total_duration)}")
+
+        richlog = self.query_one("#listen_log", RichLog)
+        while self.lines_shown < len(self.actions):
+            action = self.actions[self.lines_shown]
+            if action["tiempo"] <= elapsed:
+                richlog.write(action["line"])
+                self.lines_shown += 1
+            else:
+                break
+
+        if self.total_duration > 0 and elapsed >= self.total_duration:
+            self.call_after_refresh(self.action_stop)
+
+    def action_stop(self) -> None:
+        try:
+            pygame.mixer.stop()
+        except Exception:
+            pass
+        if self._tick_timer is not None:
+            self._tick_timer.stop()
+        self.app.pop_screen()
+
 
 class BeatBuggingApp(App):
     def on_mount(self) -> None:
