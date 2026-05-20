@@ -38,9 +38,16 @@ CELL_ALMOST_EARLY = [
 
 CELL_EARLY = [
     "┌─────┐",
-    "│ COO │",  
+    "│ COO │",
     "│░░░░░│",
     "└─────┘"
+]
+
+CELL_MISS = [
+    "╔═════╗",
+    "║ COO ║",
+    "║✗✗✗✗✗║",
+    "╚═════╝"
 ]
 
 CELL_INACTIVE = [
@@ -196,12 +203,12 @@ class Map:
 
     def _get_cell_display(self, coord: str, state: int):
         cell_templates = [
-            CELL_INACTIVE,       
-            CELL_EARLY,         
-            CELL_ALMOST_EARLY,  
-            CELL_PERFECT,       
-            CELL_ALMOST_LATE,   
-            CELL_EARLY          
+            CELL_INACTIVE,
+            CELL_EARLY,
+            CELL_ALMOST_EARLY,
+            CELL_PERFECT,
+            CELL_ALMOST_LATE,
+            CELL_MISS
         ]
         
         styles = [
