@@ -66,14 +66,14 @@ class SimpleFuzzyMatcher:
 
 TITLE_CSS = """
     Screen {
-        background: $background;
+        background: ansi_black;
     }
 
     #menu {
         align: center middle;
-        border: round $primary;
-        background: $background;
-        color: $primary;
+        border: round ansi_green;
+        background: ansi_black;
+        color: ansi_green;
         padding: 2;
         height: 100%;
         width: 100%;
@@ -83,16 +83,16 @@ TITLE_CSS = """
     #ascii {
         text-align: center;
         align: center middle;
-        color: $primary;
+        color: ansi_green;
         margin-bottom: 1;
     }
 
     #title {
         text-style: bold;
-        color: $primary;
+        color: ansi_green;
         margin-bottom: 1;
         text-align: center;
-        border-bottom: solid $primary;
+        border-bottom: solid ansi_green;
         align: center middle;
         padding-bottom: 0;
         height: auto;
@@ -106,7 +106,7 @@ TITLE_CSS = """
     }
 
     #subtitle {
-        color: $secondary;
+        color: ansi_cyan;
         margin-bottom: 1;
         text-align: center;
         text-style: bold;
@@ -117,18 +117,18 @@ TITLE_CSS = """
     }
 
     Button {
-        border: solid $primary;
-        background: $background;
-        color: $primary;
+        border: solid ansi_green;
+        background: ansi_black;
+        color: ansi_green;
         align-horizontal: center;
         width: 30%;
         margin: 1;
     }
 
     #exit_button {
-        border: solid $error;
-        background: $background;
-        color: $error;
+        border: solid ansi_red;
+        background: ansi_black;
+        color: ansi_red;
     }
 
     #buttons_container {
@@ -139,33 +139,33 @@ TITLE_CSS = """
         height: 3;
         margin-top: 0;
         margin-bottom: 0;
-        border: solid $primary;
-        background: $background;
-        color: $primary;
+        border: solid ansi_green;
+        background: ansi_black;
+        color: ansi_green;
     }
 
     #file_list {
         height: 20%;
-        border: solid $primary;
-        background: $background;
-        color: $primary;
+        border: solid ansi_green;
+        background: ansi_black;
+        color: ansi_green;
     }
 
     #file_list.collapsed {
         height: 3;
-        border: solid $success;
+        border: solid ansi_bright_green;
     }
 
     #status_label {
         height: 1;
-        color: $secondary;
+        color: ansi_cyan;
         text-align: center;
         margin-bottom: 0;
         margin-top: 0;
     }
 
     #difficulty_label {
-        color: $secondary;
+        color: ansi_cyan;
         text-align: center;
         margin-top: 1;
         margin-bottom: 0;
@@ -198,97 +198,97 @@ TITLE_CSS = """
 
     .difficulty_button {
         margin: 0 1;
-        border: solid $primary;
-        background: $background;
-        color: $primary;
+        border: solid ansi_green;
+        background: ansi_black;
+        color: ansi_green;
     }
 
     .difficulty_button:hover {
-        background: $primary;
-        color: $background;
+        background: ansi_green;
+        color: ansi_black;
     }
 
     .difficulty_button.selected {
-        background: $primary;
-        color: $background;
+        background: ansi_green;
+        color: ansi_black;
         text-style: bold;
     }
 
     .difficulty_button.selected:hover {
-        background: $primary;
-        color: $background;
+        background: ansi_green;
+        color: ansi_black;
     }
 
     .root_mode {
-        border: solid $error;
-        background: $background;
-        color: $error;
+        border: solid ansi_red;
+        background: ansi_black;
+        color: ansi_red;
     }
 
     .root_mode:hover {
-        background: $error;
-        color: $background;
+        background: ansi_red;
+        color: ansi_black;
     }
 
     .root_mode.root_selected {
-        background: $error;
-        color: $background;
+        background: ansi_red;
+        color: ansi_black;
         text-style: bold;
     }
 
     .root_mode.root_selected:hover {
-        background: $error;
-        color: $background;
+        background: ansi_red;
+        color: ansi_black;
     }
 
     #start_button {
-        border: solid $success;
-        background: $background;
-        color: $success;
+        border: solid ansi_bright_green;
+        background: ansi_black;
+        color: ansi_bright_green;
         width: auto;
         margin: 0 1;
     }
 
     #listen_button {
-        border: solid $primary;
-        background: $background;
-        color: $primary;
+        border: solid ansi_green;
+        background: ansi_black;
+        color: ansi_green;
         width: auto;
         margin: 0 1;
     }
 
     #back_button {
-        border: solid $primary;
-        background: $background;
-        color: $primary;
+        border: solid ansi_green;
+        background: ansi_black;
+        color: ansi_green;
         width: auto;
         margin: 0 1;
     }
 
     ListItem {
-        background: $background;
-        color: $primary;
+        background: ansi_black;
+        color: ansi_green;
     }
 
     ListItem:hover {
-        background: $primary;
-        color: $background;
+        background: ansi_green;
+        color: ansi_black;
     }
 
     ListItem.--highlight {
-        background: $primary;
-        color: $background;
+        background: ansi_green;
+        color: ansi_black;
     }
 
     Input {
-        background: $background;
-        color: $primary;
-        border: solid $primary;
+        background: ansi_black;
+        color: ansi_green;
+        border: solid ansi_green;
     }
 
     Input:focus {
-        background: $background;
-        border: solid $secondary;
+        background: ansi_black;
+        border: solid ansi_cyan;
     }
 """
 
@@ -728,26 +728,26 @@ class SetupScreen(Screen):
 LISTEN_CSS = TITLE_CSS + """
     #listen_info {
         text-align: center;
-        color: $primary;
+        color: ansi_green;
         text-style: bold;
         margin-bottom: 1;
         height: auto;
     }
     #listen_progress_label {
         text-align: center;
-        color: $secondary;
+        color: ansi_cyan;
         height: auto;
         margin-bottom: 1;
     }
     #listen_log {
-        border: solid $primary;
-        background: $background;
+        border: solid ansi_green;
+        background: ansi_black;
         height: 1fr;
         margin: 1;
     }
     #listen_hint {
         text-align: center;
-        color: $secondary;
+        color: ansi_cyan;
         height: auto;
         margin-top: 1;
     }
