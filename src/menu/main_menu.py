@@ -707,33 +707,41 @@ class SetupScreen(Screen):
         """Handle file update message from background thread"""
         self._update_results()
 
-class ListenScreen(Screen):
-    CSS = make_title_css() + """
-    #listen_info {
+def make_listen_css():
+    border_color = theme.get("border") or "green"
+    bg_color = theme.get("background") or "black"
+    primary_color = theme.get("primary") or "green"
+    secondary_color = theme.get("secondary") or "cyan"
+    return make_title_css() + f"""
+    #listen_info {{
         text-align: center;
-        color: ansi_bright_green;
+        color: {primary_color};
         text-style: bold;
         margin-bottom: 1;
         height: auto;
-    }
-    #listen_progress_label {
+    }}
+    #listen_progress_label {{
         text-align: center;
-        color: green;
+        color: {secondary_color};
         height: auto;
         margin-bottom: 1;
-    }
-    #listen_log {
-        border: solid green;
+    }}
+    #listen_log {{
+        border: solid {border_color};
+        background: {bg_color};
         height: 1fr;
         margin: 1;
-    }
-    #listen_hint {
+    }}
+    #listen_hint {{
         text-align: center;
-        color: darkgreen;
+        color: {secondary_color};
         height: auto;
         margin-top: 1;
-    }
+    }}
     """
+
+class ListenScreen(Screen):
+    CSS = make_listen_css()
 
     BINDINGS = [
         Binding("escape", "stop", "Stop"),
