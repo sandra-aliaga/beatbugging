@@ -22,6 +22,7 @@ from game.timing_system import ScoreSystem, ComboSystem, HealthSystem, HitResult
 from game.opacity_timing import OpacityTimingSystem
 from game.screens import GameOverAnimation, GameOverScreen, VictoryAnimation, VictoryScreen, LoadingScreen
 from menu.main_menu import run_menu
+from menu.themes import ThemeManager
 from rich.console import Console
 from rich.text import Text
 from rich.live import Live
@@ -407,7 +408,9 @@ class GameEngine:
                 pass
 
                 # Use the configuration that works for map rendering
-                with Live(self.game_map.build_layout(), screen=True, redirect_stderr=False) as live:
+                _bg = ThemeManager().get("background") or "black"
+                live_console = Console(style=f"on {_bg}")
+                with Live(self.game_map.build_layout(), console=live_console, screen=True, redirect_stderr=False) as live:
                     game_duration = max([action.tiempo for action in self.actions]) + 10.0 if self.actions else 90.0
                     start_time = time.time()
 
