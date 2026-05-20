@@ -189,7 +189,7 @@ class ComboSystem:
             return "GOOD"
 
 class HealthSystem:
-    def __init__(self, max_health: int = 300, critical_threshold: int = 20):  # Increased from 200 to 300
+    def __init__(self, max_health: int = 100, critical_threshold: int = 20):
         self.max_health = max_health
         self.current_health = max_health
         self.critical_threshold = critical_threshold

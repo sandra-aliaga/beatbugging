@@ -175,7 +175,7 @@ class GameEngine:
         # Sistemas de juego con OpacityTimingSystem real
         self.score_system = ScoreSystem()
         self.combo_system = ComboSystem()
-        self.health_system = HealthSystem(max_health=300)  
+        self.health_system = HealthSystem(max_health=Config.MAX_HEALTH)
         self.opacity_timing = OpacityTimingSystem()  
         
         self.game_over_animation = GameOverAnimation(self.console)
@@ -330,7 +330,7 @@ class GameEngine:
         # Reset game systems con OpacityTimingSystem
         self.score_system = ScoreSystem()
         self.combo_system = ComboSystem()
-        self.health_system = HealthSystem()
+        self.health_system = HealthSystem(max_health=Config.MAX_HEALTH)
         self.opacity_timing = OpacityTimingSystem()
         self.current_action_index = 0
         
@@ -690,63 +690,6 @@ class GameEngine:
     def update_display(self, live):
         live.update(self.game_map.build_layout())
 
-    def update_game_logic_old(self):
-        current_coord = self.input_handler.get_current_coordinate()
-        
-        # Verificar acciones como era antes
-        for i in range(self.current_action_index, min(self.current_action_index + 5, len(self.actions))):
-            action = self.actions[i]
-            timing_offset = self.current_time - action.tiempo
-            
-            # Ventana de tiempo usando configuración
-            if not action.completada and abs(timing_offset) <= Config.OKAY_WINDOW:
-                if current_coord == action.coordenada:
-                    if action.tipo == "tap":
-                        self.process_hit(action, i, timing_offset)
-                    elif action.tipo == "hold":
-                        if action.tiempo_inicio_hold is None:
-                            action.tiempo_inicio_hold = self.current_time
-                        
-                        hold_duration = self.current_time - action.tiempo_inicio_hold
-                        if hold_duration >= action.duracion:
-                            self.process_hit(action, i, timing_offset)
-                        
-                        self.game_map.update_cell(action.coordenada, True)
-                
-            elif timing_offset > Config.OKAY_WINDOW and not action.completada:
-                self.process_miss(action, i)
-        
-        while (self.current_action_index < len(self.actions) and 
-               self.actions[self.current_action_index].completada):
-            self.current_action_index += 1
-    
-    def process_hit(self, action: GameAction, index: int, timing_offset: float):
-        action.completada = True
-        self.game_map.update_cell(action.coordenada, True)
-        
-        hit_result = self.score_system.evaluate_hit(timing_offset)
-        
-        if hit_result.result != HitResult.MISS:
-            self.combo_system.add_hit()
-            self.health_system.heal(hit_result.health_change)
-            result_name = hit_result.result.name
-            if result_name == "PERFECT":
-                pass
-            elif result_name == "GOOD":
-                pass
-            elif result_name == "OKAY":
-                pass
-        else:
-            self.combo_system.break_combo()
-            self.health_system.take_damage(-hit_result.health_change)
-            # Miss sin log para pantalla limpia
-    
-    def process_miss(self, action: GameAction, index: int):
-        action.completada = True
-        
-        miss_result = self.score_system.evaluate_hit(1.0)
-        self.combo_system.break_combo()
-        self.health_system.take_damage(-miss_result.health_change)
         
     
     def show_game_over(self):
