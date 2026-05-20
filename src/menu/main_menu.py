@@ -795,6 +795,7 @@ class ListenScreen(Screen):
                 mixer_config = pygame.mixer.get_init()
                 if mixer_config and mixer_config[2] == 2 and audio.ndim == 1:
                     audio = np.column_stack((audio, audio))
+                audio = audio.astype(np.int16)
                 sound = pygame.sndarray.make_sound(audio)
                 sound.play()
             except Exception:
