@@ -1,10 +1,7 @@
 import json
-from pathlib import Path
 import hashlib
-import json
-import hashlib
-from pathlib import Path
 import re
+from pathlib import Path
 
 class LogMusic:
 
