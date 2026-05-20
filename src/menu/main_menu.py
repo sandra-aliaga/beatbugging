@@ -5,7 +5,6 @@ from textual.screen import Screen
 from textual.binding import Binding
 from textual.message import Message
 from rich.text import Text
-from .themes import ThemeManager
 import random
 import os
 import pygame
@@ -19,8 +18,6 @@ from dataclasses import dataclass
 from typing import List
 from textual.containers import Horizontal, Vertical
 from music.generator import LogMusicGenerator
-
-theme = ThemeManager()
 
 @dataclass
 class LogFile:
@@ -67,54 +64,49 @@ class SimpleFuzzyMatcher:
         scored_files.sort(key=lambda x: x.score, reverse=True)
         return scored_files[:limit]
 
-def make_title_css():
-    border_color = theme.get("border") or "green"
-    bg_color = theme.get("background") or "black"
-    primary_color = theme.get("primary") or "green"
-    secondary_color = theme.get("secondary") or "cyan"
-    danger_color = theme.get("danger") or "red"
-    success_color = theme.get("success") or "green"
-    
-    return f"""
-    #menu {{
+TITLE_CSS = """
+    Screen {
+        background: $background;
+    }
+
+    #menu {
         align: center middle;
-        border: round {border_color};
-        background: {bg_color};
-        color: {primary_color};
+        border: round $primary;
+        background: $background;
+        color: $primary;
         padding: 2;
         height: 100%;
         width: 100%;
         content-align: center middle;
-    }}
+    }
 
-    #ascii {{
+    #ascii {
         text-align: center;
         align: center middle;
-        color: {theme.get("primary")};
+        color: $primary;
         margin-bottom: 1;
-    }}
+    }
 
-    #title {{
+    #title {
         text-style: bold;
-        color: {primary_color};
+        color: $primary;
         margin-bottom: 1;
         text-align: center;
-        border-bottom: solid {primary_color};
+        border-bottom: solid $primary;
         align: center middle;
         padding-bottom: 0;
         height: auto;
-        
-    }}
+    }
 
-    #subtitle_container {{
+    #subtitle_container {
         align: center middle;
         width: 100%;
         height: auto;
         content-align: center middle;
-    }}
+    }
 
-    #subtitle {{
-        color: {secondary_color};
+    #subtitle {
+        color: $secondary;
         margin-bottom: 1;
         text-align: center;
         text-style: bold;
@@ -122,187 +114,183 @@ def make_title_css():
         align: center middle;
         width: 100%;
         content-align: center middle;
-    }}
+    }
 
-    Button {{
-        border: solid {primary_color};
-        background: {bg_color};
-        color: {primary_color};
+    Button {
+        border: solid $primary;
+        background: $background;
+        color: $primary;
         align-horizontal: center;
         width: 30%;
         margin: 1;
-    }}
+    }
 
-    #exit_button {{
-        border: solid {danger_color};
-        background: {bg_color};
-        color: {danger_color};
-    }}
+    #exit_button {
+        border: solid $error;
+        background: $background;
+        color: $error;
+    }
 
-    #buttons_container {{
+    #buttons_container {
         align: center middle;
-    }}
+    }
 
-    #search_input {{
+    #search_input {
         height: 3;
         margin-top: 0;
         margin-bottom: 0;
-        border: solid {primary_color};
-        background: {bg_color};
-        color: {primary_color};
-    }}
+        border: solid $primary;
+        background: $background;
+        color: $primary;
+    }
 
-    #file_list {{
+    #file_list {
         height: 20%;
-        border: solid {primary_color};
-        background: {bg_color};
-        color: {primary_color};
-    }}
+        border: solid $primary;
+        background: $background;
+        color: $primary;
+    }
 
-    #file_list.collapsed {{
+    #file_list.collapsed {
         height: 3;
-        border: solid {success_color};
-    }}
+        border: solid $success;
+    }
 
-    #status_label {{
+    #status_label {
         height: 1;
-        color: {secondary_color};
+        color: $secondary;
         text-align: center;
         margin-bottom: 0;
         margin-top: 0;
-    }}
+    }
 
-    #difficulty_label {{
-        color: {secondary_color};
+    #difficulty_label {
+        color: $secondary;
         text-align: center;
         margin-top: 1;
         margin-bottom: 0;
         text-style: bold;
-    }}
+    }
 
-    #difficulty_container {{
+    #difficulty_container {
         align: center middle;
         margin-top: 0;
         margin-bottom: 0;
-    }}
+    }
 
-    #game_modes_container {{
+    #game_modes_container {
         align: center middle;
         margin-top: 0;
         margin-bottom: 1;
-    }}
+    }
 
-    #control_buttons_container {{
+    #control_buttons_container {
         align: center middle;
         margin-top: 0;
         margin-bottom: 0;
-    }}
+    }
 
-    #buttons_section {{
+    #buttons_section {
         align: center middle;
         margin-top: 1;
         margin-bottom: 0;
-    }}
+    }
 
-    .difficulty_button {{
+    .difficulty_button {
         margin: 0 1;
-        border: solid {primary_color};
-        background: {bg_color};
-        color: {primary_color};
-    }}
+        border: solid $primary;
+        background: $background;
+        color: $primary;
+    }
 
-    .difficulty_button:hover {{
-        background: {primary_color};
-        color: {bg_color};
-    }}
+    .difficulty_button:hover {
+        background: $primary;
+        color: $background;
+    }
 
-    .difficulty_button.selected {{
-        background: {primary_color};
-        color: {bg_color};
+    .difficulty_button.selected {
+        background: $primary;
+        color: $background;
         text-style: bold;
-    }}
+    }
 
-    .difficulty_button.selected:hover {{
-        background: {primary_color};
-        color: {bg_color};
-    }}
+    .difficulty_button.selected:hover {
+        background: $primary;
+        color: $background;
+    }
 
-    .root_mode {{
-        border: solid {danger_color};
-        background: {bg_color};
-        color: {danger_color};
-    }}
+    .root_mode {
+        border: solid $error;
+        background: $background;
+        color: $error;
+    }
 
-    .root_mode:hover {{
-        background: {danger_color};
-        color: {bg_color};
-    }}
+    .root_mode:hover {
+        background: $error;
+        color: $background;
+    }
 
-    .root_mode.root_selected {{
-        background: {danger_color};
-        color: {bg_color};
+    .root_mode.root_selected {
+        background: $error;
+        color: $background;
         text-style: bold;
-    }}
+    }
 
-    .root_mode.root_selected:hover {{
-        background: {danger_color};
-        color: {bg_color};
-    }}
+    .root_mode.root_selected:hover {
+        background: $error;
+        color: $background;
+    }
 
-    #start_button {{
-        border: solid {success_color};
-        background: {bg_color};
-        color: {success_color};
+    #start_button {
+        border: solid $success;
+        background: $background;
+        color: $success;
         width: auto;
         margin: 0 1;
-    }}
+    }
 
-    #listen_button {{
-        border: solid {primary_color};
-        background: {bg_color};
-        color: {primary_color};
+    #listen_button {
+        border: solid $primary;
+        background: $background;
+        color: $primary;
         width: auto;
         margin: 0 1;
-    }}
+    }
 
-    ListItem {{
-        background: {bg_color};
-        color: {primary_color};
-    }}
-
-    ListItem:hover {{
-        background: {primary_color};
-        color: {bg_color};
-    }}
-
-    ListItem.--highlight {{
-        background: {primary_color};
-        color: {bg_color};
-    }}
-
-    Input {{
-        background: {bg_color};
-        color: {primary_color};
-        border: solid {primary_color};
-    }}
-
-    Input:focus {{
-        background: {bg_color};
-        border: solid {secondary_color};
-    }}
-
-    Screen {{
-        background: {bg_color};
-    }}
-
-    #back_button {{
-        border: solid {primary_color};
-        background: {bg_color};
-        color: {primary_color};
+    #back_button {
+        border: solid $primary;
+        background: $background;
+        color: $primary;
         width: auto;
         margin: 0 1;
-    }}
-    """
+    }
+
+    ListItem {
+        background: $background;
+        color: $primary;
+    }
+
+    ListItem:hover {
+        background: $primary;
+        color: $background;
+    }
+
+    ListItem.--highlight {
+        background: $primary;
+        color: $background;
+    }
+
+    Input {
+        background: $background;
+        color: $primary;
+        border: solid $primary;
+    }
+
+    Input:focus {
+        background: $background;
+        border: solid $secondary;
+    }
+"""
 
 def play_sound_and_wait(sound_path):
     try:
@@ -355,7 +343,7 @@ class SoundManager:
 sound_manager = SoundManager()
 
 class TitleScreen(Screen):
-    CSS = make_title_css()
+    CSS = TITLE_CSS
 
     def compose(self) -> ComposeResult:
         with Static(id="menu"):  
@@ -419,7 +407,7 @@ class TitleScreen(Screen):
             self.app.exit(None)
 
 class SetupScreen(Screen):
-    CSS = make_title_css()
+    CSS = TITLE_CSS
 
     BINDINGS = [
         Binding("ctrl+c", "cancel", "Cancel"),
@@ -737,41 +725,36 @@ class SetupScreen(Screen):
         """Handle file update message from background thread"""
         self._update_results()
 
-def make_listen_css():
-    border_color = theme.get("border") or "green"
-    bg_color = theme.get("background") or "black"
-    primary_color = theme.get("primary") or "green"
-    secondary_color = theme.get("secondary") or "cyan"
-    return make_title_css() + f"""
-    #listen_info {{
+LISTEN_CSS = TITLE_CSS + """
+    #listen_info {
         text-align: center;
-        color: {primary_color};
+        color: $primary;
         text-style: bold;
         margin-bottom: 1;
         height: auto;
-    }}
-    #listen_progress_label {{
+    }
+    #listen_progress_label {
         text-align: center;
-        color: {secondary_color};
+        color: $secondary;
         height: auto;
         margin-bottom: 1;
-    }}
-    #listen_log {{
-        border: solid {border_color};
-        background: {bg_color};
+    }
+    #listen_log {
+        border: solid $primary;
+        background: $background;
         height: 1fr;
         margin: 1;
-    }}
-    #listen_hint {{
+    }
+    #listen_hint {
         text-align: center;
-        color: {secondary_color};
+        color: $secondary;
         height: auto;
         margin-top: 1;
-    }}
-    """
+    }
+"""
 
 class ListenScreen(Screen):
-    CSS = make_listen_css()
+    CSS = LISTEN_CSS
 
     BINDINGS = [
         Binding("escape", "stop", "Stop"),
@@ -904,6 +887,8 @@ class ListenScreen(Screen):
 
 
 class BeatBuggingApp(App):
+    THEME = "textual-dark"
+
     def on_mount(self) -> None:
         self.push_screen(TitleScreen())
 
