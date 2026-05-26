@@ -578,74 +578,74 @@ class GameEngine:
 
         
     
+    def _wait_end_screen_input(self) -> str:
+        """Wait for a key on game-over / victory screens. Returns 'restart', 'menu', or 'quit'."""
+        fd = sys.stdin.fileno()
+        old = termios.tcgetattr(fd)
+        try:
+            tty.setcbreak(fd)
+            while True:
+                r, _, _ = select.select([fd], [], [], 0.2)
+                if not r:
+                    continue
+                ch = os.read(fd, 1)
+                c = ch.decode('utf-8', errors='replace').lower()
+                if c in ('\x1b', '\x03'):
+                    return 'menu'
+                if c in ('\r', '\n'):
+                    return 'restart'
+                if c == 'q':
+                    return 'quit'
+                if c == 'm':
+                    return 'menu'
+        except KeyboardInterrupt:
+            return 'quit'
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old)
+
     def show_game_over(self):
         self.stop_music()
-        
+
         stats = {
             **self.score_system.get_stats(),
             'health': self.health_system.get_health_percentage(),
             'total_actions': len(self.actions)
         }
-        
+
         self.game_over_animation.show_game_over_animation()
         self.game_over_screen.display(stats)
 
-        while True:
-            try:
-                user_input = input("\n> ").strip().lower()
-                if user_input == "q":
-                    self.state = GameState.MENU
-                    return
-                elif user_input == "" or user_input == "enter":
-                    # reiniciar nivel
-                    self.reset_game()
-                    self.start_game()
-                    return
-                elif user_input == "esc":
-                    # salir del juego
-                    self.running = False
-                    return
-                else:
-                    self.console.print("[yellow] Invalid option. Use Q, ENTER or ESC[/yellow]")
-            except (KeyboardInterrupt, EOFError):
-                self.running = False
-                return
-    
+        action = self._wait_end_screen_input()
+        if action == 'restart':
+            self.reset_game()
+            self.start_game()
+        elif action == 'menu':
+            self.state = GameState.MENU
+        elif action == 'quit':
+            self.running = False
+
     def show_victory(self):
         self.stop_music()
-        
+
         stats = {
             **self.score_system.get_stats(),
             'health': self.health_system.get_health_percentage(),
             'total_actions': len(self.actions),
             'time_taken': getattr(self, 'current_time', 0)
         }
-        
+
         self.victory_animation.show_victory_animation()
-        
         os.system("cls" if os.name == "nt" else "clear")
-        
         self.victory_screen.display(stats)
-        
-        while True:
-            try:
-                user_input = input("\n> ").strip().lower()
-                if user_input == "" or user_input == "1":
-                    self.state = GameState.MENU
-                    return
-                elif user_input == "r" or user_input == "2":
-                    # Reiniciar el juego
-                    self.reset_game()
-                    self.start_game()
-                    return
-                elif user_input == "q" or user_input == "3":
-                    self.running = False
-                    return
-                else:
-                    self.console.print("[yellow]Invalid option. Use ENTER, R or Q[/yellow]")
-            except (KeyboardInterrupt, EOFError):
-                self.running = False
-                return
+
+        action = self._wait_end_screen_input()
+        if action == 'restart':
+            self.reset_game()
+            self.start_game()
+        elif action == 'menu':
+            self.state = GameState.MENU
+        elif action == 'quit':
+            self.running = False
             
 def main():
     engine = GameEngine()

@@ -381,7 +381,7 @@ class GameOverScreen:
         layout["left"].update(self.create_error_log_panel(stats))
         layout["right"].update(self.create_stats_panel(stats))
 
-        footer_text = Text("ESC to exit | ENTER to restart level", style="green")
+        footer_text = Text("[↵] Restart   [M] Back to menu   [Q] Quit", style="green")
         footer_panel = Panel(Align.center(footer_text), border_style="green")
         layout["footer"].update(footer_panel)
 
@@ -535,7 +535,7 @@ class VictoryScreen:
             f"Final Score: {stats.get('score', 0):,} | "
             f"Accuracy: {stats.get('accuracy', 0):.1f}% | "
             f"Max Combo: {stats.get('max_combo', 0)}\n"
-            "ESC to exit | ENTER to restart level",
+            "[↵] Restart   [M] Back to menu   [Q] Quit",
             style=rank_color,
             justify="center"
         )
