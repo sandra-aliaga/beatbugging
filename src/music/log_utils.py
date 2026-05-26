@@ -47,7 +47,9 @@ class LogMusic:
 
         # --- 1. Intentar JSON ---
         try:
-            return json.loads(line)
+            parsed = json.loads(line)
+            if isinstance(parsed, dict):
+                return parsed
         except json.JSONDecodeError:
             pass
 

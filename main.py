@@ -7,10 +7,10 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional
 import sys
 import os
+import select
 import queue
 import tty
 import termios
-from pynput import keyboard
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
@@ -42,129 +42,9 @@ class GameAction:
     line: str = ""
     completada: bool = False
     tiempo_inicio_hold: Optional[float] = None
+    missed: bool = False
+    hit_successfully: bool = False
 
-class InputHandler:
-    def __init__(self, game_map):
-        self.game_map = game_map
-        self.running = True
-        self.current_input = ""
-        self._input_lock = threading.Lock()
-        self.input_thread = None
-        self.coordinate_ready = False
-        self.last_coordinate = None
-        self.input_queue = queue.Queue()
-        self.last_input_time = time.time()
-        self.key_events = queue.Queue()
-
-    def start_capture(self):
-        """Start global keyboard capture using pynput"""
-        self.running = True
-        self.game_map.set_actual_line("pynput ready! Press keys: A,S,D,E,F then J,K,L,M,N")
-
-        # Start pynput listener
-        self.listener = keyboard.Listener(on_press=self._on_key_press)
-        self.listener.start()
-
-    def stop_capture(self):
-        """Stop keyboard capture"""
-        self.running = False
-        if hasattr(self, 'listener'):
-            self.listener.stop()
-
-    def _on_key_press(self, key):
-        """Handle pynput key press events"""
-        if not self.running:
-            return False  # Stop listener
-
-        try:
-            # Map pynput keys to our game keys
-            valid_keys = {
-                'a': 'A', 's': 'S', 'd': 'D', 'e': 'E', 'f': 'F',
-                'j': 'J', 'k': 'K', 'l': 'L', 'm': 'M', 'n': 'N'
-            }
-
-            # Get the character representation
-            key_char = None
-            if hasattr(key, 'char') and key.char:
-                key_char = key.char.lower()
-
-            if key_char in valid_keys:
-                game_key = valid_keys[key_char]
-                # Key detected - no output needed for clean gameplay
-                # Handle the key press
-                self._handle_key_press(game_key)
-
-        except Exception as e:
-            pass  # Silent error handling for clean gameplay
-
-        return True  # Continue listening
-
-    def _handle_key_press(self, key):
-        """Handle a key press and build coordinate"""
-        with self._input_lock:
-            if len(self.current_input) == 0:
-                # First character - should be A,S,D,E,F
-                if key in ['A', 'S', 'D', 'E', 'F']:
-                    self.current_input = key
-                    self.game_map.set_input(self.current_input)
-            elif len(self.current_input) == 1:
-                # Second character - should be J,K,L,M,N
-                if key in ['J', 'K', 'L', 'M', 'N']:
-                    self.current_input += key
-                    self.game_map.set_input(self.current_input)
-
-                    # COORDINATE COMPLETE! Check immediately!
-                    self.coordinate_ready = True
-                    self.last_coordinate = self.current_input
-
-                    # LLAMAR DIRECTAMENTE A LA GAME ENGINE
-                    if hasattr(self, 'game_engine') and self.game_engine:
-                        current_time = time.time() - self.game_engine.start_time if hasattr(self.game_engine, 'start_time') else 0
-                        self.game_engine.process_user_input(self.current_input, current_time)
-
-                    # Clear input after delay
-                    threading.Timer(1.0, self._clear_input).start()
-                else:
-                    # Wrong second key - reset
-                    self.current_input = ""
-                    self.game_map.set_input(self.current_input)
-            else:
-                # Input too long, reset
-                self.current_input = ""
-                self.game_map.set_input(self.current_input)
-
-    def _clear_input(self):
-        """Clear the input after coordinate is submitted"""
-        with self._input_lock:
-            self.current_input = ""
-            self.game_map.set_input(self.current_input)
-            self.coordinate_ready = False
-
-    def _skip_current_note(self):
-        """Skip current note for debugging purposes"""
-        self.game_map.set_actual_line("ESC pressed - skipping current note (debug feature)")
-
-    def get_coordinate_if_ready(self):
-        """Get coordinate if one is ready, then mark as consumed"""
-        with self._input_lock:
-            if self.coordinate_ready and self.last_coordinate:
-                coord = self.last_coordinate
-                self.coordinate_ready = False
-                return coord
-            return None
-
-    def update(self):
-        """Update method for compatibility - now just returns coordinate if ready"""
-        coord = self.get_coordinate_if_ready()
-        return [coord] if coord else []
-
-    def get_coordinate_from_keys(self):
-        """Get coordinate if ready - for compatibility"""
-        return self.get_coordinate_if_ready()
-
-    def _restore_input(self):
-        """Stop capture when game ends"""
-        self.stop_capture()
 
 class GameEngine:
     def __init__(self):
@@ -172,8 +52,6 @@ class GameEngine:
         self.state = GameState.MENU
         self.music_generator = LogMusicGenerator()
         self.game_map = Map(size=Config.GRID_SIZE)
-        self.input_handler = InputHandler(self.game_map)  # Pass game_map reference
-        
         # Sistemas de juego con OpacityTimingSystem real
         self.score_system = ScoreSystem()
         self.combo_system = ComboSystem()
@@ -382,64 +260,62 @@ class GameEngine:
         self.music_thread.start()
     
     def game_loop(self):
-        """Complete game loop with fixed InputHandler"""
+        """Complete game loop using stdin for input (works on X11 and Wayland)."""
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
+        inp = {"buf": ""}
+        _FIRST = set('asdef')
+        _SECOND = set('jklmn')
+
         try:
             tty.setcbreak(fd)
             try:
-                # Longer loading for large files
                 loading_time = 6.0 if len(self.actions) > 50 else 3.0
                 self.loading_screen.show_loading("INITIALIZING BEATBUGGING SYSTEM", loading_time)
 
-                # NO EMPEZAR MÚSICA TODAVÍA - esperar el momento exacto
-                # SINCRONIZACIÓN REAL: Empezar música Y timer al mismo tiempo
-                self.start_time = time.time()  # Tiempo de referencia
-                self.start_music()  # Empezar música AHORA
+                self.start_time = time.time()
+                self.start_music()
 
-                # Start keyboard capture - CONNECT TO GAME ENGINE
-                self.input_handler.game_engine = self  # Connect!
-                self.input_handler.start_capture()
-
-                # Show difficulty mode info
                 mode_text = "ROOT MODE (Speed: 1.6x)" if self.selected_difficulty == "root" else "USER MODE (Speed: 1.2x)"
                 self.game_map.set_actual_line(f"♪ {mode_text} - Music synced!")
-                pass
 
-                # Use the configuration that works for map rendering
                 live_console = Console(style="on black")
                 with Live(self.game_map.build_layout(), console=live_console, screen=True, redirect_stderr=False) as live:
                     game_duration = max([action.tiempo for action in self.actions]) + 10.0 if self.actions else 90.0
-                    start_time = time.time()
 
                     while self.state == GameState.PLAYING and self.running:
-                        # USAR EL TIEMPO REAL DE LA MÚSICA - NO DEL JUEGO
-                        if hasattr(self, 'start_time') and self.start_time:
-                            current_time = time.time() - self.start_time
-                        else:
-                            current_time = time.time() - start_time  # Fallback
+                        current_time = time.time() - self.start_time
 
-                        # Process input (safe now)
-                        pressed_keys = self.input_handler.update()
-                        if pressed_keys:
-                            coordinate = self.input_handler.get_coordinate_from_keys()
-                            if coordinate:
-                                self.process_user_input(coordinate, current_time)
+                        # select() con timeout 0: check instantáneo sin O_NONBLOCK
+                        # (O_NONBLOCK afecta la file description compartida con stdout)
+                        r, _, _ = select.select([fd], [], [], 0)
+                        if r:
+                            raw = os.read(fd, 1)
+                            c = raw.decode('utf-8', errors='replace').lower()
+                            if c in ('\x1b', '\x03'):
+                                raise KeyboardInterrupt
+                            if c in _FIRST:
+                                inp["buf"] = c.upper()
+                                self.game_map.set_input(inp["buf"])
+                            elif c in _SECOND and len(inp["buf"]) == 1:
+                                inp["buf"] += c.upper()
+                                self.game_map.set_input(inp["buf"])
+                                coord = inp["buf"]
+                                self.process_user_input(coord, current_time)
+                                inp["buf"] = ""
+                                self.game_map.clear_input()
 
                         self.process_actions(current_time, current_time)
 
-                        # Check death
                         current_health = self.health_system.get_health_percentage()
                         if self.health_system.is_dead() or current_health <= 0:
                             self.state = GameState.GAME_OVER
                             break
 
-                        # Check victory
                         if current_time >= game_duration:
                             self.state = GameState.VICTORY
                             break
 
-                        # Update display
                         self.update_display(live)
                         time.sleep(0.1)
 
@@ -449,7 +325,6 @@ class GameEngine:
                 self.console.print(f"[red]Error in game loop: {e}[/red]")
             finally:
                 self.stop_music()
-                self.input_handler._restore_input()
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
     
@@ -494,21 +369,23 @@ class GameEngine:
         if not actions:
             return actions
 
-        # Ordenar por tiempo
         sorted_actions = sorted(actions, key=lambda a: a.tiempo)
         spaced_actions = []
+        min_gap = 0.8
+        last_time = 0.0
 
-        # Tiempo mínimo entre notas - MUY RÁPIDO
-        min_gap = 0.8  # 0.8 segundos mínimo entre notas (súper rápido)
-
-        last_time = 0
         for action in sorted_actions:
-            # Si esta nota está muy cerca de la anterior, espaciarla
-            if action.tiempo - last_time < min_gap:
-                action.tiempo = last_time + min_gap
-
-            spaced_actions.append(action)
-            last_time = action.tiempo
+            new_time = max(action.tiempo, last_time + min_gap)
+            spaced_actions.append(GameAction(
+                tiempo=new_time,
+                coordenada=action.coordenada,
+                tipo=action.tipo,
+                duracion=action.duracion,
+                line=action.line,
+                completada=action.completada,
+                tiempo_inicio_hold=action.tiempo_inicio_hold,
+            ))
+            last_time = new_time
 
         return spaced_actions
 

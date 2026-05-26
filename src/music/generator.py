@@ -29,8 +29,7 @@ class LogMusicGenerator:
         if self.log_path != "none":
             if os.path.isfile(self.log_path):
                 self.fileState = True
-                
-                with open(self.log_path, "r") as f:
+                with open(self.log_path, "r", encoding="utf-8", errors="replace") as f:
                     self.log_data = f.read()
             else:
                 self.log_data = ""
