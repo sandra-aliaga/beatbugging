@@ -25,6 +25,8 @@ from rich.align import Align
 from rich.console import Group
 
 from music.generator import LogMusicGenerator
+from settings import Settings, THEMES, THEME_LABELS, THEME_ORDER, THEME_PREVIEW_COLORS
+from config import Config
 
 
 # ── Data structures ───────────────────────────────────────────────────────────
@@ -236,9 +238,9 @@ def _btn(label: str, selected: bool, color: str) -> Panel:
     )
 
 
-def run_title_screen() -> bool:
-    """Returns True = play, False = exit."""
-    console = Console()
+def run_title_screen() -> Optional[str]:
+    """Returns 'play', 'settings', or None (exit)."""
+    console = Settings.make_console()
     cursor = 0
     logo_idx = 0
     logo_lock = threading.Lock()
@@ -263,24 +265,26 @@ def run_title_screen() -> bool:
 
                     subtitle = Text(
                         f"[SYS://INIT] {errors} CRITICAL ERRORS DETECTED",
-                        style="bold cyan",
+                        style="bold info",
                     )
 
                     btn_row = Table.grid(padding=(0, 2))
                     btn_row.add_column()
                     btn_row.add_column()
+                    btn_row.add_column()
                     btn_row.add_row(
-                        _btn("PLAY", cursor == 0, "green"),
-                        _btn("EXIT", cursor == 1, "red"),
+                        _btn("PLAY", cursor == 0, "primary"),
+                        _btn("SETTINGS", cursor == 1, "info"),
+                        _btn("EXIT", cursor == 2, "danger"),
                     )
 
                     hint = Text(
-                        "[ ↑/↓ ] NAVIGATE   [ ↵ ] EXECUTE   [ E ] QUIT",
-                        style="dim green",
+                        "[ ↑/↓ ] NAVIGATE   [ ↵ ] SELECT   [ E ] QUIT",
+                        style="muted",
                     )
 
                     content = Group(
-                        Align.center(Text(logo, style="green", no_wrap=True)),
+                        Align.center(Text(logo, style="primary", no_wrap=True)),
                         Text(""),
                         Align.center(subtitle),
                         Text(""),
@@ -290,7 +294,7 @@ def run_title_screen() -> bool:
                     )
                     live.update(Panel(
                         Align.center(content, vertical="middle"),
-                        border_style="green",
+                        border_style="primary",
                     ))
 
                     r, _, _ = select.select([fd], [], [], 0.1)
@@ -299,20 +303,159 @@ def run_title_screen() -> bool:
 
                     key = read_key(fd)
                     if key == "UP":
-                        cursor = (cursor - 1) % 2
+                        cursor = (cursor - 1) % 3
                         sound_manager.play_menu_click()
                     elif key == "DOWN":
-                        cursor = (cursor + 1) % 2
+                        cursor = (cursor + 1) % 3
                         sound_manager.play_menu_click()
                     elif key == "ENTER":
                         sound_manager.play_menu_click()
                         running = False
-                        return cursor == 0
+                        if cursor == 0:
+                            return "play"
+                        elif cursor == 1:
+                            return "settings"
+                        else:
+                            return None
                     elif key.upper() == "E" or key == "ESC":
                         running = False
-                        return False
+                        return None
     finally:
         running = False
+
+
+# ── SettingsScreen ────────────────────────────────────────────────────────────
+
+def run_settings_screen() -> None:
+    """Color theme + musical scale picker. Theme preview is live."""
+    original_theme = Settings.theme
+    original_scale = Settings.scale
+
+    scale_names = list(Config.SCALES.keys())
+    theme_idx = THEME_ORDER.index(Settings.theme) if Settings.theme in THEME_ORDER else 0
+    scale_idx = scale_names.index(Settings.scale) if Settings.scale in scale_names else 0
+
+    saved_action: Optional[str] = None
+
+    while saved_action is None:  # outer: recreate console when theme changes
+        preview_theme_name = THEME_ORDER[theme_idx]
+        console = Console(theme=THEMES[preview_theme_name])
+
+        with _raw_stdin() as fd:
+            with Live(console=console, screen=True, refresh_per_second=10) as live:
+                while True:
+                    current_scale_name = scale_names[scale_idx]
+                    current_scale_desc = Config.SCALES[current_scale_name]["description"]
+
+                    # Theme row
+                    theme_selector = Table.grid(padding=(0, 3))
+                    theme_selector.add_column(justify="right")
+                    theme_selector.add_column(justify="center")
+                    theme_selector.add_column(justify="left")
+                    theme_selector.add_row(
+                        Text("◀", style="muted"),
+                        Text(THEME_LABELS[preview_theme_name], style="bold primary"),
+                        Text("▶", style="muted"),
+                    )
+
+                    # Color swatches — hardcoded colors so they always look right
+                    swatch_grid = Table.grid(padding=(0, 2))
+                    for _ in THEME_ORDER:
+                        swatch_grid.add_column(justify="center")
+                    swatch_cells = []
+                    for t in THEME_ORDER:
+                        pc = THEME_PREVIEW_COLORS[t]
+                        is_cur = t == preview_theme_name
+                        label = THEME_LABELS[t].split("(")[0].strip()
+                        swatch_cells.append(
+                            Text(f" {label} ", style=f"bold {pc}" if is_cur else f"dim {pc}")
+                        )
+                    swatch_grid.add_row(*swatch_cells)
+
+                    theme_panel = Panel(
+                        Align.center(Group(
+                            Align.center(theme_selector),
+                            Text(""),
+                            Align.center(swatch_grid),
+                        ), vertical="middle"),
+                        border_style="primary",
+                        title="[bold accent]Color Theme[/]",
+                    )
+
+                    # Scale row
+                    scale_selector = Table.grid(padding=(0, 3))
+                    scale_selector.add_column(justify="right")
+                    scale_selector.add_column(justify="center")
+                    scale_selector.add_column(justify="left")
+                    scale_selector.add_row(
+                        Text("◀", style="muted"),
+                        Text(current_scale_name, style="bold accent"),
+                        Text("▶", style="muted"),
+                    )
+
+                    scale_panel = Panel(
+                        Align.center(Group(
+                            Align.center(scale_selector),
+                            Text(""),
+                            Align.center(Text(current_scale_desc, style="muted")),
+                        ), vertical="middle"),
+                        border_style="primary",
+                        title="[bold accent]Musical Scale[/]",
+                    )
+
+                    hint = Text(
+                        "[ ←/→ ] Theme   [ ↑/↓ ] Scale   [ ↵ / B ] Save   [ ESC ] Revert",
+                        style="muted",
+                        justify="center",
+                    )
+
+                    layout = Layout()
+                    layout.split_column(
+                        Layout(
+                            Panel(Align.center(Text("SETTINGS", style="bold accent")), border_style="accent"),
+                            name="header",
+                            size=3,
+                        ),
+                        Layout(theme_panel, name="theme"),
+                        Layout(scale_panel, name="scale"),
+                        Layout(Align.center(hint), name="footer", size=1),
+                    )
+                    live.update(layout)
+
+                    r, _, _ = select.select([fd], [], [], 0.1)
+                    if not r:
+                        continue
+
+                    key = read_key(fd)
+                    if key == "LEFT":
+                        theme_idx = (theme_idx - 1) % len(THEME_ORDER)
+                        sound_manager.play_menu_click()
+                        break  # recreate console with new theme
+                    elif key == "RIGHT":
+                        theme_idx = (theme_idx + 1) % len(THEME_ORDER)
+                        sound_manager.play_menu_click()
+                        break  # recreate console with new theme
+                    elif key == "UP":
+                        scale_idx = (scale_idx - 1) % len(scale_names)
+                        sound_manager.play_menu_click()
+                    elif key == "DOWN":
+                        scale_idx = (scale_idx + 1) % len(scale_names)
+                        sound_manager.play_menu_click()
+                    elif key == "ENTER" or key.upper() == "B":
+                        saved_action = "save"
+                        sound_manager.play_menu_click()
+                        break
+                    elif key == "ESC":
+                        saved_action = "cancel"
+                        break
+
+    if saved_action == "save":
+        Settings.theme = THEME_ORDER[theme_idx]
+        Settings.scale = scale_names[scale_idx]
+        Settings.save()
+    else:
+        Settings.theme = original_theme
+        Settings.scale = original_scale
 
 
 # ── FileBrowserScreen ─────────────────────────────────────────────────────────
@@ -325,12 +468,12 @@ _DATA_SELECTION_TITLE = """\
 
 def _build_search_panel(query: str, cursor_char: str) -> Panel:
     search_text = Text()
-    search_text.append("  > ", style="cyan")
-    search_text.append(query + cursor_char, style="green")
+    search_text.append("  > ", style="info")
+    search_text.append(query + cursor_char, style="primary")
     return Panel(
         search_text,
-        border_style="cyan" if query else "green",
-        title="[cyan]Search[/cyan]",
+        border_style="info" if query else "primary",
+        title="[info]Search[/info]",
         height=3,
     )
 
@@ -338,9 +481,9 @@ def _build_search_panel(query: str, cursor_char: str) -> Panel:
 def _build_file_table(visible: List[LogFile], scroll_offset: int, cursor: int) -> Table:
     table = Table(show_header=False, box=None, padding=(0, 1), expand=True)
     table.add_column("cur", width=2, no_wrap=True)
-    table.add_column("name", style="green")
+    table.add_column("name", style="primary")
     table.add_column("dir", style="dim")
-    table.add_column("info", justify="right", style="cyan", no_wrap=True)
+    table.add_column("info", justify="right", style="info", no_wrap=True)
     for i, f in enumerate(visible):
         abs_idx = scroll_offset + i
         is_sel = abs_idx == cursor
@@ -350,14 +493,14 @@ def _build_file_table(visible: List[LogFile], scroll_offset: int, cursor: int) -
             f.name,
             f.parent_dir,
             f"{f.line_count}L {size_mb:.1f}MB",
-            style="bold green reverse" if is_sel else "",
+            style="bold primary reverse" if is_sel else "",
         )
     return table
 
 
 def run_file_browser() -> Optional[LogFile]:
     """Returns selected LogFile, or None (back to title)."""
-    console = Console()
+    console = Settings.make_console()
     all_files: List[LogFile] = []
     scanning = True
     scan_lock = threading.Lock()
@@ -412,14 +555,13 @@ def run_file_browser() -> Optional[LogFile]:
                     scan_done_empty = not scanning and not current_files
                     cursor_char = "█" if blink else " "
 
-                    title_text = Text(_DATA_SELECTION_TITLE, style="green", no_wrap=True)
+                    title_text = Text(_DATA_SELECTION_TITLE, style="primary", no_wrap=True)
 
                     if scan_done_empty:
-                        # Manual path mode
                         prompt = Text()
-                        prompt.append("No log files found.\n\n", style="yellow")
-                        prompt.append("Enter path: ", style="cyan")
-                        prompt.append(query + cursor_char, style="green")
+                        prompt.append("No log files found.\n\n", style="warning")
+                        prompt.append("Enter path: ", style="info")
+                        prompt.append(query + cursor_char, style="primary")
                         live.update(
                             Panel(
                                 Align.center(
@@ -430,7 +572,7 @@ def run_file_browser() -> Optional[LogFile]:
                                     ),
                                     vertical="middle",
                                 ),
-                                border_style="green",
+                                border_style="primary",
                             )
                         )
 
@@ -469,7 +611,6 @@ def run_file_browser() -> Optional[LogFile]:
                             query += key
                         continue
 
-                    # Normal file list mode
                     filtered = SimpleFuzzyMatcher.find_matches(query, current_files)
                     if filtered:
                         cursor = max(0, min(cursor, len(filtered) - 1))
@@ -495,8 +636,8 @@ def run_file_browser() -> Optional[LogFile]:
 
                     file_panel = Panel(
                         _build_file_table(visible, scroll_offset, cursor),
-                        border_style="green",
-                        subtitle=f"[dim]{status}[/dim]",
+                        border_style="primary",
+                        subtitle=f"[muted]{status}[/muted]",
                     )
 
                     footer_table = Table.grid(padding=(0, 1))
@@ -504,9 +645,9 @@ def run_file_browser() -> Optional[LogFile]:
                     footer_table.add_column()
                     footer_table.add_column()
                     footer_table.add_row(
-                        Panel("[green][B]ack[/green]", border_style="green", expand=False),
-                        Panel("[green][L]isten[/green]", border_style="green", expand=False),
-                        Panel("[bright_green][↵] Setup[/bright_green]", border_style="bright_green", expand=False),
+                        Panel("[primary][B]ack[/primary]", border_style="primary", expand=False),
+                        Panel("[primary][L]isten[/primary]", border_style="primary", expand=False),
+                        Panel("[accent][↵] Setup[/accent]", border_style="accent", expand=False),
                     )
 
                     layout = Layout()
@@ -571,7 +712,7 @@ def run_file_browser() -> Optional[LogFile]:
 
 def run_setup_screen(log_file: LogFile) -> Optional[dict]:
     """Returns game_config dict or None (back to file browser)."""
-    console = Console()
+    console = Settings.make_console()
     difficulty = "user"
 
     while True:  # re-enter after listen
@@ -583,12 +724,12 @@ def run_setup_screen(log_file: LogFile) -> Optional[dict]:
                     size_mb = log_file.size / (1024 * 1024)
 
                     file_info = Text()
-                    file_info.append(f" {log_file.name} ", style="bold green")
-                    file_info.append(f" {log_file.line_count} lines  {size_mb:.1f}MB", style="cyan")
+                    file_info.append(f" {log_file.name} ", style="bold primary")
+                    file_info.append(f" {log_file.line_count} lines  {size_mb:.1f}MB", style="info")
                     file_panel = Panel(
                         Align.center(file_info),
-                        border_style="green",
-                        title="[green]Setup[/green]",
+                        border_style="primary",
+                        title="[primary]Setup[/primary]",
                     )
 
                     user_sel = difficulty == "user"
@@ -599,32 +740,32 @@ def run_setup_screen(log_file: LogFile) -> Optional[dict]:
                         Panel(
                             Align.center(Text(
                                 "◀  User (Normal)" if user_sel else "   User (Normal)",
-                                style="bold green" if user_sel else "green",
+                                style="bold primary" if user_sel else "primary",
                             )),
-                            border_style="bold green" if user_sel else "green",
+                            border_style="bold primary" if user_sel else "primary",
                             expand=False,
                         ),
                         Panel(
                             Align.center(Text(
                                 "Root (Hard)  ▶" if not user_sel else "Root (Hard)   ",
-                                style="bold red" if not user_sel else "red",
+                                style="bold danger" if not user_sel else "danger",
                             )),
-                            border_style="bold red" if not user_sel else "red",
+                            border_style="bold danger" if not user_sel else "danger",
                             expand=False,
                         ),
                     )
                     diff_panel = Panel(
                         Align.center(
                             Group(
-                                Align.center(Text("Select difficulty:", style="cyan")),
+                                Align.center(Text("Select difficulty:", style="info")),
                                 Text(""),
                                 Align.center(diff_table),
                                 Text(""),
-                                Align.center(Text("[←/→] Switch difficulty", style="dim")),
+                                Align.center(Text("[←/→] Switch difficulty", style="muted")),
                             ),
                             vertical="middle",
                         ),
-                        border_style="green",
+                        border_style="primary",
                     )
 
                     action_table = Table.grid(padding=(0, 1))
@@ -632,11 +773,11 @@ def run_setup_screen(log_file: LogFile) -> Optional[dict]:
                     action_table.add_column()
                     action_table.add_column()
                     action_table.add_row(
-                        Panel("[green][B]ack[/green]", border_style="green", expand=False),
-                        Panel("[green][L]isten[/green]", border_style="green", expand=False),
-                        Panel("[bright_green][↵] Start Game[/bright_green]", border_style="bright_green", expand=False),
+                        Panel("[primary][B]ack[/primary]", border_style="primary", expand=False),
+                        Panel("[primary][L]isten[/primary]", border_style="primary", expand=False),
+                        Panel("[accent][↵] Start Game[/accent]", border_style="accent", expand=False),
                     )
-                    action_panel = Panel(Align.center(action_table), border_style="green")
+                    action_panel = Panel(Align.center(action_table), border_style="primary")
 
                     layout = Layout()
                     layout.split_column(
@@ -676,7 +817,7 @@ def run_setup_screen(log_file: LogFile) -> Optional[dict]:
                 os.path.dirname(__file__), "res", "game-start.mp3"
             )
             play_sound_and_wait(game_start_path)
-            return {"file": str(log_file.path), "difficulty": difficulty}
+            return {"file": str(log_file.path), "difficulty": difficulty, "scale": Settings.scale}
         elif action == "back":
             return None
         elif action == "listen":
@@ -688,7 +829,7 @@ def run_setup_screen(log_file: LogFile) -> Optional[dict]:
 
 def run_listen_screen(log_file: LogFile) -> None:
     """Stream log lines in sync with generated audio. ESC to return."""
-    console = Console()
+    console = Settings.make_console()
 
     state_lock = threading.Lock()
     state = {
@@ -704,7 +845,7 @@ def run_listen_screen(log_file: LogFile) -> None:
     def _generate():
         try:
             gen = LogMusicGenerator(log_path=str(log_file.path))
-            result = gen.generate_music()
+            result = gen.generate_music(scale=Settings.scale)
             state["actions"] = result["gameplay_actions"]
             state["total_duration"] = max(
                 (a["tiempo"] for a in state["actions"]), default=0.0
@@ -756,7 +897,6 @@ def run_listen_screen(log_file: LogFile) -> None:
                 elapsed = time.time() - st if st is not None else 0.0
                 total = state["total_duration"]
 
-                # Append new log lines that are due
                 if state["ready"] and not state["error"] and st is not None:
                     actions = state["actions"]
                     ls = state["lines_shown"]
@@ -765,7 +905,6 @@ def run_listen_screen(log_file: LogFile) -> None:
                         ls += 1
                     state["lines_shown"] = ls
 
-                # Progress bar
                 if total > 0 and st is not None:
                     pct = min(100, int(elapsed / total * 100))
                     bar_w = 36
@@ -774,7 +913,7 @@ def run_listen_screen(log_file: LogFile) -> None:
                     def _fmt(s: float) -> str:
                         return f"{int(s) // 60}:{int(s) % 60:02d}"
                     progress_str = f"{bar} {pct}% {_fmt(elapsed)}/{_fmt(total)}"
-                    progress_style = "cyan"
+                    progress_style = "info"
                 else:
                     if not state["ready"]:
                         progress_str = "Generating music..."
@@ -782,23 +921,22 @@ def run_listen_screen(log_file: LogFile) -> None:
                         progress_str = f"Error: {state['error']}"
                     else:
                         progress_str = "Starting playback..."
-                    progress_style = "yellow"
+                    progress_style = "warning"
 
                 header_str = (
                     f"♪ LISTEN — {log_file.name} | "
                     f"{log_file.line_count} lines | {size_mb:.1f}MB"
                 )
-                # header=3, progress=3, footer=1, log panel borders=2
                 log_capacity = max(5, console.height - 9)
                 visible = state["log_lines"][-log_capacity:]
-                log_text = Text("\n".join(visible), style="green", no_wrap=True)
+                log_text = Text("\n".join(visible), style="primary", no_wrap=True)
 
                 layout = Layout()
                 layout.split_column(
                     Layout(
                         Panel(
-                            Align.center(Text(header_str, style="bold green")),
-                            border_style="green",
+                            Align.center(Text(header_str, style="bold primary")),
+                            border_style="primary",
                         ),
                         name="header",
                         size=3,
@@ -806,14 +944,14 @@ def run_listen_screen(log_file: LogFile) -> None:
                     Layout(
                         Panel(
                             Align.center(Text(progress_str, style=progress_style)),
-                            border_style="green",
+                            border_style="primary",
                         ),
                         name="progress",
                         size=3,
                     ),
-                    Layout(Panel(log_text, border_style="green"), name="log"),
+                    Layout(Panel(log_text, border_style="primary"), name="log"),
                     Layout(
-                        Align.center(Text("ESC → back", style="dim")),
+                        Align.center(Text("ESC → back", style="muted")),
                         name="footer",
                         size=1,
                     ),
@@ -844,12 +982,19 @@ def run_listen_screen(log_file: LogFile) -> None:
 def run_menu() -> Optional[dict]:
     while True:
         try:
-            play = run_title_screen()
+            action = run_title_screen()
         except KeyboardInterrupt:
             return None
-        if not play:
+        if action is None:
             return None
+        if action == "settings":
+            try:
+                run_settings_screen()
+            except KeyboardInterrupt:
+                return None
+            continue  # back to title with (potentially) new theme
 
+        # action == "play"
         while True:
             try:
                 log_file = run_file_browser()

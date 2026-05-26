@@ -15,6 +15,7 @@ import termios
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 from config import Config
+from settings import Settings
 
 from music.generator import LogMusicGenerator
 from cli.map import Map
@@ -73,8 +74,9 @@ class GameEngine:
         self.running = True
         self.music_thread = None
         self.game_thread = None
-        self.selected_log_file = None  # Archivo seleccionado del menú
-        self.selected_difficulty = "user"  # Dificultad seleccionada del menú
+        self.selected_log_file = None
+        self.selected_difficulty = "user"
+        self.selected_scale = Settings.scale
         
         # Restore pygame audio - now that we know it doesn't break the map
         try:
@@ -173,7 +175,7 @@ class GameEngine:
                 game_speed = 1.2  # was 1.4
 
             self.music_data = self.music_generator.generate_music(
-                scale=Config.DEFAULT_SCALE,
+                scale=self.selected_scale,
                 rate=Config.AUDIO_SAMPLE_RATE,
                 speed=game_speed
             )
@@ -279,7 +281,7 @@ class GameEngine:
                 mode_text = "ROOT MODE (Speed: 1.6x)" if self.selected_difficulty == "root" else "USER MODE (Speed: 1.2x)"
                 self.game_map.set_actual_line(f"♪ {mode_text} - Music synced!")
 
-                live_console = Console(style="on black")
+                live_console = Settings.make_console(style="on black")
                 with Live(self.game_map.build_layout(), console=live_console, screen=True, redirect_stderr=False) as live:
                     game_duration = max([action.tiempo for action in self.actions]) + 10.0 if self.actions else 90.0
 
@@ -337,6 +339,7 @@ class GameEngine:
                         # Guardar el archivo y dificultad seleccionados
                         self.selected_log_file = game_config.get('file')
                         self.selected_difficulty = game_config.get('difficulty', 'user')
+                        self.selected_scale = game_config.get('scale', Settings.scale)
 
                         self.reset_game()
                         self.start_game()
@@ -648,6 +651,7 @@ class GameEngine:
             self.running = False
             
 def main():
+    Settings.load()
     engine = GameEngine()
     engine.state = GameState.MENU
     engine.run()
