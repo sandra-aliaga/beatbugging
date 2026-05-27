@@ -581,26 +581,47 @@ class GameEngine:
 
         
     
-    def _wait_end_screen_input(self) -> str:
-        """Wait for a key on game-over / victory screens. Returns 'restart', 'menu', or 'quit'."""
+    def _wait_end_screen_input(self, render_frame=None) -> str:
+        """Wait for input on end screens. If render_frame is given, animate via Live.
+
+        render_frame: callable(angle: float) -> renderable, called each tick.
+        Returns 'restart', 'menu', or 'quit'.
+        """
         fd = sys.stdin.fileno()
         old = termios.tcgetattr(fd)
         try:
             tty.setcbreak(fd)
-            while True:
-                r, _, _ = select.select([fd], [], [], 0.2)
-                if not r:
-                    continue
-                ch = os.read(fd, 1)
-                c = ch.decode('utf-8', errors='replace').lower()
-                if c in ('\x1b', '\x03'):
-                    return 'menu'
-                if c in ('\r', '\n'):
-                    return 'restart'
-                if c == 'q':
-                    return 'quit'
-                if c == 'm':
-                    return 'menu'
+            # Drain stdin so leftover keys don't trigger an immediate exit
+            while select.select([fd], [], [], 0)[0]:
+                os.read(fd, 64)
+
+            def _classify(ch: str):
+                if ch in ('\x1b', '\x03'):  return 'menu'
+                if ch in ('\r', '\n'):      return 'restart'
+                if ch == 'q':                return 'quit'
+                if ch == 'm':                return 'menu'
+                return None
+
+            if render_frame is None:
+                while True:
+                    r, _, _ = select.select([fd], [], [], 0.2)
+                    if not r:
+                        continue
+                    action = _classify(os.read(fd, 1).decode('utf-8', errors='replace').lower())
+                    if action:
+                        return action
+
+            start = time.time()
+            with Live(console=self.console, screen=True, refresh_per_second=15) as live:
+                while True:
+                    angle = (time.time() - start) * 0.6
+                    live.update(render_frame(angle))
+                    r, _, _ = select.select([fd], [], [], 0.08)
+                    if not r:
+                        continue
+                    action = _classify(os.read(fd, 1).decode('utf-8', errors='replace').lower())
+                    if action:
+                        return action
         except KeyboardInterrupt:
             return 'quit'
         finally:
@@ -616,9 +637,10 @@ class GameEngine:
         }
 
         self.game_over_animation.show_game_over_animation()
-        self.game_over_screen.display(stats)
 
-        action = self._wait_end_screen_input()
+        action = self._wait_end_screen_input(
+            render_frame=lambda angle: self.game_over_screen.build(stats, angle)
+        )
         if action == 'restart':
             self.reset_game()
             self.start_game()
@@ -638,10 +660,10 @@ class GameEngine:
         }
 
         self.victory_animation.show_victory_animation()
-        os.system("cls" if os.name == "nt" else "clear")
-        self.victory_screen.display(stats)
 
-        action = self._wait_end_screen_input()
+        action = self._wait_end_screen_input(
+            render_frame=lambda angle: self.victory_screen.build(stats, angle)
+        )
         if action == 'restart':
             self.reset_game()
             self.start_game()

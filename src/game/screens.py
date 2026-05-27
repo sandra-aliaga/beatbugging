@@ -4,8 +4,53 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.layout import Layout
 from rich.align import Align
+import math
 import random
 import time
+
+# ── Procedural 3D ASCII planet ────────────────────────────────────────────────
+_PLANET_W = 24
+_PLANET_H = 12
+# Shade ramp WITHOUT leading space — every point inside the sphere is visible
+# so the silhouette stays circular even in deep shadow.
+_SHADE = ".,:;+=*xoXO#@"
+
+
+def _render_planet(angle: float) -> Text:
+    """3D ASCII sphere rotated by `angle` rad on Y axis, Lambertian shaded."""
+    lx, ly, lz = -0.5, -0.5, 0.71  # light: upper-left, toward viewer
+    out = Text()
+    R = min(_PLANET_W / 2.0 - 0.5, _PLANET_H - 1.0)
+
+    for j in range(_PLANET_H):
+        y = (j - _PLANET_H / 2.0 + 0.5) * 2.0  # cells are ~2x taller than wide
+        for i in range(_PLANET_W):
+            x = i - _PLANET_W / 2.0 + 0.5
+            r2 = x * x + y * y
+            if r2 > R * R:
+                out.append(" ")
+                continue
+            z = math.sqrt(R * R - r2)
+            nx, ny, nz = x / R, y / R, z / R
+            rx = nx * math.cos(angle) + nz * math.sin(angle)
+            rz = -nx * math.sin(angle) + nz * math.cos(angle)
+            dot = max(0.0, nx * lx + (-ny) * ly + nz * lz)
+            lat = math.asin(max(-1.0, min(1.0, ny)))
+            lon = math.atan2(rx, rz)
+            land = (math.sin(lat * 2.4) * math.cos(lon * 1.8)
+                    + math.sin(lat * 4.7 + lon * 2.3) * 0.5) > 0.05
+            intensity = (0.18 + 0.82 * dot) * (1.15 if land else 0.85)
+            idx = max(0, min(int(intensity * (len(_SHADE) - 1) + 0.5), len(_SHADE) - 1))
+            ch = _SHADE[idx]
+            if idx >= len(_SHADE) - 3:
+                style = "accent.bold" if land else "accent"
+            elif idx >= 4:
+                style = "primary" if land else "primary.dim"
+            else:
+                style = "primary.dim"
+            out.append(ch, style=style)
+        out.append("\n")
+    return out
 
 class AsciiArt:
     @staticmethod
@@ -323,54 +368,85 @@ def _row(label: str, value: str, width: int = 40) -> str:
     return f"  {label}{dots}{value}"
 
 
+_PLANET_MIN_TERM_WIDTH = 100
+
+
+def _text_from_entries(entries) -> Text:
+    body = Text()
+    for entry in entries:
+        if isinstance(entry, tuple):
+            body.append(entry[0] + "\n", style=entry[1])
+        else:
+            body.append(entry + "\n")
+    return body
+
+
+def _stats_with_planet(stats_body: Text, angle: float, console_width: int):
+    """Compose stats panel + planet side-by-side if width permits."""
+    if console_width < _PLANET_MIN_TERM_WIDTH:
+        return Align.center(stats_body, vertical="middle")
+
+    planet = _render_planet(angle)
+    planet_block = Text.assemble(
+        Text("ORBIT\n", style="accent.bold", justify="center"),
+        Text("\n"),
+        planet,
+        Text("\n"),
+        Text("─" * _PLANET_W + "\n", style="primary.dim"),
+        Text(f"  rotation {math.degrees(angle) % 360:6.1f}°", style="primary.dim"),
+    )
+
+    grid = Table.grid(expand=False, padding=(0, 4))
+    grid.add_column(justify="left")
+    grid.add_column(width=_PLANET_W + 2, justify="center")
+    grid.add_row(stats_body, planet_block)
+    return Align.center(grid, vertical="middle")
+
+
 class GameOverScreen:
     def __init__(self, console: Console):
         self.console = console
 
-    def display(self, stats: dict):
-        self.console.clear()
-
+    def build(self, stats: dict, angle: float = 0.0):
         score    = stats.get("score", 0)
         combo    = stats.get("max_combo", 0)
         accuracy = stats.get("accuracy", 0.0)
         perfect  = stats.get("perfect", 0)
         health   = stats.get("health", 0)
 
-        lines = []
-        lines.append("")
-        lines.append(("═" * 56, "primary.dim"))
-        lines.append(("        B E A T B U G G I N G   v2.0", "primary.bold"))
-        lines.append(("═" * 56, "primary.dim"))
-        lines.append("")
-        lines.append(("       > > >   S Y S T E M   H A L T   < < <", "danger.bold"))
-        lines.append("")
-        lines.append(("  " + "─" * 52, "primary.dim"))
-        lines.append((_row("SCORE",        f"{score:>10,}"),       "primary"))
-        lines.append((_row("MAX_COMBO",    f"{combo:>10}"),        "primary"))
-        lines.append((_row("ACCURACY",     f"{accuracy:>9.1f}%"),  "primary"))
-        lines.append((_row("PERFECT_HITS", f"{perfect:>10}"),      "primary"))
-        lines.append((_row("HEALTH",       f"{health:>10}"),       "danger"))
-        lines.append(("  " + "─" * 52, "primary.dim"))
-        lines.append((f"  HEALTH_BAR  [{_bar(health, 38)}]", "danger"))
-        lines.append((f"  ACCURACY    [{_bar(accuracy, 38)}]", "primary.dim"))
-        lines.append(("  " + "─" * 52, "primary.dim"))
-        lines.append((_row("STATUS",       "FAILED"),              "danger.bold"))
-        lines.append((_row("EXIT_CODE",    "-1"),                  "danger"))
-        lines.append((_row("CORE_DUMP",    "/var/log/bb/crash"),   "primary.dim"))
-        lines.append(("  " + "─" * 52, "primary.dim"))
-        lines.append("")
-        lines.append(("  > _", "accent.bold"))
-        lines.append("")
-        lines.append(("  [ENTER] retry      [M] menu      [Q] quit", "primary.dim"))
+        lines = [
+            "",
+            ("═" * 56, "primary.dim"),
+            ("        B E A T B U G G I N G   v2.0", "primary.bold"),
+            ("═" * 56, "primary.dim"),
+            "",
+            ("       > > >   S Y S T E M   H A L T   < < <", "danger.bold"),
+            "",
+            ("  " + "─" * 52, "primary.dim"),
+            (_row("SCORE",        f"{score:>10,}"),       "primary"),
+            (_row("MAX_COMBO",    f"{combo:>10}"),        "primary"),
+            (_row("ACCURACY",     f"{accuracy:>9.1f}%"),  "primary"),
+            (_row("PERFECT_HITS", f"{perfect:>10}"),      "primary"),
+            (_row("HEALTH",       f"{health:>10}"),       "danger"),
+            ("  " + "─" * 52, "primary.dim"),
+            (f"  HEALTH_BAR  [{_bar(health, 38)}]", "danger"),
+            (f"  ACCURACY    [{_bar(accuracy, 38)}]", "primary.dim"),
+            ("  " + "─" * 52, "primary.dim"),
+            (_row("STATUS",       "FAILED"),              "danger.bold"),
+            (_row("EXIT_CODE",    "-1"),                  "danger"),
+            (_row("CORE_DUMP",    "/var/log/bb/crash"),   "primary.dim"),
+            ("  " + "─" * 52, "primary.dim"),
+            "",
+            ("  > _", "accent.bold"),
+            "",
+            ("  [ENTER] retry      [M] menu      [Q] quit", "primary.dim"),
+        ]
+        return _stats_with_planet(_text_from_entries(lines), angle, self.console.width)
 
-        body = Text()
-        for entry in lines:
-            if isinstance(entry, tuple):
-                body.append(entry[0] + "\n", style=entry[1])
-            else:
-                body.append(entry + "\n")
-
-        self.console.print(Align.center(body, vertical="middle"), end="")
+    def display(self, stats: dict):
+        """Static snapshot — kept for backwards compat / non-animated callers."""
+        self.console.clear()
+        self.console.print(self.build(stats, 0.0), end="")
 
 class VictoryAnimation:
     def __init__(self, console: Console):
@@ -442,59 +518,57 @@ class VictoryScreen:
             ("RHYTHM_HACKER",     True),
         ]
 
-    def display(self, stats: dict):
-        self.console.clear()
-
+    def build(self, stats: dict, angle: float = 0.0):
         score    = stats.get("score", 0)
         combo    = stats.get("max_combo", 0)
         accuracy = stats.get("accuracy", 0.0)
         perfect  = stats.get("perfect", 0)
         rank     = self.get_performance_rank(stats)
 
-        lines = []
-        lines.append("")
-        lines.append(("═" * 56, "primary.dim"))
-        lines.append(("        B E A T B U G G I N G   v2.0", "primary.bold"))
-        lines.append(("═" * 56, "primary.dim"))
-        lines.append("")
-        lines.append(("    > > >   D E B U G G I N G   C O M P L E T E   < < <", "accent.bold"))
-        lines.append("")
-        lines.append(("  " + "─" * 52, "primary.dim"))
-        lines.append((_row("SCORE",        f"{score:>10,}"),       "primary"))
-        lines.append((_row("MAX_COMBO",    f"{combo:>10}"),        "primary"))
-        lines.append((_row("ACCURACY",     f"{accuracy:>9.1f}%"),  "primary"))
-        lines.append((_row("PERFECT_HITS", f"{perfect:>10}"),      "accent"))
-        lines.append(("  " + "─" * 52, "primary.dim"))
-        lines.append((f"  ACCURACY    [{_bar(accuracy, 38)}]", "accent"))
-        lines.append(("  " + "─" * 52, "primary.dim"))
-        lines.append("")
-        lines.append(("                  P E R F O R M A N C E", "primary.dim"))
-        lines.append((f"                      [ R A N K   {rank} ]", "accent.bold"))
-        lines.append("")
-        lines.append(("  " + "─" * 52, "primary.dim"))
-        lines.append(("  ACHIEVEMENTS", "primary.bold"))
+        lines = [
+            "",
+            ("═" * 56, "primary.dim"),
+            ("        B E A T B U G G I N G   v2.0", "primary.bold"),
+            ("═" * 56, "primary.dim"),
+            "",
+            ("    > > >   D E B U G G I N G   C O M P L E T E   < < <", "accent.bold"),
+            "",
+            ("  " + "─" * 52, "primary.dim"),
+            (_row("SCORE",        f"{score:>10,}"),       "primary"),
+            (_row("MAX_COMBO",    f"{combo:>10}"),        "primary"),
+            (_row("ACCURACY",     f"{accuracy:>9.1f}%"),  "primary"),
+            (_row("PERFECT_HITS", f"{perfect:>10}"),      "accent"),
+            ("  " + "─" * 52, "primary.dim"),
+            (f"  ACCURACY    [{_bar(accuracy, 38)}]", "accent"),
+            ("  " + "─" * 52, "primary.dim"),
+            "",
+            ("                  P E R F O R M A N C E", "primary.dim"),
+            (f"                      [ R A N K   {rank} ]", "accent.bold"),
+            "",
+            ("  " + "─" * 52, "primary.dim"),
+            ("  ACHIEVEMENTS", "primary.bold"),
+        ]
         for name, unlocked in self._achievements(stats):
             mark  = "[+]" if unlocked else "[ ]"
             color = "accent" if unlocked else "primary.dim"
             state = "UNLOCKED" if unlocked else "LOCKED  "
             lines.append((f"    {mark}  {name:<22} {state}", color))
-        lines.append(("  " + "─" * 52, "primary.dim"))
-        lines.append((_row("STATUS",       "OPERATIONAL"),         "accent.bold"))
-        lines.append((_row("EXIT_CODE",    "0"),                   "primary"))
-        lines.append(("  " + "─" * 52, "primary.dim"))
-        lines.append("")
-        lines.append(("  > _", "accent.bold"))
-        lines.append("")
-        lines.append(("  [ENTER] retry      [M] menu      [Q] quit", "primary.dim"))
+        lines += [
+            ("  " + "─" * 52, "primary.dim"),
+            (_row("STATUS",    "OPERATIONAL"), "accent.bold"),
+            (_row("EXIT_CODE", "0"),           "primary"),
+            ("  " + "─" * 52, "primary.dim"),
+            "",
+            ("  > _", "accent.bold"),
+            "",
+            ("  [ENTER] retry      [M] menu      [Q] quit", "primary.dim"),
+        ]
+        return _stats_with_planet(_text_from_entries(lines), angle, self.console.width)
 
-        body = Text()
-        for entry in lines:
-            if isinstance(entry, tuple):
-                body.append(entry[0] + "\n", style=entry[1])
-            else:
-                body.append(entry + "\n")
-
-        self.console.print(Align.center(body, vertical="middle"), end="")
+    def display(self, stats: dict):
+        """Static snapshot — kept for backwards compat / non-animated callers."""
+        self.console.clear()
+        self.console.print(self.build(stats, 0.0), end="")
 
 
 _BIOS_BANNER = r"""
