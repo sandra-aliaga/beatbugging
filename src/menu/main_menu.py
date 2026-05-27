@@ -5,7 +5,6 @@ import termios
 import select
 import time
 import threading
-import itertools
 import random
 from contextlib import contextmanager
 from pathlib import Path
@@ -60,7 +59,7 @@ class SimpleFuzzyMatcher:
         return min(ratio, 1.0)
 
     @staticmethod
-    def find_matches(query: str, files: List[LogFile], limit: int = 100) -> List[LogFile]:
+    def find_matches(query: str, files: List[LogFile], limit: int = 500) -> List[LogFile]:
         if not query.strip():
             return files[:limit]
         scored = []
@@ -120,6 +119,15 @@ sound_manager = SoundManager()
 
 # ── File scanning ─────────────────────────────────────────────────────────────
 
+def _count_lines(p: Path) -> int:
+    """Count newlines in a file via 64KB binary chunks. Exact, fast (~500MB/s)."""
+    total = 0
+    with open(p, "rb") as fh:
+        for chunk in iter(lambda: fh.read(65536), b""):
+            total += chunk.count(b"\n")
+    return total
+
+
 def _scan_dir(path: Path, label: Optional[str] = None) -> tuple[List[LogFile], int]:
     """Returns (files, skipped_count)."""
     results = []
@@ -130,11 +138,8 @@ def _scan_dir(path: Path, label: Optional[str] = None) -> tuple[List[LogFile], i
                 if not p.is_file():
                     continue
                 stat = p.stat()
-                line_count = 0
                 try:
-                    with open(p, "r", encoding="utf-8", errors="ignore") as fh:
-                        for i, _ in enumerate(itertools.islice(fh, 200)):
-                            line_count = i + 1
+                    line_count = _count_lines(p)
                 except Exception:
                     skipped += 1
                     continue
@@ -642,10 +647,7 @@ def run_file_browser() -> Optional[LogFile]:
                             if p.is_file():
                                 try:
                                     stat = p.stat()
-                                    lc = 0
-                                    with open(p, "r", encoding="utf-8", errors="ignore") as fh:
-                                        for i, _ in enumerate(itertools.islice(fh, 200)):
-                                            lc = i + 1
+                                    lc = _count_lines(p)
                                     selected_file = LogFile(
                                         path=p,
                                         score=1.0,
