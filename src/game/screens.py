@@ -397,18 +397,28 @@ def _stats_with_planet(stats_body: Text, angle: float, console_width: int):
         return Align.center(stats_body, vertical="middle")
 
     planet = _render_planet(angle)
+    # Use a centered title line whose visible width matches the planet so the
+    # silhouette is not deformed by per-line re-centering inside the Table.
+    title_pad = max(0, (_PLANET_W - len("ORBIT")) // 2)
+    title_line = Text(" " * title_pad + "ORBIT\n", style="accent.bold")
+    rotation_str = f"rotation {math.degrees(angle) % 360:6.1f}°"
+    rot_pad = max(0, (_PLANET_W - len(rotation_str)) // 2)
+    rotation_line = Text(" " * rot_pad + rotation_str, style="primary.dim")
+
     planet_block = Text.assemble(
-        Text("ORBIT\n", style="accent.bold", justify="center"),
+        title_line,
         Text("\n"),
         planet,
-        Text("\n"),
         Text("─" * _PLANET_W + "\n", style="primary.dim"),
-        Text(f"  rotation {math.degrees(angle) % 360:6.1f}°", style="primary.dim"),
+        rotation_line,
     )
 
+    # Use no_wrap and a left-justified fixed-width column so Rich never
+    # re-centers lines individually (which would trim trailing spaces from
+    # the planet rows and break the circular shape).
     grid = Table.grid(expand=False, padding=(0, 4))
     grid.add_column(justify="left")
-    grid.add_column(width=_PLANET_W + 2, justify="center")
+    grid.add_column(justify="left", no_wrap=True)
     grid.add_row(stats_body, planet_block)
     return Align.center(grid, vertical="middle")
 
