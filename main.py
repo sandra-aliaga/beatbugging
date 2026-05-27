@@ -272,7 +272,7 @@ class GameEngine:
         try:
             tty.setcbreak(fd)
             try:
-                loading_time = 2.0 if len(self.actions) > 50 else 1.4
+                loading_time = 3.2 if len(self.actions) > 50 else 2.4
                 self.loading_screen.show_loading("INITIALIZING BEATBUGGING SYSTEM", loading_time)
 
                 self.start_time = time.time()

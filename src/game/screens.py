@@ -630,6 +630,61 @@ def _progress_bar(pct: float, width: int) -> str:
     return bar
 
 
+# Stereotypical "hacker" log lines — pure cinema, no real meaning
+_HACKER_OPS = [
+    "bypassing firewall ruleset chain INPUT",
+    "decrypting RSA-2048 session key",
+    "spoofing MAC 00:DE:AD:BE:EF:42",
+    "routing through 7 SOCKS5 proxies",
+    "cracking SHA-256 (rainbow table loaded)",
+    "tracing source IP 192.168.4.42",
+    "establishing reverse shell on :1337",
+    "bruteforcing root@localhost",
+    "patching kernel module beatbug.ko",
+    "spawning daemon pid=0xC0FFEE",
+    "allocating 256MB of swap",
+    "hooking syscall sys_read",
+    "disabling SELinux enforcement",
+    "tail -f /var/log/auth.log",
+    "GET /admin/.env HTTP/1.1 -> 200 OK",
+    "compiling exploit.c -> exploit.bin",
+    "linking libcrypto.so.1.1",
+    "loading symbol table (4096 entries)",
+    "heap pointer aligned 0xDEADBEEF",
+    "ROP chain assembled (47 gadgets)",
+    "stack canary bypassed",
+    "GOT overwrite successful",
+    "kASLR offset 0xFFFFFFFF81000000",
+    "privilege escalation uid=0(root)",
+    "backdoor staged /etc/cron.d/.update",
+    "wiping ~/.bash_history",
+    "process injection PID 1337 -> 0",
+    "DNS poisoning local resolver",
+    "sniffing tcp:80 on eth0",
+    "ARP spoof gateway 10.0.0.1",
+    "decoding base64 payload",
+    "fuzzing input vector 0x00..0xFF",
+    "patching IAT entry kernel32!CreateFile",
+    "unpacking UPX-compressed binary",
+    "extracting strings from .rodata",
+    "scanning ports 1-65535 (T:fast)",
+    "TLS handshake intercepted",
+    "session cookie hijacked",
+    "JWT signature forged HS256",
+    "cache poisoned X-Forwarded-Host",
+    "egress traffic obfuscated via DoH",
+    "WebSocket upgraded /ws/admin",
+    "kernel panic averted nil-deref @0x0",
+    "GDB attached pid 4242",
+    "objdump -d shellcode.bin",
+    "ptrace PTRACE_ATTACH ok",
+    "writing to /proc/self/mem",
+    "race condition won (TOCTOU)",
+    "double-free triggered glibc 2.34",
+    "use-after-free in vtable[3]",
+]
+
+
 def _module_line(name: str, desc: str, progress: float, bar_w: int = 22) -> Text:
     """One pacman-style line: name | progress bar | percent | OK tag."""
     pct = int(progress * 100)
@@ -647,42 +702,83 @@ def _module_line(name: str, desc: str, progress: float, bar_w: int = 22) -> Text
     return line
 
 
+def _hacker_line(idx: int) -> Text:
+    """One faux-hacker log line. `idx` is a frame counter."""
+    op = _HACKER_OPS[idx % len(_HACKER_OPS)]
+    ts = f"{(idx * 37) % 999999:06d}"
+    line = Text()
+    line.append(f"  [{ts}] ", style="primary.dim")
+    line.append("> ", style="accent")
+    line.append(op, style="primary")
+    return line
+
+
 class LoadingScreen:
     def __init__(self, console: Console):
         self.console = console
 
-    def _header(self, message: str) -> Text:
+    def _header(self) -> Text:
         out = Text()
         banner_lines = _BIOS_BANNER.strip("\n").splitlines()
         for line in banner_lines:
             out.append(line + "\n", style="primary.bold")
-        sub = "BEATBUGGING SYSTEM   -   BIOS v2.0.42   -   (c) 2026 BB CORP"
-        out.append(sub + "\n", style="primary.dim")
-        out.append(f">>> {message} <<<\n\n", style="accent.bold")
+        out.append("BEATBUGGING SYSTEM  v2.0.42  (c) 2026 BB CORP",
+                   style="primary.dim")
         return out
 
-    def show_loading(self, message: str, duration: float = 1.6):
+    def show_loading(self, message: str, duration: float = 2.4):
         message = message.upper()
         n = len(_MODULES)
-        tick = 0.04  # ~25 fps
-        per_module = max(0.15, (duration * 0.85) / n)
-        ticks_per_module = max(3, int(per_module / tick))
+        tick = 0.045  # ~22 fps — fast hacker scroll
+        per_module = max(0.25, duration / n)
+        ticks_per_module = max(5, int(per_module / tick))
 
-        header = self._header(message)
-        completed: list[Text] = []
+        header = self._header()
+        title = Text(f">>> {message} <<<", style="accent.bold")
 
-        with Live(console=self.console, refresh_per_second=25,
+        completed_modules: list[Text] = []
+        # Rolling stream of hacker log lines (most recent at bottom)
+        log_window = 8  # show last N hacker lines
+        hacker_log: list[Text] = []
+        op_idx = random.randint(0, len(_HACKER_OPS) - 1)
+
+        with Live(console=self.console, refresh_per_second=24,
                   transient=False, screen=False) as live:
             for name, desc in _MODULES:
                 for t in range(ticks_per_module + 1):
                     progress = min(1.0, t / ticks_per_module)
-                    current = _module_line(name, desc, progress)
-                    live.update(Group(header, *completed, current))
-                    time.sleep(tick)
-                completed.append(_module_line(name, desc, 1.0))
 
-            # Final flash: all done + summary footer
-            footer = Text("\n  ALL MODULES OK — entering debug session...\n",
-                          style="accent.bold")
-            live.update(Group(header, *completed, footer))
-            time.sleep(0.25)
+                    # Add a new hacker line every couple of ticks
+                    if t % 2 == 0:
+                        hacker_log.append(_hacker_line(op_idx))
+                        op_idx += 1
+                        if len(hacker_log) > log_window:
+                            hacker_log = hacker_log[-log_window:]
+
+                    current = _module_line(name, desc, progress)
+                    live.update(Align.center(Group(
+                        header,
+                        Text(""),
+                        Align.center(title),
+                        Text(""),
+                        *completed_modules,
+                        current,
+                        Text(""),
+                        *hacker_log,
+                    )))
+                    time.sleep(tick)
+                completed_modules.append(_module_line(name, desc, 1.0))
+
+            # Final flash
+            done_line = Text("  ALL SYSTEMS GO — entering debug session...",
+                             style="accent.bold")
+            live.update(Align.center(Group(
+                header,
+                Text(""),
+                Align.center(title),
+                Text(""),
+                *completed_modules,
+                Text(""),
+                done_line,
+            )))
+            time.sleep(0.3)
