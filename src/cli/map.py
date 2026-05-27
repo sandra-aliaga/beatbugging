@@ -1,4 +1,3 @@
-import math
 import time
 from rich.console import Console
 from rich.layout import Layout
@@ -10,11 +9,6 @@ from rich.align import Align
 from rich.box import HEAVY, DOUBLE_EDGE
 
 from settings import Settings
-
-_PLANET_W = 22
-_PLANET_H = 11
-_PLANET_MIN_TERM_WIDTH = 130  # only show planet when terminal is wide enough
-_SHADE = " .,:;+=ox*X#@"
 
 # Estados expandidos: 0=inactivo, 1=early, 2=almost_early, 3=perfect, 4=almost_late, 5=late
 
@@ -166,60 +160,10 @@ class Map:
         bar_chars = ([empty_char] * empty_count) + ([fill_char] * filled_count)
         return Text("\n").join(bar_chars)
 
-    def _render_planet(self) -> Text:
-        """Procedural 3D ASCII sphere rotating on Y axis, shaded + textured."""
-        angle = time.time() * 0.6
-        # light vector pointing toward viewer's upper-left (positive z = toward camera)
-        lx, ly, lz = -0.5, -0.5, 0.71
-        out = Text()
-        # cells are ~2x taller than wide: use half-height in geometric units
-        R = min(_PLANET_W / 2.0 - 0.5, _PLANET_H - 1.0)
-
-        for j in range(_PLANET_H):
-            # Map row to geometric y (terminal cells are 2x taller than wide)
-            y = (j - _PLANET_H / 2.0 + 0.5) * 2.0
-            for i in range(_PLANET_W):
-                x = i - _PLANET_W / 2.0 + 0.5
-                r2 = x * x + y * y
-                if r2 > R * R:
-                    out.append(" ")
-                    continue
-                z = math.sqrt(R * R - r2)
-                nx, ny, nz = x / R, y / R, z / R
-                # Rotate surface point around Y axis to get longitude coord
-                rx = nx * math.cos(angle) + nz * math.sin(angle)
-                rz = -nx * math.sin(angle) + nz * math.cos(angle)
-                # Lighting (Lambertian) — flip y because terminal Y grows down
-                dot = max(0.0, nx * lx + (-ny) * ly + nz * lz)
-                # Continent pattern from rotated surface coordinates
-                lat = math.asin(max(-1.0, min(1.0, ny)))
-                lon = math.atan2(rx, rz)
-                land = (math.sin(lat * 2.4) * math.cos(lon * 1.8)
-                        + math.sin(lat * 4.7 + lon * 2.3) * 0.5) > 0.05
-                # Boost contrast: ambient + lambert
-                intensity = 0.15 + 0.85 * dot
-                intensity *= 1.15 if land else 0.85
-                idx = int(intensity * (len(_SHADE) - 1) + 0.5)
-                idx = max(0, min(idx, len(_SHADE) - 1))
-                ch = _SHADE[idx]
-                if idx >= len(_SHADE) - 3:
-                    style = "accent.bold" if land else "accent"
-                elif idx >= 4:
-                    style = "primary" if land else "primary.dim"
-                else:
-                    style = "primary.dim"
-                out.append(ch, style=style)
-            out.append("\n")
-        return out
-
     def _create_stats_panel(self) -> Panel:
-        show_planet = self.console.width >= _PLANET_MIN_TERM_WIDTH
-
         stats_grid = Table.grid(expand=True, padding=(0, 2))
         stats_grid.add_column(ratio=1, justify="center")
         stats_grid.add_column(ratio=1, justify="center")
-        if show_planet:
-            stats_grid.add_column(width=_PLANET_W + 2, justify="center")
 
         health_bar = self._create_vertical_bar(self.health_value)
         health_title = Text(f"HEALTH\n{self.health_value}%",
@@ -233,13 +177,10 @@ class Map:
                             style="accent.bold")
         progress_display = Text.assemble(progress_title, "\n\n", progress_bar)
 
-        row = [Align.center(health_display), Align.center(progress_display)]
-        if show_planet:
-            planet_title = Text("ORBIT", justify="center", style="accent.bold")
-            planet_body = self._render_planet()
-            planet_display = Text.assemble(planet_title, "\n\n", planet_body)
-            row.append(Align.center(planet_display))
-        stats_grid.add_row(*row)
+        stats_grid.add_row(
+            Align.center(health_display),
+            Align.center(progress_display)
+        )
 
         return Panel(
             Align.center(stats_grid, vertical="middle"),
