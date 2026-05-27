@@ -1,8 +1,9 @@
-from rich.console import Console
+from rich.console import Console, Group
 from rich.text import Text
 from rich.panel import Panel
 from rich.table import Table
 from rich.layout import Layout
+from rich.live import Live
 from rich.align import Align
 import math
 import random
@@ -629,107 +630,59 @@ def _progress_bar(pct: float, width: int) -> str:
     return bar
 
 
+def _module_line(name: str, desc: str, progress: float, bar_w: int = 22) -> Text:
+    """One pacman-style line: name | progress bar | percent | OK tag."""
+    pct = int(progress * 100)
+    bar = _progress_bar(progress, bar_w)
+    done = progress >= 1.0
+    tag = "[ OK ]" if done else "[....]"
+    line = Text()
+    line.append(f"  {name.strip():<18}", style="primary" if done else "primary.bold")
+    line.append(f"{desc:<19}", style="primary.dim")
+    line.append("[", style="primary.dim")
+    line.append(bar, style="accent" if done else "primary.bold")
+    line.append("] ", style="primary.dim")
+    line.append(f"{pct:>3}% ", style="accent.bold" if done else "primary.bold")
+    line.append(tag, style="accent.bold" if done else "primary.dim")
+    return line
+
+
 class LoadingScreen:
     def __init__(self, console: Console):
         self.console = console
 
-    def _render_frame(self, message: str, progress: float, frame: int, width: int, height: int) -> Text:
+    def _header(self, message: str) -> Text:
         out = Text()
-
-        # ── Banner ──────────────────────────────────────────────────────
         banner_lines = _BIOS_BANNER.strip("\n").splitlines()
-        banner_w = max(len(l) for l in banner_lines)
-        pad = max(0, (width - banner_w) // 2)
         for line in banner_lines:
-            out.append(" " * pad + line + "\n", style="primary.bold")
-
-        # ── Subtitle line ────────────────────────────────────────────────
+            out.append(line + "\n", style="primary.bold")
         sub = "BEATBUGGING SYSTEM   -   BIOS v2.0.42   -   (c) 2026 BB CORP"
-        out.append(" " * max(0, (width - len(sub)) // 2) + sub + "\n", style="primary.dim")
-        out.append(" " * max(0, (width - len(message) - 4) // 2)
-                   + f">>> {message} <<<\n", style="accent.bold")
-        out.append("\n")
-
-        # ── Modules being loaded ─────────────────────────────────────────
-        n_modules = len(_MODULES)
-        modules_done = int(progress * n_modules)
-        working_idx = min(modules_done, n_modules - 1)
-
-        col_w = 56
-        col_pad = " " * max(0, (width - col_w) // 2)
-
-        for i, (name, desc) in enumerate(_MODULES):
-            if i < modules_done:
-                tag, tag_style, name_style = "[   OK   ]", "accent.bold", "primary"
-            elif i == working_idx:
-                spinner = "|/-\\"[frame % 4]
-                tag, tag_style, name_style = f"[WORKING{spinner}]", "primary.bold", "primary.bold"
-            else:
-                tag, tag_style, name_style = "[        ]", "primary.dim", "primary.dim"
-            out.append(col_pad)
-            out.append(f"  {name}", style=name_style)
-            out.append(f"{desc:<22}", style="primary.dim")
-            out.append(f"{tag}\n", style=tag_style)
-        out.append("\n")
-
-        # ── Diagnostic test lines (animated hex/freq stream) ─────────────
-        mem_kb = 1024 * (1 + frame % 8)
-        freqs = ["440Hz", "523Hz", "659Hz", "784Hz", "880Hz"]
-        chosen = " ".join(freqs[:1 + frame % 5])
-        diag_lines = [
-            f"  memory test ...... {mem_kb:>5}K  OK",
-            f"  audio test  ...... {chosen}  OK",
-            f"  hash check  ...... 0x{_hex_word()}  0x{_hex_word()}  0x{_hex_word()}",
-            f"  rng seed    ...... 0x{_hex_word(16)}",
-            f"  parsing     ...... node_{frame:04d} offset=0x{_hex_word(6)}",
-        ]
-        for line in diag_lines:
-            out.append(col_pad + line + "\n", style="primary")
-        out.append("\n")
-
-        # ── Progress bar (wide) ──────────────────────────────────────────
-        bar_w = max(20, width - 20)
-        bar = _progress_bar(progress, bar_w)
-        pct_str = f"{int(progress * 100):>3d}%"
-        bar_pad = " " * max(0, (width - bar_w - 8) // 2)
-        out.append(bar_pad, style="primary")
-        out.append("[", style="primary.dim")
-        out.append(bar, style="accent")
-        out.append("] ", style="primary.dim")
-        out.append(pct_str + "\n", style="accent.bold")
-        out.append("\n")
-
-        # ── Footer ───────────────────────────────────────────────────────
-        footer = "press CTRL+C to abort"
-        out.append(" " * max(0, (width - len(footer)) // 2) + footer + "\n",
-                   style="primary.dim")
-
+        out.append(sub + "\n", style="primary.dim")
+        out.append(f">>> {message} <<<\n\n", style="accent.bold")
         return out
 
-    def show_loading(self, message: str, duration: float = 3.0):
-        start_time = time.time()
-        frame = 0
+    def show_loading(self, message: str, duration: float = 1.6):
+        message = message.upper()
+        n = len(_MODULES)
+        tick = 0.04  # ~25 fps
+        per_module = max(0.15, (duration * 0.85) / n)
+        ticks_per_module = max(3, int(per_module / tick))
 
-        while True:
-            elapsed = time.time() - start_time
-            if elapsed >= duration:
-                break
-            progress = min(0.99, elapsed / duration)
+        header = self._header(message)
+        completed: list[Text] = []
 
-            size = self.console.size
-            width, height = size.width, size.height
+        with Live(console=self.console, refresh_per_second=25,
+                  transient=False, screen=False) as live:
+            for name, desc in _MODULES:
+                for t in range(ticks_per_module + 1):
+                    progress = min(1.0, t / ticks_per_module)
+                    current = _module_line(name, desc, progress)
+                    live.update(Group(header, *completed, current))
+                    time.sleep(tick)
+                completed.append(_module_line(name, desc, 1.0))
 
-            content = self._render_frame(
-                message.upper(), progress, frame, width, height
-            )
-
-            self.console.clear()
-            self.console.print(content, end="", soft_wrap=False, overflow="crop")
-            time.sleep(0.08)
-            frame += 1
-
-        # Final 100% frame so the user sees completion
-        size = self.console.size
-        content = self._render_frame(message.upper(), 1.0, frame, size.width, size.height)
-        self.console.clear()
-        self.console.print(content, end="", soft_wrap=False, overflow="crop")
+            # Final flash: all done + summary footer
+            footer = Text("\n  ALL MODULES OK — entering debug session...\n",
+                          style="accent.bold")
+            live.update(Group(header, *completed, footer))
+            time.sleep(0.25)
