@@ -656,10 +656,10 @@ def main():
     log_dir = Path.home() / ".local" / "share" / "beatbugging"
     log_path = log_dir / "error.log"
 
-    Settings.load()
-    engine = GameEngine()
-    engine.state = GameState.MENU
     try:
+        Settings.load()
+        engine = GameEngine()
+        engine.state = GameState.MENU
         engine.run()
     except Exception:
         log_dir.mkdir(parents=True, exist_ok=True)

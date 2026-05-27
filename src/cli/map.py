@@ -123,7 +123,7 @@ class Map:
         header_layout.split_column(
             Layout(Panel(Text("BEATBUGGING DEBUGGING SYSTEM",
                               justify="center",
-                              style="bold primary"),
+                              style="primary.bold"),
                               box=HEAVY,
                               border_style="primary"),
                               name="title"),
@@ -137,12 +137,12 @@ class Map:
         coords_panel = Panel(Text(self.active_coords,
                                   justify="center",
                                   style="primary"),
-                                  title="[bold accent]NEXT ACTIONS[/]",
+                                  title="[accent.bold]NEXT ACTIONS[/]",
                                   border_style="primary")
         line_panel = Panel(Text(self.actual_line,
                                 justify="left",
                                 style="primary"),
-                                title="[bold accent]DEBUGGING LINE...[/]",
+                                title="[accent.bold]DEBUGGING LINE...[/]",
                                 border_style="primary")
 
         info_panel_grid.add_row(coords_panel, line_panel)
@@ -168,13 +168,13 @@ class Map:
         health_bar = self._create_vertical_bar(self.health_value)
         health_title = Text(f"HEALTH\n{self.health_value}%",
                           justify="center",
-                          style="bold accent")
+                          style="accent.bold")
         health_display = Text.assemble(health_title, "\n\n", health_bar)
 
         progress_bar = self._create_vertical_bar(self.progress_value)
         progress_title = Text(f"PROGRESS\n{self.progress_value}%",
                             justify="center",
-                            style="bold accent")
+                            style="accent.bold")
         progress_display = Text.assemble(progress_title, "\n\n", progress_bar)
 
         stats_grid.add_row(
@@ -185,7 +185,7 @@ class Map:
         return Panel(
             Align.center(stats_grid, vertical="middle"),
             border_style="primary",
-            title="[bold accent]SYSTEM CORE[/]",
+            title="[accent.bold]SYSTEM CORE[/]",
             box=DOUBLE_EDGE,
             expand=True
         )
@@ -225,12 +225,12 @@ class Map:
             expand=True
         )
 
-        map_table.add_column(justify="center", style="bold primary", width=3)
+        map_table.add_column(justify="center", style="primary.bold", width=3)
 
         for _ in self.col_labels:
             map_table.add_column(justify="center", width=8)
 
-        col_header_row = [""] + [Text(f"   {label}   ", style="bold primary") for label in self.col_labels]
+        col_header_row = [""] + [Text(f"   {label}   ", style="primary.bold") for label in self.col_labels]
         map_table.add_row(*col_header_row)
 
         for row_idx, row_label in enumerate(self.row_labels):
@@ -253,7 +253,7 @@ class Map:
         return Panel(
             Align.center(map_table, vertical="middle"),
             border_style="primary",
-            title="[bold accent]BEATBUGGING MATRIX[/]",
+            title="[accent.bold]BEATBUGGING MATRIX[/]",
             box=DOUBLE_EDGE,
             expand=True
         )
@@ -265,9 +265,9 @@ class Map:
         line_grid.add_column(justify="right", width=12)
 
         line_grid.add_row(
-            Text("Line:", style="bold accent"),
+            Text("Line:", style="accent.bold"),
             Text(self.target_coordinate, style="bold yellow"),
-            Text(f"Success: {self.success_count}", style="bold accent")
+            Text(f"Success: {self.success_count}", style="accent.bold")
         )
 
         return Panel(
@@ -285,7 +285,7 @@ class Map:
         prompt_text = f"[user@01010]$ {display_input}"
 
         terminal_grid.add_row(
-            Text(prompt_text, style="bold primary")
+            Text(prompt_text, style="primary.bold")
         )
 
         return Panel(

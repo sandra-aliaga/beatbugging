@@ -3,40 +3,58 @@ from pathlib import Path
 from rich.theme import Theme
 from rich.console import Console
 
-THEMES: dict[str, Theme] = {
-    "matrix": Theme({
+# Base color per role for each theme.
+_BASE: dict[str, dict[str, str]] = {
+    "matrix": {
         "primary": "green",
         "accent":  "bright_green",
-        "muted":   "dim green",
         "info":    "cyan",
         "warning": "yellow",
         "danger":  "red",
-    }),
-    "blood": Theme({
+    },
+    "blood": {
         "primary": "red",
         "accent":  "bright_red",
-        "muted":   "dim red",
         "info":    "white",
         "warning": "yellow",
         "danger":  "bright_red",
-    }),
-    "ocean": Theme({
+    },
+    "ocean": {
         "primary": "blue",
         "accent":  "bright_blue",
-        "muted":   "dim blue",
         "info":    "cyan",
         "warning": "yellow",
         "danger":  "red",
-    }),
-    "phosphor": Theme({
+    },
+    "phosphor": {
         "primary": "yellow",
         "accent":  "bright_yellow",
-        "muted":   "dim yellow",
         "info":    "white",
         "warning": "bright_white",
         "danger":  "red",
-    }),
+    },
 }
+
+# Modifiers that need precomposed theme entries.
+# Rich does NOT resolve theme names inside style strings like "bold primary"
+# (it tries to parse "primary" as a raw color and fails). We must register
+# each composed variant explicitly so the whole token resolves via the theme.
+_MODIFIERS = ["bold", "dim", "bold reverse"]
+
+
+def _build_theme(roles: dict[str, str]) -> Theme:
+    styles: dict[str, str] = {}
+    for role, color in roles.items():
+        styles[role] = color
+        for mod in _MODIFIERS:
+            key = f"{role}.{mod.replace(' ', '_')}"
+            styles[key] = f"{mod} {color}"
+    # "muted" is a semantic alias for the dim variant of primary.
+    styles["muted"] = f"dim {roles['primary']}"
+    return Theme(styles)
+
+
+THEMES: dict[str, Theme] = {name: _build_theme(roles) for name, roles in _BASE.items()}
 
 THEME_LABELS: dict[str, str] = {
     "matrix":   "Matrix   (Green)",

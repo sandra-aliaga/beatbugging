@@ -232,13 +232,13 @@ def _btn(label: str, selected: bool, color: str) -> Panel:
     """Render a menu button as a bordered panel."""
     if selected:
         inner = Text()
-        inner.append("▶ ", style=f"bold {color}")
-        inner.append(label, style=f"bold reverse {color}")
+        inner.append("▶ ", style=f"{color}.bold")
+        inner.append(label, style=f"{color}.bold_reverse")
     else:
-        inner = Text(f"  {label}  ", style=f"dim {color}")
+        inner = Text(f"  {label}  ", style=f"{color}.dim")
     return Panel(
         Align.center(inner),
-        border_style=f"bold {color}" if selected else f"dim {color}",
+        border_style=f"{color}.bold" if selected else f"{color}.dim",
         expand=False,
     )
 
@@ -270,7 +270,7 @@ def run_title_screen() -> Optional[str]:
 
                     subtitle = Text(
                         f"[SYS://INIT] {errors} CRITICAL ERRORS DETECTED",
-                        style="bold info",
+                        style="info.bold",
                     )
 
                     btn_row = Table.grid(padding=(0, 2))
@@ -359,7 +359,7 @@ def run_settings_screen() -> None:
                     theme_selector.add_column(justify="left")
                     theme_selector.add_row(
                         Text("◀", style="muted"),
-                        Text(THEME_LABELS[preview_theme_name], style="bold primary"),
+                        Text(THEME_LABELS[preview_theme_name], style="primary.bold"),
                         Text("▶", style="muted"),
                     )
 
@@ -384,7 +384,7 @@ def run_settings_screen() -> None:
                             Align.center(swatch_grid),
                         ), vertical="middle"),
                         border_style="primary",
-                        title="[bold accent]Color Theme[/]",
+                        title="[accent.bold]Color Theme[/]",
                     )
 
                     # Scale row
@@ -394,7 +394,7 @@ def run_settings_screen() -> None:
                     scale_selector.add_column(justify="left")
                     scale_selector.add_row(
                         Text("◀", style="muted"),
-                        Text(current_scale_name, style="bold accent"),
+                        Text(current_scale_name, style="accent.bold"),
                         Text("▶", style="muted"),
                     )
 
@@ -405,7 +405,7 @@ def run_settings_screen() -> None:
                             Align.center(Text(current_scale_desc, style="muted")),
                         ), vertical="middle"),
                         border_style="primary",
-                        title="[bold accent]Musical Scale[/]",
+                        title="[accent.bold]Musical Scale[/]",
                     )
 
                     hint = Text(
@@ -417,7 +417,7 @@ def run_settings_screen() -> None:
                     layout = Layout()
                     layout.split_column(
                         Layout(
-                            Panel(Align.center(Text("SETTINGS", style="bold accent")), border_style="accent"),
+                            Panel(Align.center(Text("SETTINGS", style="accent.bold")), border_style="accent"),
                             name="header",
                             size=3,
                         ),
@@ -498,7 +498,7 @@ def _build_file_table(visible: List[LogFile], scroll_offset: int, cursor: int) -
             f.name,
             f.parent_dir,
             f"{f.line_count}L {size_mb:.1f}MB",
-            style="bold primary reverse" if is_sel else "",
+            style="primary.bold_reverse" if is_sel else "",
         )
     return table
 
@@ -729,7 +729,7 @@ def run_setup_screen(log_file: LogFile) -> Optional[dict]:
                     size_mb = log_file.size / (1024 * 1024)
 
                     file_info = Text()
-                    file_info.append(f" {log_file.name} ", style="bold primary")
+                    file_info.append(f" {log_file.name} ", style="primary.bold")
                     file_info.append(f" {log_file.line_count} lines  {size_mb:.1f}MB", style="info")
                     file_panel = Panel(
                         Align.center(file_info),
@@ -745,17 +745,17 @@ def run_setup_screen(log_file: LogFile) -> Optional[dict]:
                         Panel(
                             Align.center(Text(
                                 "◀  User (Normal)" if user_sel else "   User (Normal)",
-                                style="bold primary" if user_sel else "primary",
+                                style="primary.bold" if user_sel else "primary",
                             )),
-                            border_style="bold primary" if user_sel else "primary",
+                            border_style="primary.bold" if user_sel else "primary",
                             expand=False,
                         ),
                         Panel(
                             Align.center(Text(
                                 "Root (Hard)  ▶" if not user_sel else "Root (Hard)   ",
-                                style="bold danger" if not user_sel else "danger",
+                                style="danger.bold" if not user_sel else "danger",
                             )),
-                            border_style="bold danger" if not user_sel else "danger",
+                            border_style="danger.bold" if not user_sel else "danger",
                             expand=False,
                         ),
                     )
@@ -940,7 +940,7 @@ def run_listen_screen(log_file: LogFile) -> None:
                 layout.split_column(
                     Layout(
                         Panel(
-                            Align.center(Text(header_str, style="bold primary")),
+                            Align.center(Text(header_str, style="primary.bold")),
                             border_style="primary",
                         ),
                         name="header",
