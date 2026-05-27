@@ -25,8 +25,12 @@ from rich.align import Align
 from rich.console import Group
 
 from music.generator import LogMusicGenerator
-from settings import Settings, THEMES, THEME_LABELS, THEME_ORDER, THEME_PREVIEW_COLORS
+from settings import (
+    Settings, THEMES, THEME_LABELS, THEME_ORDER, THEME_PREVIEW_COLORS,
+    PLANET_ASPECT_MIN, PLANET_ASPECT_MAX, PLANET_ASPECT_STEP,
+)
 from config import Config
+from game.screens import _render_planet
 
 
 # ── Data structures ───────────────────────────────────────────────────────────
@@ -335,10 +339,12 @@ def run_settings_screen() -> None:
     """Color theme + musical scale picker. Theme preview is live."""
     original_theme = Settings.theme
     original_scale = Settings.scale
+    original_aspect = Settings.planet_aspect
 
     scale_names = list(Config.SCALES.keys())
     theme_idx = THEME_ORDER.index(Settings.theme) if Settings.theme in THEME_ORDER else 0
     scale_idx = scale_names.index(Settings.scale) if Settings.scale in scale_names else 0
+    aspect = Settings.planet_aspect
 
     saved_action: Optional[str] = None
 
@@ -347,7 +353,8 @@ def run_settings_screen() -> None:
         console = Console(theme=THEMES[preview_theme_name])
 
         with _raw_stdin() as fd:
-            with Live(console=console, screen=True, refresh_per_second=10) as live:
+            with Live(console=console, screen=True, refresh_per_second=15) as live:
+                anim_start = time.time()
                 while True:
                     current_scale_name = scale_names[scale_idx]
                     current_scale_desc = Config.SCALES[current_scale_name]["description"]
@@ -408,8 +415,43 @@ def run_settings_screen() -> None:
                         title="[accent.bold]Musical Scale[/]",
                     )
 
+                    # Planet aspect panel — live preview using current aspect value
+                    rot = (time.time() - anim_start) * 0.6
+                    planet_visual = _render_planet(rot, aspect)
+                    aspect_bar_w = 24
+                    aspect_pos = int(
+                        (aspect - PLANET_ASPECT_MIN) / (PLANET_ASPECT_MAX - PLANET_ASPECT_MIN) * (aspect_bar_w - 1)
+                    )
+                    aspect_pos = max(0, min(aspect_bar_w - 1, aspect_pos))
+                    aspect_bar = Text()
+                    for i in range(aspect_bar_w):
+                        if i == aspect_pos:
+                            aspect_bar.append("█", style="accent.bold")
+                        else:
+                            aspect_bar.append("─", style="primary.dim")
+                    aspect_label = Text.assemble(
+                        Text("◀ ", style="muted"),
+                        Text(f"aspect {aspect:.1f}", style="accent.bold"),
+                        Text(" ▶", style="muted"),
+                    )
+                    aspect_help = Text(
+                        f"[ {PLANET_ASPECT_MIN:.1f} ━━━━━━━━━━ {PLANET_ASPECT_MAX:.1f} ]",
+                        style="muted",
+                    )
+                    planet_panel = Panel(
+                        Align.center(Group(
+                            Align.center(planet_visual),
+                            Text(""),
+                            Align.center(aspect_label),
+                            Align.center(aspect_bar),
+                            Align.center(aspect_help),
+                        ), vertical="middle"),
+                        border_style="primary",
+                        title="[accent.bold]Planet aspect ratio[/]",
+                    )
+
                     hint = Text(
-                        "[ ←/→ ] Theme   [ ↑/↓ ] Scale   [ ↵ / B ] Save   [ ESC ] Revert",
+                        "[ ←/→ ] Theme   [ ↑/↓ ] Scale   [ [/] ] Planet aspect   [ ↵/B ] Save   [ ESC ] Revert",
                         style="muted",
                         justify="center",
                     )
@@ -423,11 +465,12 @@ def run_settings_screen() -> None:
                         ),
                         Layout(theme_panel, name="theme"),
                         Layout(scale_panel, name="scale"),
+                        Layout(planet_panel, name="planet"),
                         Layout(Align.center(hint), name="footer", size=1),
                     )
                     live.update(layout)
 
-                    r, _, _ = select.select([fd], [], [], 0.1)
+                    r, _, _ = select.select([fd], [], [], 0.07)
                     if not r:
                         continue
 
@@ -446,6 +489,12 @@ def run_settings_screen() -> None:
                     elif key == "DOWN":
                         scale_idx = (scale_idx + 1) % len(scale_names)
                         sound_manager.play_menu_click()
+                    elif key == "[":
+                        aspect = max(PLANET_ASPECT_MIN, round(aspect - PLANET_ASPECT_STEP, 2))
+                        sound_manager.play_menu_click()
+                    elif key == "]":
+                        aspect = min(PLANET_ASPECT_MAX, round(aspect + PLANET_ASPECT_STEP, 2))
+                        sound_manager.play_menu_click()
                     elif key == "ENTER" or key.upper() == "B":
                         saved_action = "save"
                         sound_manager.play_menu_click()
@@ -457,10 +506,12 @@ def run_settings_screen() -> None:
     if saved_action == "save":
         Settings.theme = THEME_ORDER[theme_idx]
         Settings.scale = scale_names[scale_idx]
+        Settings.planet_aspect = aspect
         Settings.save()
     else:
         Settings.theme = original_theme
         Settings.scale = original_scale
+        Settings.planet_aspect = original_aspect
 
 
 # ── FileBrowserScreen ─────────────────────────────────────────────────────────

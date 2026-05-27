@@ -74,12 +74,17 @@ THEME_PREVIEW_COLORS: dict[str, str] = {
 THEME_ORDER: list[str] = list(THEMES.keys())
 
 SETTINGS_PATH = Path.home() / ".config" / "beatbugging" / "settings.json"
-_DEFAULTS: dict = {"theme": "matrix", "scale": "minor"}
+_DEFAULTS: dict = {"theme": "matrix", "scale": "minor", "planet_aspect": 2.4}
+
+PLANET_ASPECT_MIN = 1.5
+PLANET_ASPECT_MAX = 3.5
+PLANET_ASPECT_STEP = 0.1
 
 
 class Settings:
     theme: str = "matrix"
     scale: str = "minor"
+    planet_aspect: float = 2.4  # terminal cell height/width ratio for planet render
 
     @classmethod
     def load(cls) -> None:
@@ -89,6 +94,12 @@ class Settings:
             cls.scale = data.get("scale", _DEFAULTS["scale"])
             if cls.theme not in THEMES:
                 cls.theme = _DEFAULTS["theme"]
+            try:
+                aspect = float(data.get("planet_aspect", _DEFAULTS["planet_aspect"]))
+                cls.planet_aspect = max(PLANET_ASPECT_MIN,
+                                        min(PLANET_ASPECT_MAX, aspect))
+            except (TypeError, ValueError):
+                cls.planet_aspect = _DEFAULTS["planet_aspect"]
         except (FileNotFoundError, json.JSONDecodeError, OSError):
             pass
 
@@ -97,7 +108,11 @@ class Settings:
         try:
             SETTINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
             SETTINGS_PATH.write_text(
-                json.dumps({"theme": cls.theme, "scale": cls.scale}, indent=2)
+                json.dumps({
+                    "theme": cls.theme,
+                    "scale": cls.scale,
+                    "planet_aspect": round(cls.planet_aspect, 2),
+                }, indent=2)
             )
         except OSError:
             pass
