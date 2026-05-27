@@ -308,84 +308,69 @@ class GameOverAnimation:
             time.sleep(speed)
             frame_index += 1
 
+def _bar(value: float, width: int = 24) -> str:
+    """Render a 0-100 value as a discrete █▓▒░ progress bar."""
+    pct = max(0.0, min(100.0, float(value))) / 100.0
+    filled = int(pct * width)
+    half = 1 if (pct * width - filled) >= 0.5 and filled < width else 0
+    chars = "█" * filled + ("▓" if half else "") + "░" * (width - filled - half)
+    return chars
+
+
+def _row(label: str, value: str, width: int = 40) -> str:
+    """LABEL...........VALUE — POST/BIOS style row."""
+    dots = "." * max(3, width - len(label) - len(value))
+    return f"  {label}{dots}{value}"
+
+
 class GameOverScreen:
     def __init__(self, console: Console):
         self.console = console
-        
-    def create_error_log_panel(self, stats: dict) -> Panel:
-        error_log = Table(show_header=False, box=None, padding=0)
-        error_log.add_column(style="red", width=60)
-        
-        error_msgs = [
-            f"[FATAL] {AsciiArt.get_error_messages()}",
-            f"[ERROR] Music synchronization lost at frame {stats.get('score', 0)}",
-            f"[ERROR] Input buffer overflow after {stats.get('combo', 0)} operations",
-            f"[WARN]  System integrity compromised - {stats.get('accuracy', 0):.1f}% data loss",
-            f"[FATAL] Process terminated with exit code: -1",
-            f"[DEBUG] Last successful operation: {stats.get('perfect', 0)} PERFECT hits",
-            f"[ERROR] Memory dump written to /var/log/beatbugging/crash.log"
-        ]
-        
-        for msg in error_msgs:
-            error_log.add_row(f"[{time.strftime('%H:%M:%S')}] {msg}")
-        
-        return Panel(
-            error_log,
-            title="[bold red]SYSTEM ERROR LOG[/bold red]",
-            border_style="red",
-            padding=(1, 1)
-        )
-    
-    def create_stats_panel(self, stats: dict) -> Panel:
-        stats_table = Table(show_header=False, box=None)
-        stats_table.add_column("Metric", style="yellow", width=20)
-        stats_table.add_column("Value", style="white", width=15)
-        stats_table.add_column("Status", style="red", width=15)
-        
-        stats_table.add_row("Final Score", f"{stats.get('score', 0):,}", "CORRUPTED")
-        stats_table.add_row("Max Combo", f"{stats.get('max_combo', 0)}", "LOST")
-        stats_table.add_row("Accuracy", f"{stats.get('accuracy', 0):.1f}%", "INSUFFICIENT")
-        stats_table.add_row("Perfect Hits", f"{stats.get('perfect', 0)}", "PARTIAL")
-        stats_table.add_row("System Health", f"{stats.get('health', 0)}%", "CRITICAL")
-        
-        return Panel(
-            stats_table,
-            title="[bold yellow]DIAGNOSTIC REPORT[/bold yellow]",
-            border_style="yellow",
-            padding=(1, 1)
-        )
 
     def display(self, stats: dict):
         self.console.clear()
-        
-        layout = Layout()
-        layout.split_column(
-            Layout(name="header", size=11),
-            Layout(name="content"),
-            Layout(name="footer", size=3)
-        )
-        
-        layout["content"].split_row(
-            Layout(name="left"),
-            Layout(name="right")
-        )
 
-        ascii_art = AsciiArt.get_game_over_screen()[0]
-        header_panel = Panel(
-            Align.center(Text(ascii_art, style="bold red")),
-            border_style="red",
-            title="[bold red]CRITICAL SYSTEM FAILURE[/bold red]",
-        )
-        
-        layout["header"].update(header_panel)
-        layout["left"].update(self.create_error_log_panel(stats))
-        layout["right"].update(self.create_stats_panel(stats))
+        score    = stats.get("score", 0)
+        combo    = stats.get("max_combo", 0)
+        accuracy = stats.get("accuracy", 0.0)
+        perfect  = stats.get("perfect", 0)
+        health   = stats.get("health", 0)
 
-        footer_text = Text("[↵] Restart   [M] Back to menu   [Q] Quit", style="green")
-        footer_panel = Panel(Align.center(footer_text), border_style="green")
-        layout["footer"].update(footer_panel)
+        lines = []
+        lines.append("")
+        lines.append(("═" * 56, "primary.dim"))
+        lines.append(("        B E A T B U G G I N G   v2.0", "primary.bold"))
+        lines.append(("═" * 56, "primary.dim"))
+        lines.append("")
+        lines.append(("       > > >   S Y S T E M   H A L T   < < <", "danger.bold"))
+        lines.append("")
+        lines.append(("  " + "─" * 52, "primary.dim"))
+        lines.append((_row("SCORE",        f"{score:>10,}"),       "primary"))
+        lines.append((_row("MAX_COMBO",    f"{combo:>10}"),        "primary"))
+        lines.append((_row("ACCURACY",     f"{accuracy:>9.1f}%"),  "primary"))
+        lines.append((_row("PERFECT_HITS", f"{perfect:>10}"),      "primary"))
+        lines.append((_row("HEALTH",       f"{health:>10}"),       "danger"))
+        lines.append(("  " + "─" * 52, "primary.dim"))
+        lines.append((f"  HEALTH_BAR  [{_bar(health, 38)}]", "danger"))
+        lines.append((f"  ACCURACY    [{_bar(accuracy, 38)}]", "primary.dim"))
+        lines.append(("  " + "─" * 52, "primary.dim"))
+        lines.append((_row("STATUS",       "FAILED"),              "danger.bold"))
+        lines.append((_row("EXIT_CODE",    "-1"),                  "danger"))
+        lines.append((_row("CORE_DUMP",    "/var/log/bb/crash"),   "primary.dim"))
+        lines.append(("  " + "─" * 52, "primary.dim"))
+        lines.append("")
+        lines.append(("  > _", "accent.bold"))
+        lines.append("")
+        lines.append(("  [ENTER] retry      [M] menu      [Q] quit", "primary.dim"))
 
-        self.console.print(layout, end="")
+        body = Text()
+        for entry in lines:
+            if isinstance(entry, tuple):
+                body.append(entry[0] + "\n", style=entry[1])
+            else:
+                body.append(entry + "\n")
+
+        self.console.print(Align.center(body, vertical="middle"), end="")
 
 class VictoryAnimation:
     def __init__(self, console: Console):
@@ -436,113 +421,80 @@ class VictoryAnimation:
 class VictoryScreen:
     def __init__(self, console: Console):
         self.console = console
-    
-    def create_success_log_panel(self, stats: dict) -> Panel:
-        success_log = Table(show_header=False, box=None, padding=0)
-        success_log.add_column(style="green", width=60)
-        
-        success_msgs = [
-            f"[INFO]  System debugging completed successfully",
-            f"[SUCCESS] All {stats.get('perfect', 0)} critical errors resolved",
-            f"[INFO]  Code optimization achieved {stats.get('accuracy', 0):.1f}% efficiency",
-            f"[SUCCESS] Maximum processing chain: {stats.get('max_combo', 0)} operations",
-            f"[INFO]  Performance score: {stats.get('score', 0):,} points",
-            f"[SUCCESS] Memory optimization complete - 0 leaks detected",
-            f"[INFO]  System status: OPERATIONAL"
+
+    def get_performance_rank(self, stats: dict) -> str:
+        accuracy = stats.get("accuracy", 0)
+        score    = stats.get("score", 0)
+        if accuracy >= 95 and score >= 20000: return "S+"
+        if accuracy >= 90 and score >= 15000: return "S "
+        if accuracy >= 85 and score >= 10000: return "A "
+        if accuracy >= 75 and score >= 5000:  return "B "
+        if accuracy >= 60:                    return "C "
+        return "D "
+
+    def _achievements(self, stats: dict) -> list[tuple[str, bool]]:
+        return [
+            ("CODE_MASTER",       stats.get("accuracy", 0) >= 90),
+            ("COMBO_KING",        stats.get("max_combo", 0) >= 50),
+            ("PRECISION_EXPERT",  stats.get("perfect", 0) >= stats.get("total_actions", 1) * 0.7),
+            ("HIGH_SCORER",       stats.get("score", 0) >= 10000),
+            ("BUG_HUNTER",        True),
+            ("RHYTHM_HACKER",     True),
         ]
-        
-        for msg in success_msgs:
-            success_log.add_row(f"[{time.strftime('%H:%M:%S')}] {msg}")
-        
-        return Panel(
-            success_log,
-            title="[bold green]SUCCESS LOG[/bold green]",
-            border_style="green",
-            padding=(1, 1)
-        )
-    
-    def create_achievement_panel(self, stats: dict) -> Panel:
-        achievements_table = Table(show_header=False, box=None)
-        achievements_table.add_column("Achievement", style="gold3", width=25)
-        achievements_table.add_column("Status", style="green", width=10)
-        
-        if stats.get('accuracy', 0) >= 90:
-            achievements_table.add_row("🏆 Code Master", "UNLOCKED")
-        if stats.get('max_combo', 0) >= 50:
-            achievements_table.add_row("🔥 Combo King", "UNLOCKED")
-        if stats.get('perfect', 0) >= stats.get('total_actions', 1) * 0.7:
-            achievements_table.add_row("⚡ Precision Expert", "UNLOCKED")
-        if stats.get('score', 0) >= 10000:
-            achievements_table.add_row("💎 High Scorer", "UNLOCKED")
-        
-        achievements_table.add_row("🎯 Bug Hunter", "UNLOCKED")
-        achievements_table.add_row("🎵 Rhythm Hacker", "UNLOCKED")
-        
-        return Panel(
-            achievements_table,
-            title="[bold gold3]ACHIEVEMENTS[/bold gold3]",
-            border_style="gold3",
-            padding=(1, 1)
-        )
-    
-    def get_performance_rank(self, stats: dict) -> tuple[str, str]:
-        accuracy = stats.get('accuracy', 0)
-        score = stats.get('score', 0)
-        
-        if accuracy >= 95 and score >= 20000:
-            return "S+ LEGENDARY", "gold3"
-        elif accuracy >= 90 and score >= 15000:
-            return "S EXCELLENT", "yellow"
-        elif accuracy >= 85 and score >= 10000:
-            return "A GREAT", "green"
-        elif accuracy >= 75 and score >= 5000:
-            return "B GOOD", "blue"
-        elif accuracy >= 60:
-            return "C OKAY", "magenta"
-        else:
-            return "D NEEDS WORK", "red"
-    
+
     def display(self, stats: dict):
         self.console.clear()
-        
-        layout = Layout()
-        layout.split_column(
-            Layout(name="header", size=11),
-            Layout(name="content"),
-            Layout(name="footer", size=5)
-        )
-        
-        layout["content"].split_row(
-            Layout(name="left"),
-            Layout(name="right")
-        )
-        
-        ascii_art = AsciiArt.get_victory_screen()[0]
-        header_panel = Panel(
-            Align.center(Text(ascii_art, style="bold green")),
-            border_style="green",
-            title="[bold green]MISSION ACCOMPLISHED[/bold green]"
-        )
-        
-        rank, rank_color = self.get_performance_rank(stats)
-        
-        layout["header"].update(header_panel)
-        layout["left"].update(self.create_success_log_panel(stats))
-        layout["right"].update(self.create_achievement_panel(stats))
-        
-        footer_text = Text(
-            f"PERFORMANCE RANK: {rank}\n"
-            f"Final Score: {stats.get('score', 0):,} | "
-            f"Accuracy: {stats.get('accuracy', 0):.1f}% | "
-            f"Max Combo: {stats.get('max_combo', 0)}\n"
-            "[↵] Restart   [M] Back to menu   [Q] Quit",
-            style=rank_color,
-            justify="center"
-        )
-        footer_panel = Panel(footer_text, border_style=rank_color)
-        layout["footer"].update(footer_panel)
-        
-        self.console.print(layout)
+
+        score    = stats.get("score", 0)
+        combo    = stats.get("max_combo", 0)
+        accuracy = stats.get("accuracy", 0.0)
+        perfect  = stats.get("perfect", 0)
+        rank     = self.get_performance_rank(stats)
+
+        lines = []
+        lines.append("")
+        lines.append(("═" * 56, "primary.dim"))
+        lines.append(("        B E A T B U G G I N G   v2.0", "primary.bold"))
+        lines.append(("═" * 56, "primary.dim"))
+        lines.append("")
+        lines.append(("    > > >   D E B U G G I N G   C O M P L E T E   < < <", "accent.bold"))
+        lines.append("")
+        lines.append(("  " + "─" * 52, "primary.dim"))
+        lines.append((_row("SCORE",        f"{score:>10,}"),       "primary"))
+        lines.append((_row("MAX_COMBO",    f"{combo:>10}"),        "primary"))
+        lines.append((_row("ACCURACY",     f"{accuracy:>9.1f}%"),  "primary"))
+        lines.append((_row("PERFECT_HITS", f"{perfect:>10}"),      "accent"))
+        lines.append(("  " + "─" * 52, "primary.dim"))
+        lines.append((f"  ACCURACY    [{_bar(accuracy, 38)}]", "accent"))
+        lines.append(("  " + "─" * 52, "primary.dim"))
+        lines.append("")
+        lines.append(("                  P E R F O R M A N C E", "primary.dim"))
+        lines.append((f"                      [ R A N K   {rank} ]", "accent.bold"))
+        lines.append("")
+        lines.append(("  " + "─" * 52, "primary.dim"))
+        lines.append(("  ACHIEVEMENTS", "primary.bold"))
+        for name, unlocked in self._achievements(stats):
+            mark  = "[+]" if unlocked else "[ ]"
+            color = "accent" if unlocked else "primary.dim"
+            state = "UNLOCKED" if unlocked else "LOCKED  "
+            lines.append((f"    {mark}  {name:<22} {state}", color))
+        lines.append(("  " + "─" * 52, "primary.dim"))
+        lines.append((_row("STATUS",       "OPERATIONAL"),         "accent.bold"))
+        lines.append((_row("EXIT_CODE",    "0"),                   "primary"))
+        lines.append(("  " + "─" * 52, "primary.dim"))
+        lines.append("")
+        lines.append(("  > _", "accent.bold"))
+        lines.append("")
+        lines.append(("  [ENTER] retry      [M] menu      [Q] quit", "primary.dim"))
+
+        body = Text()
+        for entry in lines:
+            if isinstance(entry, tuple):
+                body.append(entry[0] + "\n", style=entry[1])
+            else:
+                body.append(entry + "\n")
+
+        self.console.print(Align.center(body, vertical="middle"), end="")
 
 
 class LoadingScreen:

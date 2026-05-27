@@ -49,7 +49,7 @@ class GameAction:
 
 class GameEngine:
     def __init__(self):
-        self.console = Console()
+        self.console = Settings.make_console()
         self.state = GameState.MENU
         self.music_generator = LogMusicGenerator()
         self.game_map = Map(size=Config.GRID_SIZE)
