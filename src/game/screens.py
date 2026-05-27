@@ -9,8 +9,12 @@ import random
 import time
 
 # ── Procedural 3D ASCII planet ────────────────────────────────────────────────
-_PLANET_W = 24
-_PLANET_H = 12
+_PLANET_W = 26
+_PLANET_H = 11
+# Terminal cell aspect ratio (height/width). Modern monospace fonts with
+# default line-height tend to fall around 2.3-2.5. Bumping this above the
+# classic "2.0" assumption makes the sphere look round on most modern terms.
+_PLANET_CELL_ASPECT = 2.4
 # Shade ramp WITHOUT leading space — every point inside the sphere is visible
 # so the silhouette stays circular even in deep shadow.
 _SHADE = ".,:;+=*xoXO#@"
@@ -20,10 +24,13 @@ def _render_planet(angle: float) -> Text:
     """3D ASCII sphere rotated by `angle` rad on Y axis, Lambertian shaded."""
     lx, ly, lz = -0.5, -0.5, 0.71  # light: upper-left, toward viewer
     out = Text()
-    R = min(_PLANET_W / 2.0 - 0.5, _PLANET_H - 1.0)
+    R = min(
+        _PLANET_W / 2.0 - 0.5,
+        (_PLANET_H - 0.5) * _PLANET_CELL_ASPECT / 2.0 - 0.5,
+    )
 
     for j in range(_PLANET_H):
-        y = (j - _PLANET_H / 2.0 + 0.5) * 2.0  # cells are ~2x taller than wide
+        y = (j - _PLANET_H / 2.0 + 0.5) * _PLANET_CELL_ASPECT
         for i in range(_PLANET_W):
             x = i - _PLANET_W / 2.0 + 0.5
             r2 = x * x + y * y
