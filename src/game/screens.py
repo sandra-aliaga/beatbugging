@@ -497,167 +497,145 @@ class VictoryScreen:
         self.console.print(Align.center(body, vertical="middle"), end="")
 
 
+_BIOS_BANNER = r"""
+ ▄▄▄▄    ▄▄▄▄   ▄▄▄    ▓██   ██▓  ██████    ▄▄▄█████▓ ▒█████   ▒█████   ██▓
+▓█████▄ ▓█████▄▒████▄   ▒██  ██▒▒██    ▒    ▓  ██▒ ▓▒▒██▒  ██▒▒██▒  ██▒▓██▒
+▒██▒ ▄██▒██▒ ▄██▒██  ▀█▄  ▒██ ██░░ ▓██▄      ▒ ▓██░ ▒░▒██░  ██▒▒██░  ██▒▒██░
+▒██░█▀  ▒██░█▀  ░██▄▄▄▄██ ░ ▐██▓░  ▒   ██▒   ░ ▓██▓ ░ ▒██   ██░▒██   ██░▒██░
+░▓█  ▀█▓░▓█  ▀█▓ ▓█   ▓██▒░ ██▒▓░▒██████▒▒     ▒██▒ ░ ░ ████▓▒░░ ████▓▒░░██████
+"""
+
+_MODULES = [
+    ("audio.subsystem      ", "freq synth + mixer"),
+    ("rhythm.parser        ", "beat-map engine"),
+    ("log.analyzer         ", "AST + token stream"),
+    ("frequency.synth      ", "440-1760 Hz range"),
+    ("beat.mapper          ", "tempo align"),
+    ("debug.overlay        ", "matrix + grid"),
+    ("input.controller     ", "raw stdin cbreak"),
+    ("ui.compositor        ", "rich.live engine"),
+]
+
+_HEX_POOL = "0123456789ABCDEF"
+
+
+def _hex_word(length: int = 8) -> str:
+    return "".join(random.choice(_HEX_POOL) for _ in range(length))
+
+
+def _progress_bar(pct: float, width: int) -> str:
+    pct = max(0.0, min(1.0, pct))
+    full = int(pct * width)
+    partial_idx = int((pct * width - full) * 4)
+    partials = " ░▒▓"
+    bar = "█" * full
+    if full < width:
+        bar += partials[partial_idx]
+        bar += "░" * (width - full - 1)
+    return bar
+
+
 class LoadingScreen:
     def __init__(self, console: Console):
         self.console = console
-        self.animation_frames = self._get_hacker_loading_frames()
-        self.matrix_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?"
-        self.wave_chars = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
-        
-    def _get_hacker_loading_frames(self):
-        """Generate hacker-style loading animation frames"""
-        return [
-            "[██████████████████████████████████████████████████████████████████] 100%",
-            "[████████████████████████████████████████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 85%",
-            "[████████████████████████████████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 70%",
-            "[██████████████████████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 55%",
-            "[██████████████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 40%",
-            "[████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 25%",
-            "[██████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 10%"
-        ]
-    
-    def _generate_matrix_line(self, width=70):
-        """Generate a single line of matrix-style characters"""
-        line = ""
-        for _ in range(width):
-            if random.random() > 0.75:
-                line += random.choice(self.matrix_chars)
+
+    def _render_frame(self, message: str, progress: float, frame: int, width: int, height: int) -> Text:
+        out = Text()
+
+        # ── Banner ──────────────────────────────────────────────────────
+        banner_lines = _BIOS_BANNER.strip("\n").splitlines()
+        banner_w = max(len(l) for l in banner_lines)
+        pad = max(0, (width - banner_w) // 2)
+        for line in banner_lines:
+            out.append(" " * pad + line + "\n", style="primary.bold")
+
+        # ── Subtitle line ────────────────────────────────────────────────
+        sub = "BEATBUGGING SYSTEM   -   BIOS v2.0.42   -   (c) 2026 BB CORP"
+        out.append(" " * max(0, (width - len(sub)) // 2) + sub + "\n", style="primary.dim")
+        out.append(" " * max(0, (width - len(message) - 4) // 2)
+                   + f">>> {message} <<<\n", style="accent.bold")
+        out.append("\n")
+
+        # ── Modules being loaded ─────────────────────────────────────────
+        n_modules = len(_MODULES)
+        modules_done = int(progress * n_modules)
+        working_idx = min(modules_done, n_modules - 1)
+
+        col_w = 56
+        col_pad = " " * max(0, (width - col_w) // 2)
+
+        for i, (name, desc) in enumerate(_MODULES):
+            if i < modules_done:
+                tag, tag_style, name_style = "[   OK   ]", "accent.bold", "primary"
+            elif i == working_idx:
+                spinner = "|/-\\"[frame % 4]
+                tag, tag_style, name_style = f"[WORKING{spinner}]", "primary.bold", "primary.bold"
             else:
-                line += " "
-        return line
-    
-    def _generate_wave_pattern(self, width=80, phase=0):
-        """Generate audio wave visualization"""
-        wave = ""
-        for i in range(width):
-            # Create wave pattern based on sine function
-            import math
-            height = int(3.5 * (1 + math.sin((i * 0.15) + (phase * 0.4))))
-            if height >= len(self.wave_chars):
-                height = len(self.wave_chars) - 1
-            wave += self.wave_chars[height]
-        return wave
-    
-    def _create_system_status(self, frame_index):
-        """Create system status display"""
-        statuses = [
-            "SCANNING SYSTEM LOGS FOR RHYTHM PATTERNS",
-            "PARSING ERROR FREQUENCIES AND BEAT MAPPING", 
-            "ANALYZING MUSICAL PATTERNS IN DEBUG DATA",
-            "CALIBRATING AUDIO SYNTHESIS ENGINE",
-            "SYNCHRONIZING BEATS WITH LOG TIMESTAMPS",
-            "INITIALIZING MUSICAL DEBUGGING INTERFACE",
-            "LOADING RHYTHM-BASED ERROR DETECTION"
+                tag, tag_style, name_style = "[        ]", "primary.dim", "primary.dim"
+            out.append(col_pad)
+            out.append(f"  {name}", style=name_style)
+            out.append(f"{desc:<22}", style="primary.dim")
+            out.append(f"{tag}\n", style=tag_style)
+        out.append("\n")
+
+        # ── Diagnostic test lines (animated hex/freq stream) ─────────────
+        mem_kb = 1024 * (1 + frame % 8)
+        freqs = ["440Hz", "523Hz", "659Hz", "784Hz", "880Hz"]
+        chosen = " ".join(freqs[:1 + frame % 5])
+        diag_lines = [
+            f"  memory test ...... {mem_kb:>5}K  OK",
+            f"  audio test  ...... {chosen}  OK",
+            f"  hash check  ...... 0x{_hex_word()}  0x{_hex_word()}  0x{_hex_word()}",
+            f"  rng seed    ...... 0x{_hex_word(16)}",
+            f"  parsing     ...... node_{frame:04d} offset=0x{_hex_word(6)}",
         ]
-        
-        current_status = statuses[frame_index % len(statuses)]
-        dots = "." * ((frame_index % 4) + 1)
-        return f"[SYSTEM] {current_status}{dots}"
-    
-    def _create_data_stream(self, width=50):
-        """Create scrolling data stream effect"""
-        hex_chars = "0123456789ABCDEF"
-        stream = ""
-        for _ in range(width):
-            if random.random() > 0.6:
-                stream += random.choice(hex_chars)
-            else:
-                stream += " "
-        return f"0x{stream}"
-    
+        for line in diag_lines:
+            out.append(col_pad + line + "\n", style="primary")
+        out.append("\n")
+
+        # ── Progress bar (wide) ──────────────────────────────────────────
+        bar_w = max(20, width - 20)
+        bar = _progress_bar(progress, bar_w)
+        pct_str = f"{int(progress * 100):>3d}%"
+        bar_pad = " " * max(0, (width - bar_w - 8) // 2)
+        out.append(bar_pad, style="primary")
+        out.append("[", style="primary.dim")
+        out.append(bar, style="accent")
+        out.append("] ", style="primary.dim")
+        out.append(pct_str + "\n", style="accent.bold")
+        out.append("\n")
+
+        # ── Footer ───────────────────────────────────────────────────────
+        footer = "press CTRL+C to abort"
+        out.append(" " * max(0, (width - len(footer)) // 2) + footer + "\n",
+                   style="primary.dim")
+
+        return out
+
     def show_loading(self, message: str, duration: float = 3.0):
         start_time = time.time()
-        frame_index = 0
-        
-        while time.time() - start_time < duration:
-            # Get current frame
-            frame = self.animation_frames[frame_index % len(self.animation_frames)]
-            
-            # Generate dynamic content
-            matrix_line_1 = self._generate_matrix_line(70)
-            matrix_line_2 = self._generate_matrix_line(70)
-            wave_pattern = self._generate_wave_pattern(60, frame_index)
-            system_status = self._create_system_status(frame_index)
-            data_stream = self._create_data_stream(50)
-            
-            # Create loading display with centered larger text
-            loading_text = Text(
-                f"{frame}",
-                style="bold bright_green",
-                justify="center"
+        frame = 0
+
+        while True:
+            elapsed = time.time() - start_time
+            if elapsed >= duration:
+                break
+            progress = min(0.99, elapsed / duration)
+
+            size = self.console.size
+            width, height = size.width, size.height
+
+            content = self._render_frame(
+                message.upper(), progress, frame, width, height
             )
-            
-            # Create message text - larger and more prominent
-            message_text = Text(
-                f">>> {message.upper()} <<<",
-                style="bold bright_white",
-                justify="center"
-            )
-            
-            # Create system status with better formatting
-            status_text = Text(
-                system_status,
-                style="bright_cyan",
-                justify="center"
-            )
-            
-            # Create enhanced wave visualization
-            wave_text = Text(
-                f"AUDIO: {wave_pattern}",
-                style="bright_yellow",
-                justify="center"
-            )
-            
-            # Create frequency display
-            freq_display = Text(
-                "FREQUENCIES: 440Hz | 523Hz | 659Hz | 784Hz",
-                style="dim bright_yellow",
-                justify="center"
-            )
-            
-            # Create data stream
-            stream_text = Text(
-                f"MEMORY: {data_stream}",
-                style="dim bright_green",
-                justify="center"
-            )
-            
-            # Create matrix effects - not centered for authentic matrix look
-            matrix_text_1 = Text(matrix_line_1, style="dim green")
-            matrix_text_2 = Text(matrix_line_2, style="dim green")
-            
-            # Combine all content with clean spacing
-            panel_content = Text("\n").join([
-                Text(""),
-                matrix_text_1,
-                Text(""),
-                loading_text,
-                Text(""),
-                message_text,
-                Text(""),
-                status_text,
-                Text(""),
-                wave_text,
-                freq_display,
-                Text(""),
-                stream_text,
-                Text(""),
-                matrix_text_2,
-                Text("")
-            ])
-            
-            # Create panel with clean styling
-            panel = Panel(
-                panel_content,
-                border_style="bright_green",
-                title="[bold bright_green]BEATBUGGING SYSTEM[/bold bright_green]",
-                subtitle="[dim bright_red]CTRL+C to abort[/dim bright_red]",
-                padding=(1, 2)
-            )
-            
-            # Display
+
             self.console.clear()
-            self.console.print(Align.center(panel))
-            
-            time.sleep(0.15)
-            frame_index += 1
+            self.console.print(content, end="", soft_wrap=False, overflow="crop")
+            time.sleep(0.08)
+            frame += 1
+
+        # Final 100% frame so the user sees completion
+        size = self.console.size
+        content = self._render_frame(message.upper(), 1.0, frame, size.width, size.height)
+        self.console.clear()
+        self.console.print(content, end="", soft_wrap=False, overflow="crop")
