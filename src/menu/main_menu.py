@@ -190,9 +190,14 @@ def read_key(fd: int) -> str:
 def _raw_stdin():
     """Put stdin in cbreak (raw) mode and yield the file descriptor."""
     fd = sys.stdin.fileno()
+    if not os.isatty(fd):
+        raise RuntimeError("stdin is not a TTY — run beatbugging from an interactive terminal")
     old = termios.tcgetattr(fd)
     try:
         tty.setcbreak(fd)
+        # Drain any bytes left in stdin buffer (e.g. the \n that launched the program)
+        while select.select([fd], [], [], 0)[0]:
+            os.read(fd, 64)
         yield fd
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old)

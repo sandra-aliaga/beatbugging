@@ -651,10 +651,24 @@ class GameEngine:
             self.running = False
             
 def main():
+    import traceback, datetime
+    from pathlib import Path
+    log_dir = Path.home() / ".local" / "share" / "beatbugging"
+    log_path = log_dir / "error.log"
+
     Settings.load()
     engine = GameEngine()
     engine.state = GameState.MENU
-    engine.run()
+    try:
+        engine.run()
+    except Exception:
+        log_dir.mkdir(parents=True, exist_ok=True)
+        with open(log_path, "a") as f:
+            f.write(f"\n--- {datetime.datetime.now().isoformat()} ---\n")
+            traceback.print_exc(file=f)
+        print(f"\n[ERROR] El programa terminó con un error inesperado.")
+        print(f"Revisa el log en: {log_path}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
