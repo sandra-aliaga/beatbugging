@@ -119,13 +119,30 @@ sound_manager = SoundManager()
 
 # ── File scanning ─────────────────────────────────────────────────────────────
 
+_LINE_COUNT_FAST_THRESHOLD = 100 * 1024 * 1024  # 100MB — read in full
+_LINE_COUNT_SAMPLE_BYTES   = 2 * 1024 * 1024    # for huge files: sample first 2MB
+
 def _count_lines(p: Path) -> int:
-    """Count newlines in a file via 64KB binary chunks. Exact, fast (~500MB/s)."""
-    total = 0
+    """Count lines in a file.
+
+    For files <= 100MB: exact count via 64KB chunks (~500MB/s).
+    For files > 100MB:  sample first 2MB and extrapolate by size, so the
+                        scan stays responsive even with multi-GB logs.
+    """
+    size = p.stat().st_size
+    if size <= _LINE_COUNT_FAST_THRESHOLD:
+        total = 0
+        with open(p, "rb") as fh:
+            for chunk in iter(lambda: fh.read(65536), b""):
+                total += chunk.count(b"\n")
+        return total
+    # Huge file — estimate from a sample
     with open(p, "rb") as fh:
-        for chunk in iter(lambda: fh.read(65536), b""):
-            total += chunk.count(b"\n")
-    return total
+        sample = fh.read(_LINE_COUNT_SAMPLE_BYTES)
+    sample_lines = sample.count(b"\n")
+    if sample_lines == 0:
+        return 0
+    return int(sample_lines * (size / len(sample)))
 
 
 def _scan_dir(path: Path, label: Optional[str] = None) -> tuple[List[LogFile], int]:
