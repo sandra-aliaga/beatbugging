@@ -592,13 +592,28 @@ class VictoryScreen:
         self.console.print(self.build(stats, 0.0), end="")
 
 
-_BIOS_BANNER = r"""
- ▄▄▄▄    ▄▄▄▄   ▄▄▄    ▓██   ██▓  ██████    ▄▄▄█████▓ ▒█████   ▒█████   ██▓
-▓█████▄ ▓█████▄▒████▄   ▒██  ██▒▒██    ▒    ▓  ██▒ ▓▒▒██▒  ██▒▒██▒  ██▒▓██▒
-▒██▒ ▄██▒██▒ ▄██▒██  ▀█▄  ▒██ ██░░ ▓██▄      ▒ ▓██░ ▒░▒██░  ██▒▒██░  ██▒▒██░
-▒██░█▀  ▒██░█▀  ░██▄▄▄▄██ ░ ▐██▓░  ▒   ██▒   ░ ▓██▓ ░ ▒██   ██░▒██   ██░▒██░
-░▓█  ▀█▓░▓█  ▀█▓ ▓█   ▓██▒░ ██▒▓░▒██████▒▒     ▒██▒ ░ ░ ████▓▒░░ ████▓▒░░██████
-"""
+# Rows 1-5 are static; rows 6-7 get dot blocks appended per animation frame.
+# Each "dot" = ▒▓██▓▒░ appended to both bottom rows.
+_LOADING_ART_TOP = """\
+░▒▓█▓▒░      ░▒▓██████▓▒░ ░▒▓██████▓▒░░▒▓███████▓▒░░▒▓█▓▒░▒▓███████▓▒░ ░▒▓██████▓▒░
+░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░
+░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░
+░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒▒▓███▓▒░
+░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░"""
+_LOADING_ART_BOT = (
+    "░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░",
+    "░▒▓████████▓▒░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓███████▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓██████▓▒░",
+)
+_LOADING_DOT_BLOCK = "▒▓██▓▒░"
+
+
+def _loading_art(n_dots: int) -> str:
+    dots = _LOADING_DOT_BLOCK * n_dots
+    return (
+        _LOADING_ART_TOP + "\n"
+        + _LOADING_ART_BOT[0] + dots + "\n"
+        + _LOADING_ART_BOT[1] + dots
+    )
 
 _MODULES = [
     ("audio.subsystem      ", "freq synth + mixer"),
@@ -717,11 +732,10 @@ class LoadingScreen:
     def __init__(self, console: Console):
         self.console = console
 
-    def _header(self) -> Text:
-        out = Text()
-        banner_lines = _BIOS_BANNER.strip("\n").splitlines()
-        for line in banner_lines:
-            out.append(line + "\n", style="primary.bold")
+    def _header(self, tick: int) -> Text:
+        n_dots = (tick % 3) + 1
+        out = Text(_loading_art(n_dots), style="primary.bold")
+        out.append("\n")
         out.append("BEATBUGGING SYSTEM  v2.0.42  (c) 2026 BB CORP",
                    style="primary.dim")
         return out
@@ -733,14 +747,13 @@ class LoadingScreen:
         per_module = max(0.25, duration / n)
         ticks_per_module = max(5, int(per_module / tick))
 
-        header = self._header()
         title = Text(f">>> {message} <<<", style="accent.bold")
 
         completed_modules: list[Text] = []
-        # Rolling stream of hacker log lines (most recent at bottom)
-        log_window = 8  # show last N hacker lines
+        log_window = 8
         hacker_log: list[Text] = []
         op_idx = random.randint(0, len(_HACKER_OPS) - 1)
+        global_tick = 0
 
         with Live(console=self.console, refresh_per_second=24,
                   transient=False, screen=False) as live:
@@ -748,7 +761,6 @@ class LoadingScreen:
                 for t in range(ticks_per_module + 1):
                     progress = min(1.0, t / ticks_per_module)
 
-                    # Add a new hacker line every couple of ticks
                     if t % 2 == 0:
                         hacker_log.append(_hacker_line(op_idx))
                         op_idx += 1
@@ -757,7 +769,7 @@ class LoadingScreen:
 
                     current = _module_line(name, desc, progress)
                     live.update(Align.center(Group(
-                        header,
+                        Align.center(self._header(global_tick // 6)),
                         Text(""),
                         Align.center(title),
                         Text(""),
@@ -766,14 +778,14 @@ class LoadingScreen:
                         Text(""),
                         *hacker_log,
                     )))
+                    global_tick += 1
                     time.sleep(tick)
                 completed_modules.append(_module_line(name, desc, 1.0))
 
-            # Final flash
             done_line = Text("  ALL SYSTEMS GO — entering debug session...",
                              style="accent.bold")
             live.update(Align.center(Group(
-                header,
+                Align.center(self._header(global_tick // 6)),
                 Text(""),
                 Align.center(title),
                 Text(""),
