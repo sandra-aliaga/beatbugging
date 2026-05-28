@@ -1,11 +1,6 @@
-```
-██████╗ ███████╗ █████╗ ████████╗██████╗ ██╗   ██╗ ██████╗  ██████╗ ██╗███╗   ██╗ ██████╗
-██╔══██╗██╔════╝██╔══██╗╚══██╔══╝██╔══██╗██║   ██║██╔════╝ ██╔════╝ ██║████╗  ██║██╔════╝
-██████╔╝█████╗  ███████║   ██║   ██████╔╝██║   ██║██║  ███╗██║  ███╗██║██╔██╗ ██║██║  ███╗
-██╔══██╗██╔══╝  ██╔══██║   ██║   ██╔══██╗██║   ██║██║   ██║██║   ██║██║██║╚██╗██║██║   ██║
-██████╔╝███████╗██║  ██║   ██║   ██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝██║██║ ╚████║╚██████╔╝
-╚═════╝ ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝
-```
+<div align="center">
+<img src="img/banner.jpg" alt="BeatBugging" width="100%">
+</div>
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white)](https://www.python.org/)
@@ -45,18 +40,6 @@ Built for the **GitHub "For the Love of Code" Hackathon** — Category 4: Game o
 
 ---
 
-## Screenshots
-
-<div align="center">
-<img src="img/MainMenu.png" width="45%">
-<img src="img/DataSelection.png" width="45%">
-<img src="img/Loading.png" width="45%">
-<img src="img/GamePlay.png" width="45%">
-<img src="img/Victoria.png" width="45%">
-<img src="img/GameOver.png" width="45%">
-</div>
-
----
 
 ## How it works
 
