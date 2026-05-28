@@ -1,257 +1,170 @@
-# 🎵 BeatBugging
-
-**Transform System Logs into Rhythmic Debugging Adventures**
-
 ```
-██████╗ ███████╗ █████╗ ████████╗██████╗ ██╗   ██╗ ██████╗  ██████╗ ██╗███╗   ██╗ ██████╗ 
-██╔══██╗██╔════╝██╔══██╗╚══██╔══╝██╔══██╗██║   ██║██╔════╝ ██╔════╝ ██║████╗  ██║██╔════╝ 
+██████╗ ███████╗ █████╗ ████████╗██████╗ ██╗   ██╗ ██████╗  ██████╗ ██╗███╗   ██╗ ██████╗
+██╔══██╗██╔════╝██╔══██╗╚══██╔══╝██╔══██╗██║   ██║██╔════╝ ██╔════╝ ██║████╗  ██║██╔════╝
 ██████╔╝█████╗  ███████║   ██║   ██████╔╝██║   ██║██║  ███╗██║  ███╗██║██╔██╗ ██║██║  ███╗
 ██╔══██╗██╔══╝  ██╔══██║   ██║   ██╔══██╗██║   ██║██║   ██║██║   ██║██║██║╚██╗██║██║   ██║
 ██████╔╝███████╗██║  ██║   ██║   ██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝██║██║ ╚████║╚██████╔╝
-╚═════╝ ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝ 
+╚═════╝ ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝
 ```
-
-> **OH NO, the system crashed!** You open the logs, sit on your hacker's chair and now... IT'S TIME TO BEATBUGGING!
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![ForTheLoveOfCode](https://img.shields.io/badge/%23ForTheLoveOfCode-GitHub%20Hackathon-purple?logo=github)](https://github.com/topics/fortheloveofcode)
 
-> **BeatBugging** revolutionizes debugging by turning system logs into playable music. Built for the **GitHub "For the Love of Code" Hackathon** - **Category 4: Game on** 🎮
+**OH NO. The system crashed.**
 
-*Code is your controller. Transform the mundane task of debugging into an epic rhythm game adventure!*
+You open the terminal. You open the logs. You sit in your hacker chair and stare at 50,000 lines of pure chaos.
 
-## 🎬 Demo
+But wait. Do you hear that?
+
+*Every error has a frequency. Every warning has a rhythm. Every crash... has a beat.*
+
+**IT'S TIME TO BEATBUGGING.**
+
+---
+
+BeatBugging is a terminal rhythm game that turns your real log files into music. Load any `.log` file — your system logs, your app logs, your 1M-line production disaster — and the game hashes each line to generate a unique song. Your keyboard is your instrument. Hit the beats or watch the system die.
+
+Built for the **GitHub "For the Love of Code" Hackathon** — Category 4: Game on.
+
+---
+
+## Demo
+
+### Full game walkthrough
 
 <div align="center">
-<img src="img/gameplay.gif" alt="BeatBugging Gameplay" width="50%">
+<img src="img/gameplay_full.gif" alt="BeatBugging Gameplay" width="60%">
 </div>
 
-## 📸 Screenshots
+### Listen mode — just the music, no input required
 
-### Main Menu
 <div align="center">
-<img src="img/MainMenu.png" alt="Main Menu" width="50%">
+<img src="img/listen_mode.gif" alt="Listen Mode" width="60%">
 </div>
 
-### Data Selection
+---
+
+## Screenshots
+
 <div align="center">
-<img src="img/DataSelection.png" alt="Data Selection Screen" width="50%">
+<img src="img/MainMenu.png" width="45%">
+<img src="img/DataSelection.png" width="45%">
+<img src="img/Loading.png" width="45%">
+<img src="img/GamePlay.png" width="45%">
+<img src="img/Victoria.png" width="45%">
+<img src="img/GameOver.png" width="45%">
 </div>
 
-### Loading Screen
-<div align="center">
-<img src="img/Loading.png" alt="Loading" width="50%">
-</div>
+---
 
-### Gameplay
-<div align="center">
-<img src="img/GamePlay.png" alt="Gameplay Screenshot" width="50%">
-</div>
+## How it works
 
-### Victory Screen
-<div align="center">
-<img src="img/Victoria.png" alt="Victory" width="50%">
-</div>
+Each log line is hashed with SHA-256 to deterministically assign it a grid coordinate and a waveform. Same logs, same song — every time.
 
-### Win Screen
-<div align="center">
-<img src="img/Win.png" alt="Win" width="50%">
-</div>
+The severity of the entry determines the sound:
 
-### Game Over
-<div align="center">
-<img src="img/GameOver.png" alt="Game Over" width="50%">
-</div>
-
-### Skull Icon
-<div align="center">
-<img src="img/Skull.png" alt="Skull" width="50%">
-</div>
-
-## 🎯 What Makes This Special?
-
-**BeatBugging** takes two completely unrelated things - **system debugging** and **rhythm games** - and mashes them together into something surprisingly addictive. Every bug becomes a beat, every error becomes a note, and every successful fix becomes a perfect combo!
-
-### 🎵 **Musical Log Analysis**
-Your boring system logs become **actual music**:
-```python
-# This log line...
-2025-09-23 12:16:24.503  ERROR  pdv.test.app  Invalid ID 0x00000000.
-
-# Becomes this musical note at coordinate "AJ" with sawtooth wave!
+```
+ERROR  ->  sawtooth wave    (aggressive, distorted)
+WARN   ->  square wave      (sharp, punchy)
+INFO   ->  triangle wave    (clean, melodic)
+DEBUG  ->  sine wave        (smooth, quiet)
 ```
 
-### 🎮 **Rhythm Game Mechanics**
-- **5×5 Grid Gameplay** - Hit coordinate combinations like a pro debugger
-- **Musical Timing** - Each log entry appears exactly when its "note" plays
-- **Perfect/Good/Okay/Miss** - Debug with precision or watch your system crash!
-- **Combo System** - Chain successful fixes for massive score multipliers
-- **Health System** - Too many missed bugs = system failure!
+Every line becomes a note on a 5x5 grid. The game plays the song. You hit the coordinates in time. Miss too many and the system dies for real.
 
-### 🛠️ **Built for Developers, By Developers**
-- **Real Log Files** - Scan your actual system logs (`/var/log`, user logs, etc.)
-- **Smart File Detection** - Automatically finds and previews log files
-- **Multiple Formats** - JSON logs, Logcat, timestamped entries, raw text
-- **Difficulty Modes** - User (Normal) and Root (Hard) for different skill levels
+---
 
-### 🎨 **Customizable Color Themes**
-Choose your debugging style with multiple color themes for the main menu:
+## Controls
 
-<div align="center">
-<img src="img/theme_blue_1.png" alt="Blue Theme" width="45%">
-<img src="img/theme_blue_2.png" alt="Blue Theme" width="45%">
-</div>
+```
+  Columns:  A  S  D  E  F     (left hand, home row)
+  Rows:     J  K  L  M  N     (right hand, home row)
 
-- **Default Theme** - Classic green matrix style for that hacker feel
-- **Blue** - Electric blue and cyan for futuristic debugging
-- **Custom Themes** - Easy theme switching with JSON configuration
+  To hit coordinate AJ:  press A, then J.
+  To hit coordinate DL:  press D, then L.
+```
 
-## 🚀 Quick Start
+The grid flashes green when a note is live. Hit it. Don't miss it. Combo or die.
 
-### Prerequisites
-- **Python 3.10+**
-- **Audio device**
-- **Log files to debug!** (the game will find them for you)
+---
 
-### Install once, run from anywhere
+## Quick start
 
 ```bash
-# Clone the repo
 git clone https://github.com/sandra-aliaga/beatbugging.git
 cd beatbugging
-
-# Run the installer (sets up venv + adds `beatbugging` command to your PATH)
 ./install.sh
 
-# START BEATBUGGING from any directory! 🎵
 beatbugging
 ```
 
-**That's it!** The installer creates a `beatbugging` command in `~/.local/bin` so you can launch the game from anywhere in your terminal.
+The installer sets up a virtualenv and adds a `beatbugging` command to `~/.local/bin`. Restart your terminal (or `source ~/.bashrc`) if the command isn't found right away.
 
-> Restart your terminal (or `source ~/.bashrc`) after the first install so the PATH change takes effect.
-
-### Manual setup (alternative)
-
-If you prefer to manage the environment yourself:
+You can also point it at a specific directory:
 
 ```bash
-git clone https://github.com/sandra-aliaga/beatbugging.git
-cd beatbugging
+beatbugging /path/to/your/logs
+```
 
+### Manual setup
+
+```bash
 python3 -m venv venv
 source venv/bin/activate
-
 pip install -r requirements.txt
 python main.py
 ```
 
-## 🎮 How to Play Like a Pro
+---
 
-### 1. **Choose Your Debugging Challenge**
-- Browse auto-discovered log files with fuzzy search
-- See file previews, line counts, and content samples
-- Pick your poison: **User (Normal)** or **Root (Hard)**
+## File discovery
 
-### 2. **Master the Debug Controls**
-```
-Columns: A S D E F  (left hand)
-Rows:    J K L M N  (right hand)
+On launch the game scans for `.log` files across:
 
-Hit combinations: A+J, S+K, D+L, E+M, F+N
-```
+- Current working directory
+- `/var/log`
+- `~/.local/share`
+- `/tmp`
+- Your entire home directory (dotfile dirs and build artifacts skipped automatically)
+- Any extra path passed as a CLI argument
 
-## 🛠️ Technical Innovation
-
-### **The Log-to-Music Algorithm**
-```python
-def create_musical_note(log_line):
-    # SHA-256 hash ensures same logs = same music
-    hash_value = hashlib.sha256(log_line.encode()).hexdigest()
-    
-    # Map to musical coordinates
-    column = COLUMNS[int(hash_value[:2], 16) % 5]  # A-F
-    row = ROWS[int(hash_value[2:4], 16) % 5]       # J-N
-    coordinate = f"{column}{row}"
-    
-    # Severity determines waveform
-    if "ERROR" in log_line: return sawtooth_wave(frequency)
-    if "WARN" in log_line:  return square_wave(frequency)
-    if "INFO" in log_line:  return triangle_wave(frequency)
-    return sine_wave(frequency)  # DEBUG
-```
-
-## 📦 Dependencies & Tools
-
-```json
-{
-  "core_engine": {
-    "numpy": "High-performance audio array processing",
-    "pygame-ce": "Real-time audio playback and mixing (community edition, Python 3.10+ support)"
-  },
-  "game_interface": {
-    "rich": "Beautiful terminal rendering and layouts", 
-    "textual": "Modern CLI application framework"
-  },
-  "no_paid_services": "100% free and open source!",
-  "setup_time": "< 2 minutes from clone to play"
-}
-```
-
-**Zero paid services required** - just Python and the love of turning bugs into beats! 🎵
-
-
-## 🏆 For the Love of Code - Category 4: Game on
-
-**Why BeatBugging fits perfectly:**
-
-```
-┌─────────────────────────────────────────────────────────┐
-│ "Code is your controller"                               │
-│ → Your actual log files become the game content         │
-│                                                         │
-│ "Fun first, functional close behind"                    │
-│ → Turns boring debugging into addictive gameplay        │
-│                                                         │
-│ "Interactive experience"                                │
-│ → Real-time rhythm game with immediate feedback         │
-│                                                         │
-│ "Completely original"                                   │
-│ → Nobody has ever made debugging this fun before!       │
-│                                                         │
-│ "Mashing up genres"                                     │
-│ → DevOps tools + Rhythm games = Pure innovation         │
-└─────────────────────────────────────────────────────────┘
-```
-
-*Built with pure joy for the art of coding and the love of making developers smile while they debug!*
-
-
-### #ForTheLoveOfCode 🧡
-**Category 4: Game on** 🎮
-
-*"Every bug deserves a beat, every error needs a rhythm, and every crash calls for a crescendo!"*
-
-**Making the world's most boring task into the most epic musical adventure - because debugging should be this fun!**
+Files appear in real time as they're found. Fuzzy search to filter. Sorted by line count — the bigger the log, the longer the song.
 
 ---
 
-## 🆘 Need Help Debugging the Debugger?
+## Settings
 
-- **🐛 Found a bug?** [Open an issue](https://github.com/sandra-aliaga/beatbugging/issues) 
-- **💡 Epic idea?** [Start a discussion](https://github.com/sandra-aliaga/beatbugging/discussions)
-- **❓ How does this magic work?** The code is well-documented - dive in!
-- **🎵 Want to jam?** Tag your gameplay with `#ForTheLoveOfCode`
+Four color themes available in-game:
 
+```
+Matrix    green   — the one true hacker aesthetic
+Blood     red     — high-alert, maximum stress
+Ocean     blue    — calm seas, deadly logs
+Phosphor  amber   — vintage CRT from the before-times
+```
 
-## 📄 License
-
-MIT License - hack away and spread the debugging joy!
+Also configurable: musical scale (minor / major) and planet aspect ratio for the rotating ASCII sphere on the end screens.
 
 ---
 
-**Built with ❤️ for the GitHub "For the Love of Code" Hackathon**
+## Dependencies
 
+| Package      | Purpose                              |
+|-------------|--------------------------------------|
+| `numpy`      | Audio synthesis and waveform math    |
+| `pygame-ce`  | Real-time audio playback             |
+| `rich`       | Terminal rendering and layout        |
 
-*P.S. - Yes, this actually works. Yes, it's surprisingly addictive. Yes, you'll never look at log files the same way again.* 🎵🐛🎮
+No paid services. No cloud. No accounts. Just Python, your logs, and the rhythm.
+
+---
+
+## License
+
+MIT — hack away.
+
+---
+
+*Built with reckless joy for the GitHub "For the Love of Code" Hackathon.*  
+*#ForTheLoveOfCode — Category 4: Game on*
