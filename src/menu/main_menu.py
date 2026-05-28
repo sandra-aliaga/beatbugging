@@ -616,43 +616,55 @@ def run_file_browser(extra_paths: Optional[List[Path]] = None) -> Optional[LogFi
     def _scan():
         nonlocal scanning
         total_skipped = 0
-        cwd = Path(os.getcwd())
-        files, skipped = _scan_dir(cwd, label="./")
-        total_skipped += skipped
-        with scan_lock:
-            all_files.extend(files)
+        seen: set[Path] = set()
 
-        fixed_dirs = [
-            (Path("/var/log"),              False),
-            (Path.home() / ".local/share",  False),
-            (Path("/tmp"),                  False),
-            (Path.home(),                   True),   # skip_hidden=True to avoid .git etc.
-        ]
-        for p, skip_h in fixed_dirs:
-            if p.exists():
-                files, skipped = _scan_dir(p, skip_hidden=skip_h)
-                total_skipped += skipped
+        def _stream(path: Path, label: Optional[str] = None, skip_hidden: bool = False):
+            nonlocal total_skipped
+            for p in _iter_log_files(path, skip_hidden=skip_hidden):
+                rp = p.resolve()
                 with scan_lock:
-                    all_files.extend(files)
+                    if rp in seen:
+                        continue
+                    seen.add(rp)
+                try:
+                    if not p.is_file():
+                        continue
+                    stat = p.stat()
+                    try:
+                        line_count = _count_lines(p)
+                    except Exception:
+                        total_skipped += 1
+                        continue
+                    if line_count == 0:
+                        total_skipped += 1
+                        continue
+                    f = LogFile(
+                        path=p,
+                        score=1.0,
+                        name=p.name,
+                        parent_dir=label if label is not None else str(p.parent),
+                        size=stat.st_size,
+                        line_count=line_count,
+                    )
+                    with scan_lock:
+                        all_files.append(f)
+                except (OSError, PermissionError):
+                    total_skipped += 1
 
+        _stream(Path(os.getcwd()), label="./")
+        for p, skip_h in [
+            (Path("/var/log"),             False),
+            (Path.home() / ".local/share", False),
+            (Path("/tmp"),                 False),
+            (Path.home(),                  True),
+        ]:
+            if p.exists():
+                _stream(p, skip_hidden=skip_h)
         for p in (extra_paths or []):
             if p.exists():
-                files, skipped = _scan_dir(p)
-                total_skipped += skipped
-                with scan_lock:
-                    all_files.extend(files)
+                _stream(p)
 
-        with scan_lock:
-            # Deduplicate by resolved path (home overlaps with ~/.local/share etc.)
-            seen: set[Path] = set()
-            unique: List[LogFile] = []
-            for f in all_files:
-                rp = f.path.resolve()
-                if rp not in seen:
-                    seen.add(rp)
-                    unique.append(f)
-            all_files[:] = unique
-            scan_skipped[0] = total_skipped
+        scan_skipped[0] = total_skipped
         scanning = False
 
     threading.Thread(target=_scan, daemon=True).start()
