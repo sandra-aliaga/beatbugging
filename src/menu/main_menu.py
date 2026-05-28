@@ -122,6 +122,17 @@ sound_manager = SoundManager()
 _LINE_COUNT_FAST_THRESHOLD = 100 * 1024 * 1024  # 100MB — read in full
 _LINE_COUNT_SAMPLE_BYTES   = 2 * 1024 * 1024    # for huge files: sample first 2MB
 
+# Dirs to prune when walking — avoids scanning build artifacts, VCS metadata, etc.
+_SKIP_DIRS: frozenset[str] = frozenset({
+    ".git", ".hg", ".svn",
+    "node_modules", ".npm", ".yarn", ".pnpm-store",
+    ".cargo", ".rustup", "target",
+    "__pycache__", ".venv", "venv", "env", "site-packages",
+    ".cache", ".local",  # .local/lib has tons of Python pkg files
+    "build", "dist", ".next", ".nuxt",
+    "vendor",
+})
+
 def _count_lines(p: Path) -> int:
     """Count lines in a file.
 
@@ -145,37 +156,50 @@ def _count_lines(p: Path) -> int:
     return int(sample_lines * (size / len(sample)))
 
 
-def _scan_dir(path: Path, label: Optional[str] = None) -> tuple[List[LogFile], int]:
+def _iter_log_files(path: Path, skip_hidden: bool = False):
+    """Yield *.log Paths under *path*, pruning noisy subdirectories."""
+    try:
+        for dirpath, dirnames, filenames in os.walk(path, followlinks=False):
+            dirnames[:] = [
+                d for d in dirnames
+                if d not in _SKIP_DIRS
+                and not (skip_hidden and d.startswith("."))
+            ]
+            for name in filenames:
+                if name.endswith(".log"):
+                    yield Path(dirpath) / name
+    except (OSError, PermissionError):
+        pass
+
+
+def _scan_dir(path: Path, label: Optional[str] = None, skip_hidden: bool = False) -> tuple[List[LogFile], int]:
     """Returns (files, skipped_count)."""
     results = []
     skipped = 0
-    try:
-        for p in path.rglob("*.log"):
+    for p in _iter_log_files(path, skip_hidden=skip_hidden):
+        try:
+            if not p.is_file():
+                continue
+            stat = p.stat()
             try:
-                if not p.is_file():
-                    continue
-                stat = p.stat()
-                try:
-                    line_count = _count_lines(p)
-                except Exception:
-                    skipped += 1
-                    continue
-                if line_count == 0:
-                    skipped += 1
-                    continue
-                results.append(LogFile(
-                    path=p,
-                    score=1.0,
-                    name=p.name,
-                    parent_dir=label if label is not None else str(p.parent),
-                    size=stat.st_size,
-                    line_count=line_count,
-                ))
-            except (OSError, PermissionError):
+                line_count = _count_lines(p)
+            except Exception:
                 skipped += 1
                 continue
-    except (OSError, PermissionError):
-        pass
+            if line_count == 0:
+                skipped += 1
+                continue
+            results.append(LogFile(
+                path=p,
+                score=1.0,
+                name=p.name,
+                parent_dir=label if label is not None else str(p.parent),
+                size=stat.st_size,
+                line_count=line_count,
+            ))
+        except (OSError, PermissionError):
+            skipped += 1
+            continue
     results.sort(key=lambda f: f.line_count, reverse=True)
     return results, skipped
 
@@ -576,7 +600,7 @@ def _build_file_table(visible: List[LogFile], scroll_offset: int, cursor: int) -
     return table
 
 
-def run_file_browser() -> Optional[LogFile]:
+def run_file_browser(extra_paths: Optional[List[Path]] = None) -> Optional[LogFile]:
     """Returns selected LogFile, or None (back to title)."""
     console = Settings.make_console()
     all_files: List[LogFile] = []
@@ -597,17 +621,37 @@ def run_file_browser() -> Optional[LogFile]:
         total_skipped += skipped
         with scan_lock:
             all_files.extend(files)
-        for p in [
-            Path("/var/log"),
-            Path.home() / ".local" / "share",
-            Path("/tmp"),
-        ]:
+
+        fixed_dirs = [
+            (Path("/var/log"),              False),
+            (Path.home() / ".local/share",  False),
+            (Path("/tmp"),                  False),
+            (Path.home(),                   True),   # skip_hidden=True to avoid .git etc.
+        ]
+        for p, skip_h in fixed_dirs:
+            if p.exists():
+                files, skipped = _scan_dir(p, skip_hidden=skip_h)
+                total_skipped += skipped
+                with scan_lock:
+                    all_files.extend(files)
+
+        for p in (extra_paths or []):
             if p.exists():
                 files, skipped = _scan_dir(p)
                 total_skipped += skipped
                 with scan_lock:
                     all_files.extend(files)
+
         with scan_lock:
+            # Deduplicate by resolved path (home overlaps with ~/.local/share etc.)
+            seen: set[Path] = set()
+            unique: List[LogFile] = []
+            for f in all_files:
+                rp = f.path.resolve()
+                if rp not in seen:
+                    seen.add(rp)
+                    unique.append(f)
+            all_files[:] = unique
             scan_skipped[0] = total_skipped
         scanning = False
 
@@ -1054,7 +1098,7 @@ def run_listen_screen(log_file: LogFile) -> None:
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
-def run_menu() -> Optional[dict]:
+def run_menu(extra_paths: Optional[List[Path]] = None) -> Optional[dict]:
     while True:
         try:
             action = run_title_screen()
@@ -1072,7 +1116,7 @@ def run_menu() -> Optional[dict]:
         # action == "play"
         while True:
             try:
-                log_file = run_file_browser()
+                log_file = run_file_browser(extra_paths=extra_paths)
             except KeyboardInterrupt:
                 return None
             if log_file is None:

@@ -334,7 +334,7 @@ class GameEngine:
         try:
             while self.running:
                 if self.state == GameState.MENU:
-                    game_config = run_menu()
+                    game_config = run_menu(extra_paths=getattr(self, "extra_paths", None))
                     if game_config:
                         # Guardar el archivo y dificultad seleccionados
                         self.selected_log_file = game_config.get('file')
@@ -678,10 +678,13 @@ def main():
     log_dir = Path.home() / ".local" / "share" / "beatbugging"
     log_path = log_dir / "error.log"
 
+    extra_paths = [Path(a) for a in sys.argv[1:] if Path(a).exists()]
+
     try:
         Settings.load()
         engine = GameEngine()
         engine.state = GameState.MENU
+        engine.extra_paths = extra_paths
         engine.run()
     except Exception:
         log_dir.mkdir(parents=True, exist_ok=True)
